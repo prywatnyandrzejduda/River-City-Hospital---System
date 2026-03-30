@@ -2,153 +2,85 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ADMIN PANEL - Hospital System</title>
     <style>
         :root { --accent: #ff4757; --bg: #0b0c0d; --card: #1c1f22; }
-        body { background: var(--bg); color: #e0e0e0; font-family: 'Inter', sans-serif; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        body { 
+            background: var(--bg); 
+            color: #e0e0e0; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            margin: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            overflow: hidden;
+        }
         
         /* Ekran logowania */
-        #login-screen { background: var(--card); padding: 40px; border-radius: 15px; border: 2px solid var(--accent); text-align: center; box-shadow: 0 0 20px rgba(255, 71, 87, 0.2); }
-        input { padding: 12px; width: 200px; background: #000; border: 1px solid #444; color: white; border-radius: 5px; margin-bottom: 10px; text-align: center; }
-        button { padding: 12px 25px; background: var(--accent); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        #login-screen { 
+            background: var(--card); 
+            padding: 40px; 
+            border-radius: 15px; 
+            border: 2px solid var(--accent); 
+            text-align: center; 
+            box-shadow: 0 0 20px rgba(255, 71, 87, 0.2); 
+            z-index: 999;
+        }
+        input { padding: 12px; width: 200px; background: #000; border: 1px solid #444; color: white; border-radius: 5px; margin-bottom: 10px; text-align: center; outline: none; }
+        button { padding: 12px 25px; background: var(--accent); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; text-transform: uppercase; }
+        button:hover { opacity: 0.8; }
         
         /* Panel po zalogowaniu */
-        #admin-content { display: none; width: 100%; height: 100vh; flex-direction: row; }
-        .sidebar { width: 300px; background: #141619; border-right: 2px solid #333; padding: 20px; overflow-y: auto; }
-        .main-view { flex: 1; padding: 30px; overflow-y: auto; }
-        .p-item { padding: 15px; background: #222; margin-bottom: 10px; border-radius: 5px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-        .history-item { background: #1c1f23; padding: 15px; border-left: 4px solid var(--accent); margin-bottom: 10px; position: relative; }
-        .btn-red { background: #ff4757; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; }
-        .hidden { display: none; }
+        #admin-content { display: none; width: 100vw; height: 100vh; flex-direction: row; }
+        .sidebar { width: 320px; background: #141619; border-right: 2px solid #333; padding: 20px; display: flex; flex-direction: column; }
+        .main-view { flex: 1; padding: 30px; overflow-y: auto; background: #0b0c0d; }
+        
+        #lista_pacjentow { flex-grow: 1; overflow-y: auto; margin-top: 20px; }
+        .p-item { 
+            padding: 15px; 
+            background: rgba(255,255,255,0.05); 
+            margin-bottom: 8px; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            transition: 0.2s;
+        }
+        .p-item:hover { background: rgba(255,255,255,0.1); }
+        
+        .history-item { 
+            background: #1c1f23; 
+            padding: 20px; 
+            border-left: 4px solid var(--accent); 
+            margin-bottom: 15px; 
+            position: relative; 
+            border-radius: 4px;
+        }
+        .btn-red { background: #ff4757; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 10px; }
+        .btn-del-entry { position: absolute; top: 10px; right: 10px; background: #c0392b; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 10px; }
     </style>
 </head>
 <body>
 
 <div id="login-screen">
-    <h2 style="color: var(--accent)">AUTORYZACJA DYREKCJI</h2>
-    <p>Podaj kod dostępu do bazy danych:</p>
+    <h2 style="color: var(--accent); margin-top: 0;">AUTORYZACJA</h2>
+    <p style="font-size: 14px; color: #888;">Wymagane uprawnienia Dyrektora</p>
     <input type="password" id="pass_input" placeholder="HASŁO">
     <br>
-    <button onclick="checkPass()">ZALOGUJ SIĘ</button>
-    <p id="error" style="color: red; font-size: 12px; margin-top: 10px;"></p>
+    <button onclick="checkPass()">Zaloguj do bazy</button>
+    <p id="error" style="color: #ff4757; font-size: 12px; margin-top: 10px; font-weight: bold;"></p>
 </div>
 
 <div id="admin-content">
     <div class="sidebar">
-        <h3 style="color: var(--accent)">ZARZĄDZANIE</h3>
-        <button style="width:100%; margin-bottom: 10px;" onclick="location.reload()">ODŚWIEŻ BAZĘ</button>
-        <hr>
+        <h2 style="color: var(--accent); letter-spacing: 1px;">ADMIN PANEL</h2>
+        <div style="font-size: 10px; color: #666; margin-bottom: 20px;">ZALOGOWANO JAKO DYREKTOR</div>
+        <button style="background: #333;" onclick="location.reload()">ODŚWIEŻ DANE</button>
         <div id="lista_pacjentow"></div>
     </div>
     <div class="main-view">
-        <h1 id="selected_name">Wybierz pacjenta, aby edytować kartotekę</h1>
-        <div id="historia_kontener"></div>
-    </div>
-</div>
-
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-
-<script>
-    // 1. MECHANIZM HASŁA
-    function checkPass() {
-        const pass = document.getElementById('pass_input').value;
-        const correctPass = "Dyrektor2024"; // TUTAJ MOŻESZ ZMIENIĆ HASŁO
-
-        if(pass === correctPass) {
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('admin-content').style.display = 'flex';
-            initFirebase(); // Odpalamy bazę dopiero po zalogowaniu
-        } else {
-            document.getElementById('error').innerText = "NIEPRAWIDŁOWE HASŁO!";
-        }
-    }
-
-    // 2. KONFIGURACJA FIREBASE
-    function initFirebase() {
-        const firebaseConfig = {
-            apiKey: "AIzaSyC5MioZo7CMVGopaZANfglS12Gy_TMPzEw",
-            authDomain: "baza-danych-cd445.firebaseapp.com",
-            databaseURL: "https://baza-danych-cd445-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "baza-danych-cd445",
-            storageBucket: "baza-danych-cd445.firebasestorage.app",
-            messagingSenderId: "234044597162",
-            appId: "1:234044597162:web:f46e383b858a363aea01d3"
-        };
-
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        
-        const db = firebase.database();
-        loadData(db);
-    }
-
-    let globalData = [];
-    let activeIdx = -1;
-
-    function loadData(db) {
-        db.ref('pacjenci').on('value', (snapshot) => {
-            const data = snapshot.val();
-            globalData = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
-            renderList();
-            if(activeIdx !== -1) showHistory();
-        });
-    }
-
-    function renderList() {
-        const listDiv = document.getElementById('lista_pacjentow');
-        listDiv.innerHTML = "";
-        globalData.forEach((p, i) => {
-            if(!p) return;
-            const item = document.createElement('div');
-            item.className = 'p-item';
-            item.innerHTML = `<span><b>${p.name}</b></span> 
-                              <button class="btn-red" onclick="deletePatient(${i})">USUŃ CAŁOŚĆ</button>`;
-            item.onclick = (e) => {
-                if(e.target.tagName !== 'BUTTON') {
-                    activeIdx = i;
-                    showHistory();
-                }
-            };
-            listDiv.appendChild(item);
-        });
-    }
-
-    function showHistory() {
-        const p = globalData[activeIdx];
-        document.getElementById('selected_name').innerText = "PACJENT: " + p.name;
-        const cont = document.getElementById('historia_kontener');
-        cont.innerHTML = "<h3>Historia wpisów:</h3>";
-        
-        p.history.forEach((h, hIdx) => {
-            const div = document.createElement('div');
-            div.className = 'history-item';
-            div.innerHTML = `<small>${h.time} - ${h.rank}</small>
-                             <p>${h.txt}</p>
-                             <b>Podpis: ${h.doc}</b>
-                             <button style="position:absolute; top:10px; right:10px; background:red; color:white; border:none; cursor:pointer;" 
-                                     onclick="deleteEntry(${hIdx})">USUŃ WPIS</button>`;
-            cont.appendChild(div);
-        });
-    }
-
-    function deletePatient(idx) {
-        if(confirm("Czy na pewno chcesz USUNĄĆ CAŁĄ KARTOTEKĘ? Tego nie da się cofnąć.")) {
-            globalData.splice(idx, 1);
-            firebase.database().ref('pacjenci').set(globalData);
-            activeIdx = -1;
-            document.getElementById('selected_name').innerText = "Wybierz pacjenta";
-            document.getElementById('historia_kontener').innerHTML = "";
-        }
-    }
-
-    function deleteEntry(hIdx) {
-        if(confirm("Czy na pewno chcesz usunąć ten konkretny wpis z historii?")) {
-            globalData[activeIdx].history.splice(hIdx, 1);
-            firebase.database().ref('pacjenci').set(globalData);
-        }
-    }
-</script>
-</body>
-</html>
+        <h1 id="selected_name" style="color: #444;">Wybierz pacjenta z listy...</h1>
+        <div id
