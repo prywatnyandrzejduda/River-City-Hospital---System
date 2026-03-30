@@ -372,6 +372,240 @@
     function logVitals() { addNote(`VITALS: BP ${document.getElementById('vit_bp').value} | HR ${document.getElementById('vit_hr').value}`); }
     function generujOrzeczenie() { let f = document.getElementById('cert_final').value; if(f==='BRAK') return; pacjenci[aktywIdx].cert = f; addNote(`ORZECZENIE: ${f}`); synchronizuj(); }
     function finalizujWypis() { pacjenci[aktywIdx].arch = true; synchronizuj(); }
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+<script>
+    // 1. KONFIGURACJA (Twoje dane)
+    const firebaseConfig = {
+        apiKey: "AIzaSyC5MioZo7CMVGopaZANfglS12Gy_TMPzEw",
+        authDomain: "baza-danych-cd445.firebaseapp.com",
+        databaseURL: "https://baza-danych-cd445-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "baza-danych-cd445",
+        storageBucket: "baza-danych-cd445.firebasestorage.app",
+        messagingSenderId: "234044597162",
+        appId: "1:234044597162:web:f46e383b858a363aea01d3"
+    };
+
+    // 2. INICJALIZACJA
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let pacjenci = [];
+    let aktywIdx = -1;
+    let currentView = 'active';
+
+    // 3. NASŁUCHIWANIE BAZY (Z poprawką na pustą bazę)
+    db.ref('pacjenci').on('value', (snapshot) => {
+        const data = snapshot.val();
+        // Jeśli baza jest pusta, ustawiamy pustą tablicę, żeby .push() nie wywalało błędu
+        pacjenci = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
+        
+        updateStats();
+        renderLista();
+        
+        if(aktywIdx !== -1 && pacjenci[aktywIdx]) {
+            odswiezDanePacjenta();
+        }
+    });
+
+    // 4. FUNKCJE SYSTEMOWE
+    function synchronizuj() {
+        // Czyścimy tablicę z ewentualnych wartości null (częsty problem w Firebase)
+        const cleanData = pacjenci.filter(p => p !== null);
+        db.ref('pacjenci').set(cleanData).then(() => {
+            console.log("Dane zapisane pomyślnie.");
+        }).catch(err => {
+            console.error("Błąd zapisu:", err);
+            alert("Błąd bazy danych! Sprawdź uprawnienia (Rules) w Firebase.");
+        });
+    }
+
+    function updateStats() {
+        let active = pacjenci.filter(p => p && !p.arch).length;
+        let critical = pacjenci.filter(p => p && !p.arch && (p.status === "Krytyczny" || p.triage === "t-red")).length;
+        document.getElementById('count_active').innerText = active;
+        document.getElementById('count_critical').innerText = critical;
+    }
+
+    function nowyPacjent() {
+        let n = document.getElementById('add_name').value.trim();
+        if(!n) return alert("Wpisz imię i nazwisko!");
+
+        const nowy = { 
+            name: n, 
+            adr: "", 
+            job: "", 
+            ins: "", 
+            blood: "Nieznana", 
+            alergie: "", 
+            reason: "", 
+            status: "Stabilny", 
+            triage: "none", 
+            cert: "BRAK", 
+            arch: false, 
+            history: [{
+                id: Date.now(),
+                txt: "Rejestracja pacjenta w systemie.",
+                doc: "SYSTEM",
+                rank: "Automatyczny",
+                time: new Date().toLocaleString(),
+                auth: false
+            }] 
+        };
+
+        pacjenci.push(nowy);
+        document.getElementById('add_name').value = "";
+        
+        synchronizuj();
+        renderLista(); // Odśwież listę natychmiast dla lepszego UX
+    }
+
+    function renderLista() {
+        let l = document.getElementById('lista_pacjentow'); 
+        l.innerHTML = "";
+        
+        pacjenci.forEach((p, i) => {
+            if(!p) return; // Pomiń puste rekordy
+            
+            if((currentView === 'active' && !p.arch) || (currentView === 'archive' && p.arch)) {
+                let d = document.createElement('div');
+                d.className = `p-item ${aktywIdx === i ? 'active' : ''} ${p.arch ? 'archived' : ''}`;
+                d.innerHTML = `<b>${p.name}</b><br><small>${p.status}</small>`;
+                d.onclick = () => otworz(i);
+                l.appendChild(d);
+            }
+        });
+    }
+
+    function otworz(i) {
+        aktywIdx = i;
+        odswiezDanePacjenta();
+        document.getElementById('interface').classList.remove('hidden');
+        renderLista(); // Odśwież, aby podświetlić aktywny element
+    }
+
+    function odswiezDanePacjenta() {
+        let p = pacjenci[aktywIdx];
+        if(!p) return;
+
+        document.getElementById('disp_name').innerText = p.name;
+        document.getElementById('inp_adr').value = p.adr || "";
+        document.getElementById('inp_job').value = p.job || "";
+        document.getElementById('inp_ins').value = p.ins || "";
+        document.getElementById('inp_blood').value = p.blood || "Nieznana";
+        document.getElementById('inp_alergie').value = p.alergie || "";
+        document.getElementById('inp_reason').value = p.reason || "";
+        document.getElementById('inp_status').value = p.status || "Stabilny";
+        document.getElementById('inp_triage').value = p.triage || "none";
+        
+        updateTriageVisuals();
+        updateCertVisuals(p.cert);
+        pokazHistorie();
+    }
+
+    function zapiszWpis() {
+        if(aktywIdx === -1) return;
+        
+        let p = pacjenci[aktywIdx];
+        let txt = document.getElementById('inp_note').value.trim();
+        let doc = document.getElementById('inp_doc').value.trim();
+        let r = document.getElementById('inp_rank').value;
+        
+        if(!doc) return alert("Musisz podać podpis (imię i nazwisko lekarza)!");
+
+        // Aktualizacja pól danych
+        p.adr = document.getElementById('inp_adr').value;
+        p.job = document.getElementById('inp_job').value;
+        p.ins = document.getElementById('inp_ins').value;
+        p.blood = document.getElementById('inp_blood').value;
+        p.alergie = document.getElementById('inp_alergie').value;
+        p.reason = document.getElementById('inp_reason').value;
+        p.status = document.getElementById('inp_status').value;
+        p.triage = document.getElementById('inp_triage').value;
+
+        // Jeśli jest notatka, dodaj ją
+        if(txt) {
+            if(!p.history) p.history = [];
+            p.history.push({ 
+                id: Date.now(), 
+                txt: txt, 
+                doc: doc, 
+                rank: r, 
+                time: new Date().toLocaleString(), 
+                auth: (r === "Dyrektor Szpitala" || r === "Zarząd Szpitala") 
+            });
+            document.getElementById('inp_note').value = "";
+        }
+
+        synchronizuj();
+    }
+
+    function pokazHistorie() {
+        let c = document.getElementById('historia_kontener'), p = pacjenci[aktywIdx];
+        c.innerHTML = "<h3>HISTORIA MEDYCZNA</h3>";
+        if(!p || !p.history) return;
+        
+        p.history.slice().reverse().forEach(h => {
+            let div = document.createElement('div');
+            div.className = `history-item ${h.auth ? 'history-auth' : ''}`;
+            div.innerHTML = `<small>${h.time}</small><p style="white-space:pre-wrap;">${h.txt}</p><b>${h.doc}</b> (${h.rank})`;
+            c.appendChild(div);
+        });
+    }
+
+    // Pomocnicze
+    function setView(v) { currentView = v; renderLista(); }
+    function addNote(t) { document.getElementById('inp_note').value += (document.getElementById('inp_note').value ? "\n" : "") + t; }
+    function calcGCS() { 
+        let e = parseInt(document.getElementById('gcs_e').value);
+        let v = parseInt(document.getElementById('gcs_v').value);
+        let m = parseInt(document.getElementById('gcs_m').value);
+        document.getElementById('gcs_res').innerText = `SUMA: ${e+v+m} GCS`; 
+    }
+    function calcDrug() { 
+        let w = parseFloat(document.getElementById('calc_weight').value) || 0;
+        let mk = parseFloat(document.getElementById('calc_mgkg').value) || 0;
+        document.getElementById('calc_drug_res').innerText = `WYNIK: ${(w*mk).toFixed(2)} mg`; 
+    }
+    function updateTriageVisuals() { 
+        const val = document.getElementById('inp_triage').value;
+        const colors = {'none': '#333', 't-green': 'var(--green)', 't-yellow': 'var(--gold)', 't-red': 'var(--red)'};
+        document.getElementById('main-data-card').style.borderTopColor = colors[val]; 
+    }
+    function updateCertVisuals(s) { 
+        let h = document.getElementById('cert-status-header'); 
+        h.innerText = s === 'OK' ? 'DOPUSZCZONY' : (s === 'NO' ? 'NIEZDOLNY' : 'BRAK BADAŃ'); 
+        h.className = 'cert-box ' + (s === 'OK' ? 'status-ok' : (s === 'NO' ? 'status-no' : '')); 
+    }
+    function switchTab(id, b) { 
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden')); 
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active')); 
+        document.getElementById(id).classList.remove('hidden'); 
+        b.classList.add('active'); 
+    }
+    function podajLek() { 
+        addNote(`PODANO: ${document.getElementById('sel_lek').value} | DAWKA: ${document.getElementById('med_dose').value}${document.getElementById('med_unit').value}`); 
+    }
+    function logVitals() { 
+        addNote(`VITALS: BP ${document.getElementById('vit_bp').value} | HR ${document.getElementById('vit_hr').value} | SpO2 ${document.getElementById('vit_spo2').value}%`); 
+    }
+    function generujOrzeczenie() { 
+        let f = document.getElementById('cert_final').value; 
+        if(f==='BRAK') return; 
+        pacjenci[aktywIdx].cert = f; 
+        addNote(`ORZECZENIE: ${f} (${document.getElementById('cert_target').value})`); 
+        synchronizuj(); 
+    }
+    function finalizujWypis() { 
+        if(!confirm("Czy na pewno chcesz wypisać pacjenta?")) return;
+        pacjenci[aktywIdx].arch = true; 
+        addNote(`WYPIS: ${document.getElementById('exit_epikryza').value}`);
+        synchronizuj(); 
+        document.getElementById('interface').classList.add('hidden');
+        aktywIdx = -1;
+    }
+</script>
 </script>
 </body>
 </html>
