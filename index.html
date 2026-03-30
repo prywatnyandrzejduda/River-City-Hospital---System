@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Hospital System v5.60 - MODERN RP</title>
+    <style>
+        :root { 
+            --accent: #00d2d3; --psych: #a29bfe; --bg: #0b0c0d; --card: #1c1f22; 
+            --gold: #f1c40f; --red: #ff4757; --green: #2ecc71; --blue: #3498db; --cert: #ff9f43; --docs: #54a0ff; --discharge: #ee5253;
+        }
+        * { box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: var(--bg); color: #e0e0e0; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        
+        /* SIDEBAR */
+        #sidebar { width: 340px; background: #141619; border-right: 2px solid #333; padding: 15px; display: flex; flex-direction: column; height: 100vh; flex-shrink: 0; }
+        .duty-panel { background: #000; border: 1px solid var(--accent); padding: 12px; border-radius: 10px; margin-bottom: 15px; }
+        
+        /* STATS */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-top: 10px; text-align: center; }
+        .stat-box { background: #1c1f22; padding: 5px; border-radius: 4px; border: 1px solid #333; }
+        .stat-val { display: block; font-weight: bold; font-size: 14px; color: var(--accent); }
+        .stat-lbl { font-size: 8px; text-transform: uppercase; color: #777; }
+
+        #lista_pacjentow { overflow-y: auto; flex-grow: 1; margin-top: 10px; border-top: 1px solid #333; }
+        .p-item { padding: 12px; border-bottom: 1px solid #222; cursor: pointer; border-left: 4px solid transparent; transition: 0.2s; background: rgba(255,255,255,0.02); margin-bottom: 5px; }
+        .p-item:hover { background: #1c1f22; }
+        .p-item.active { background: #23272b; border-left-color: var(--accent); }
+
+        /* MAIN AREA */
+        #main { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        #header-fixed { flex-shrink: 0; background: #141619; border-bottom: 2px solid #333; }
+        .tabs-nav { display: flex; padding: 0 10px; background: #0b0c0d; }
+        .tab-btn { padding: 15px 20px; color: #777; cursor: pointer; font-weight: 800; font-size: 10px; text-transform: uppercase; border-bottom: 3px solid transparent; }
+        .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+        #content-area { flex: 1; overflow-y: auto; padding: 25px; background: linear-gradient(180deg, #0b0c0d 0%, #141619 100%); }
+        .card { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid #2d3136; margin-bottom: 20px; }
+        
+        /* MODERN INPUTS */
+        input, textarea, select { width: 100%; padding: 12px; margin: 8px 0; background: #0f1113; border: 1px solid #333; color: white; border-radius: 6px; transition: 0.3s; }
+        input:focus { border-color: var(--accent); }
+        button { padding: 10px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 10px; }
+
+        /* HISTORY LOGS */
+        .history-item { background: #141619; padding: 15px; border-radius: 8px; margin-top: 10px; border-left: 4px solid #444; position: relative; }
+        .log-tag { position: absolute; top: 10px; right: 10px; font-size: 8px; background: #333; padding: 2px 6px; border-radius: 4px; color: #aaa; }
+        .doc-print { background: #fff !important; color: #000 !important; padding: 15px; border: 2px dashed #000; font-family: 'Courier New', monospace; }
+        
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<div id="sidebar">
+    <div class="duty-panel">
+        <span class="label" style="margin:0">IDENTYFIKATOR MEDYCZNY</span>
+        <input type="text" id="duty_name" placeholder="Imię i Nazwisko">
+        <select id="duty_rank">
+            <option value="">-- Wybierz Stopień --</option>
+            <option>Student Medycyny</option>
+            <option>Młodszy Ratownik</option>
+            <option>Ratownik Medyczny</option>
+            <option>Lekarz Rezydent</option>
+            <option>Lekarz Specjalista</option>
+            <option>Ordynator</option>
+            <option>Dyrektor Szpitala</option>
+        </select>
+        <button id="duty_btn" style="background:var(--green); color:white; width:100%;" onclick="toggleDuty()">ROZPOCZNIJ DYŻUR</button>
+        
+        <div class="stats-grid">
+            <div class="stat-box"><span class="stat-val" id="stat_active">0</span><span class="stat-lbl">Pacjenci</span></div>
+            <div class="stat-box"><span class="stat-val" id="stat_dead">0</span><span class="stat-lbl">Zgony</span></div>
+            <div class="stat-box"><span class="stat-val" id="stat_time">00:00</span><span class="stat-lbl">Czas</span></div>
+        </div>
+    </div>
+
+    <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+        <button style="flex:1; background:var(--accent); color:black;" onclick="setView('active')">SOR</button>
+        <button style="flex:1; background:#333; color:white;" onclick="setView('archive')">ARCHIWUM</button>
+    </div>
+    <input type="text" id="add_name" placeholder="Nazwisko Pacjenta...">
+    <button style="background:var(--accent); color:black; width:100%;" onclick="nowyPacjent()">PRZYJMIJ NA ODDZIAŁ</button>
+    <div id="lista_pacjentow"></div>
+</div>
+
+<div id="main">
+    <div id="interface" class="hidden">
+        <div id="header-fixed">
+            <div style="padding: 15px 25px; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1 id="disp_name" style="margin: 0; color: white;"></h1>
+                    <small id="disp_id" style="color:var(--accent); letter-spacing: 2px;"></small>
+                </div>
+                <div id="cert-status-header" class="cert-box" style="min-width: 150px; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #444;">BRAK BADAŃ</div>
+            </div>
+            <div class="tabs-nav">
+                <div class="tab-btn active" onclick="switchTab('tab-ogolne', this)">Karta Wywiadu</div>
+                <div class="tab-btn" onclick="switchTab('tab-med', this)">Leczenie & Vitals</div>
+                <div class="tab-btn" onclick="switchTab('tab-psych', this)">Psychiatria</div>
+                <div class="tab-btn" onclick="switchTab('tab-docs', this)">Dokumenty & ICD-10</div>
+                <div class="tab-btn" onclick="switchTab('tab-exit', this)" style="color:var(--discharge)">Wypis</div>
+            </div>
+        </div>
+
+        <div id="content-area">
+            <div id="tab-ogolne" class="tab-content">
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+                    <div class="card" style="border-top: 4px solid var(--accent);">
+                        <span class="label">Dane Pacjenta</span>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <input type="text" id="inp_adr" placeholder="Adres zamieszkania">
+                            <input type="text" id="inp_job" placeholder="Miejsce pracy">
+                            <select id="inp_blood">
+                                <option>Nieznana</option><option>0 Rh+</option><option>0 Rh-</option><option>A Rh+</option><option>A Rh-</option><option>B Rh+</option><option>B Rh-</option><option>AB Rh+</option><option>AB Rh-</option>
+                            </select>
+                            <input type="text" id="inp_ins" placeholder="Nr Ubezpieczenia">
+                        </div>
+                        <span class="label" style="color:var(--red)">Alergie i Przeciwwskazania</span>
+                        <input type="text" id="inp_alergie" style="border-color:var(--red)" placeholder="Brak / Penicylina / Latex...">
+                        <span class="label">Opis urazu / Objawy</span>
+                        <textarea id="inp_reason" rows="3"></textarea>
+                    </div>
+                    <div class="card">
+                        <span class="label">Segregacja (Triage)</span>
+                        <select id="inp_triage" onchange="updateTriageVisuals()">
+                            <option value="none">Wybierz kod...</option>
+                            <option value="t-green">🟢 Zielony (Niski)</option>
+                            <option value="t-yellow">🟡 Żółty (Pilny)</option>
+                            <option value="t-red">🔴 Czerwony (KRYTYCZNY)</option>
+                        </select>
+                        <span class="label">Aktualny Stan</span>
+                        <select id="inp_status" onchange="synchronizuj()">
+                            <option>Stabilny</option><option>Średni</option><option>Ciężki</option><option>Agonia</option><option>Zgon</option>
+                        </select>
+                        <button style="background:#333; color:white; width:100%; margin-top:10px;" onclick="addNote('--- PACJENT PRZEKAZANY NA BLOK OPERACYJNY ---')">PRZEKAŻ NA BLOK</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-med" class="tab-content hidden">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="card" style="border-left: 5px solid var(--blue);">
+                        <span class="label">Podawanie Leków</span>
+                        <select id="sel_lek">
+                            <option value="">-- Wybierz substancję --</option>
+                            <optgroup label="Przeciwbólowe"><option>Morfina</option><option>Fentanyl</option><option>Paracetamol</option></optgroup>
+                            <optgroup label="Ratunkowe"><option>Adrenalina</option><option>Atropina</option><option>Adenozyna</option></optgroup>
+                            <optgroup label="Płyny"><option>Sól Fizjologiczna 500ml</option><option>Płyn Ringera</option></optgroup>
+                        </select>
+                        <div style="display:flex; gap:5px;">
+                            <input type="text" id="med_dose" placeholder="Dawka (np. 5mg)">
+                            <select id="med_route"><option>IV</option><option>IM</option><option>IO</option><option>PO</option></select>
+                        </div>
+                        <button style="background:var(--blue); color:white; width:100%;" onclick="podajLek()">POTWIERDŹ PODANIE</button>
+                    </div>
+                    <div class="card" style="border-left: 5px solid var(--gold);">
+                        <span class="label">Parametry Życiowe</span>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+                            <input type="text" id="vit_bp" placeholder="RR (np. 120/80)">
+                            <input type="text" id="vit_hr" placeholder="HR (np. 80)">
+                            <input type="text" id="vit_spo2" placeholder="SpO2 (%)">
+                            <input type="text" id="vit_temp" placeholder="Temp (°C)">
+                        </div>
+                        <button style="background:var(--gold); color:black; width:100%;" onclick="logVitals()">ZAPISZ VITALS</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-docs" class="tab-content hidden">
+                <div class="card" style="border-top: 4px solid var(--docs);">
+                    <span class="label">Szybkie Kody ICD-10 (RP)</span>
+                    <select id="icd_code" onchange="addICD()">
+                        <option value="">-- Wybierz rozpoznanie --</option>
+                        <option value="I21">I21 - Ostra zawał serca</option>
+                        <option value="S06">S06 - Uraz wewnątrzczaszkowy</option>
+                        <option value="T14">T14 - Rana postrzałowa / Uraz nieokreślony</option>
+                        <option value="F10">F10 - Zaburzenia po alkoholu</option>
+                    </select>
+                    <hr style="border-color:#333; margin:15px 0;">
+                    <span class="label">Generator Dokumentów</span>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <button style="background:var(--docs); color:white;" onclick="wystawDokument('L4')">WYSTAW L4</button>
+                        <button style="background:var(--docs); color:white;" onclick="wystawDokument('SKIEROWANIE')">SKIEROWANIE</button>
+                    </div>
+                    <textarea id="doc_extra" placeholder="Dodatkowy komentarz do dokumentu..." style="margin-top:10px;"></textarea>
+                </div>
+            </div>
+
+            <div id="tab-exit" class="tab-content hidden">
+                <div class="card" style="border-top: 4px solid var(--discharge);">
+                    <h3 style="color:var(--discharge)">PROCEDURA WYPISOWA</h3>
+                    <span class="label">Epikryza Końcowa</span>
+                    <textarea id="exit_epi" rows="5" placeholder="Podsumowanie leczenia i zalecenia dla pacjenta..."></textarea>
+                    <select id="exit_mode">
+                        <option>Wyleczony - do domu</option>
+                        <option>Przekazany do innej placówki</option>
+                        <option>Przekazany Policji (Areszt)</option>
+                        <option>Zgon</option>
+                    </select>
+                    <button style="background:var(--discharge); color:white; width:100%; height:50px; font-size:14px;" onclick="finalizujWypis()">ZAMKNIJ KARTĘ PACJENTA</button>
+                </div>
+            </div>
+
+            <div class="card" style="position: sticky; top: 0; z-index: 1000; border: 1px solid var(--green);">
+                <textarea id="inp_note" rows="2" placeholder="Wpisz treść medyczną lub opis czynności..."></textarea>
+                <button style="background:var(--green); color:white; width:100%;" onclick="zapiszWpis()">DODAJ WPIS DO KARTY</button>
+            </div>
+
+            <div id="historia_kontener"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let pacjenci = JSON.parse(localStorage.getItem('hosp_v560')) || [];
+    let aktywIdx = -1;
+    let currentView = 'active';
+    let dutyActive = false;
+    let dutySec = 0;
+    let dutyTimer;
+
+    // --- SYSTEM SŁUŻBY ---
+    function toggleDuty() {
+        const name = document.getElementById('duty_name').value.trim();
+        const rank = document.getElementById('duty_rank').value;
+        const btn = document.getElementById('duty_btn');
+
+        if(!dutyActive) {
+            if(!name || !rank) return alert("Błąd: Musisz podać dane personalne!");
+            dutyActive = true;
+            btn.innerText = "ZAKOŃCZ DYŻUR";
+            btn.style.background = "var(--red)";
+            dutyTimer = setInterval(() => {
+                dutySec++;
+                let m = Math.floor(dutySec/60).toString().padStart(2,'0');
+                let s = (dutySec%60).toString().padStart(2,'0');
+                document.getElementById('stat_time').innerText = `${m}:${s}`;
+            }, 1000);
+        } else {
+            dutyActive = false;
+            btn.innerText = "ROZPOCZNIJ DYŻUR";
+            btn.style.background = "var(--green)";
+            clearInterval(dutyTimer);
+        }
+        updateStats();
+    }
+
+    function updateStats() {
+        document.getElementById('stat_active').innerText = pacjenci.filter(p => !p.arch).length;
+        document.getElementById('stat_dead').innerText = pacjenci.filter(p => p.status === 'Zgon').length;
+    }
+
+    // --- LOGIKA PACJENTÓW ---
+    function nowyPacjent() {
+        let n = document.getElementById('add_name').value.trim();
+        if(!n) return;
+        pacjenci.push({ 
+            id: "ID-" + Math.floor(1000 + Math.random() * 9000),
+            name: n, adr: "", job: "", ins: "", blood: "Nieznana", alergie: "", 
+            reason: "", status: "Stabilny", triage: "none", arch: false, history: [] 
+        });
+        document.getElementById('add_name').value = "";
+        synchronizuj();
+    }
+
+    function otworz(i) {
+        aktywIdx = i;
+        let p = pacjenci[i];
+        document.getElementById('interface').classList.remove('hidden');
+        document.getElementById('disp_name').innerText = p.name;
+        document.getElementById('disp_id').innerText = p.id;
+        
+        // Load data
+        document.getElementById('inp_adr').value = p.adr || "";
+        document.getElementById('inp_job').value = p.job || "";
+        document.getElementById('inp_blood').value = p.blood || "Nieznana";
+        document.getElementById('inp_alergie').value = p.alergie || "";
+        document.getElementById('inp_reason').value = p.reason || "";
+        document.getElementById('inp_status').value = p.status || "Stabilny";
+        document.getElementById('inp_triage').value = p.triage || "none";
+        
+        updateTriageVisuals();
+        pokazHistorie();
+    }
+
+    function zapiszWpis() {
+        if(!dutyActive) return alert("Błąd: Nie jesteś na służbie!");
+        let p = pacjenci[aktywIdx];
+        let txt = document.getElementById('inp_note').value.trim();
+        if(!txt) return;
+
+        // Auto-save dashboard
+        p.adr = document.getElementById('inp_adr').value;
+        p.job = document.getElementById('inp_job').value;
+        p.blood = document.getElementById('inp_blood').value;
+        p.alergie = document.getElementById('inp_alergie').value;
+        p.reason = document.getElementById('inp_reason').value;
+        p.status = document.getElementById('inp_status').value;
+        p.triage = document.getElementById('inp_triage').value;
+
+        p.history.push({
+            txt: txt,
+            doc: document.getElementById('duty_name').value,
+            rank: document.getElementById('duty_rank').value,
+            time: new Date().toLocaleTimeString(),
+            type: 'standard'
+        });
+
+        document.getElementById('inp_note').value = "";
+        synchronizuj();
+        pokazHistorie();
+    }
+
+    function wystawDokument(typ) {
+        if(!dutyActive) return alert("Zaloguj się!");
+        let extra = document.getElementById('doc_extra').value;
+        let p = pacjenci[aktywIdx];
+        
+        let content = `--- DOKUMENT MEDYCZNY: ${typ} ---\nPACJENT: ${p.name}\nROZPOZNANIE: ${extra}\nDATA: ${new Date().toLocaleDateString()}\nSTATUS: WYSTAWIONO ORYGINAŁ`;
+        
+        p.history.push({
+            txt: content,
+            doc: document.getElementById('duty_name').value,
+            rank: document.getElementById('duty_rank').value,
+            time: new Date().toLocaleTimeString(),
+            type: 'print'
+        });
+        document.getElementById('doc_extra').value = "";
+        synchronizuj();
+        pokazHistorie();
+    }
+
+    function finalizujWypis() {
+        let epi = document.getElementById('exit_epi').value;
+        if(!epi) return alert("Uzupełnij epikryzę!");
+        
+        addNote(`*** KARTA WYPISOWA ***\nEPIKRYZA: ${epi}\nTRYB: ${document.getElementById('exit_mode').value}`);
+        pacjenci[aktywIdx].arch = true;
+        pacjenci[aktywIdx].status = "Wypisany";
+        synchronizuj();
+        document.getElementById('interface').classList.add('hidden');
+    }
+
+    // --- HELPERS ---
+    function addNote(t) { document.getElementById('inp_note').value = t; zapiszWpis(); }
+    function addICD() { let c = document.getElementById('icd_code').value; if(c) addNote(`Rozpoznanie wg ICD-10: ${c}`); }
+    function podajLek() { addNote(`PODANIE LEKU: ${document.getElementById('sel_lek').value} | DAWKA: ${document.getElementById('med_dose').value} | DROGA: ${document.getElementById('med_route').value}`); }
+    function logVitals() { addNote(`POMIAR PARAMETRÓW: BP: ${document.getElementById('vit_bp').value} | HR: ${document.getElementById('vit_hr').value} | SpO2: ${document.getElementById('vit_spo2').value}% | T: ${document.getElementById('vit_temp').value}°C`); }
+    
+    function pokazHistorie() {
+        let c = document.getElementById('historia_kontener');
+        c.innerHTML = "";
+        pacjenci[aktywIdx].history.slice().reverse().forEach(h => {
+            let div = document.createElement('div');
+            div.className = `history-item ${h.type === 'print' ? 'doc-print' : ''}`;
+            div.innerHTML = `
+                <span class="log-tag">${h.time}</span>
+                <p style="white-space:pre-wrap; margin:0;">${h.txt}</p>
+                <div style="margin-top:10px; font-size:10px; border-top:1px solid #444; padding-top:5px; color:var(--accent)">
+                    PODPIS: ${h.doc} [${h.rank}]
+                </div>
+            `;
+            c.appendChild(div);
+        });
+    }
+
+    function updateTriageVisuals() {
+        let t = document.getElementById('inp_triage').value;
+        let color = "#333";
+        if(t === 't-green') color = "var(--green)";
+        if(t === 't-yellow') color = "var(--gold)";
+        if(t === 't-red') color = "var(--red)";
+        document.getElementById('main-data-card').style.borderTopColor = color;
+    }
+
+    function switchTab(id, b) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(id).classList.remove('hidden');
+        b.classList.add('active');
+    }
+
+    function setView(v) { currentView = v; renderLista(); }
+    function synchronizuj() { localStorage.setItem('hosp_v560', JSON.stringify(pacjenci)); renderLista(); updateStats(); }
+    
+    function renderLista() {
+        let l = document.getElementById('lista_pacjentow'); l.innerHTML = "";
+        pacjenci.forEach((p, i) => {
+            if((currentView === 'active' && !p.arch) || (currentView === 'archive' && p.arch)) {
+                let d = document.createElement('div');
+                d.className = `p-item ${aktywIdx === i ? 'active' : ''}`;
+                d.innerHTML = `<b>${p.name}</b><br><small>${p.id} | ${p.status}</small>`;
+                d.onclick = () => otworz(i);
+                l.appendChild(d);
+            }
+        });
+    }
+
+    renderLista();
+    updateStats();
+</script>
+</body>
+</html>
