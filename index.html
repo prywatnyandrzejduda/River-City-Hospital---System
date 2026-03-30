@@ -399,5 +399,19 @@
     renderLista();
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script>const firebaseConfig = {
+  apiKey: "AIzaSyC5MioZo7CMVGopaZANfglS12Gy_TMPzEw",
+  authDomain: "baza-danych-cd445.firebaseapp.com",
+  databaseURL: "https://baza-danych-cd445-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "baza-danych-cd445",
+  storageBucket: "baza-danych-cd445.firebasestorage.app",
+  messagingSenderId: "234044597162",
+  appId: "1:234044597162:web:f46e383b858a363aea01d3"
+    firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+};let pacjenci = []; 
+  let aktywIdx = -1;
+  let currentView = 'active';
+            <script>
 </body>
 </html>
