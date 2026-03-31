@@ -16,6 +16,8 @@
             --ok: #2ecc71;
             --err: #ff4757;
             --warn: #f1c40f;
+            --violet: #a29bfe;
+            --blue: #54a0ff;
         }
 
         * {
@@ -30,14 +32,13 @@
         }
 
         .wrap {
-            max-width: 1500px;
+            max-width: 1700px;
             margin: 0 auto;
             padding: 20px;
         }
 
         .hidden { display: none !important; }
 
-        /* LOGIN */
         #login-screen {
             min-height: 100vh;
             display: grid;
@@ -47,7 +48,7 @@
 
         .login-card {
             width: 100%;
-            max-width: 420px;
+            max-width: 440px;
             background: var(--card);
             border: 1px solid var(--line);
             border-top: 3px solid var(--err);
@@ -69,7 +70,7 @@
             margin-bottom: 14px;
         }
 
-        input, select, button {
+        input, select, button, textarea {
             width: 100%;
             border-radius: 8px;
             border: 1px solid var(--line);
@@ -80,7 +81,7 @@
             outline: none;
         }
 
-        input:focus, select:focus {
+        input:focus, select:focus, textarea:focus {
             border-color: var(--accent);
         }
 
@@ -107,7 +108,12 @@
             background: #1a2027;
         }
 
-        /* ADMIN LAYOUT */
+        .btn-warn {
+            background: #2e2710;
+            border-color: #4e4217;
+            color: #ffe08a;
+        }
+
         #admin-panel {
             display: none;
         }
@@ -133,16 +139,16 @@
         .topbar .actions {
             display: flex;
             gap: 8px;
-            min-width: 280px;
+            min-width: 380px;
         }
 
         .topbar .actions button {
             margin: 0;
         }
 
-        .grid {
+        .layout {
             display: grid;
-            grid-template-columns: 1.6fr 1fr;
+            grid-template-columns: 1.5fr 1fr;
             gap: 14px;
         }
 
@@ -166,7 +172,24 @@
             margin-bottom: 10px;
         }
 
-        /* MATRIX */
+        .split-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .split-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+        }
+
+        .split-4 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 8px;
+        }
+
         .matrix-wrap {
             overflow: auto;
             border: 1px solid var(--line);
@@ -176,7 +199,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 900px;
+            min-width: 960px;
         }
 
         th, td {
@@ -205,7 +228,7 @@
             z-index: 1;
             background: #10151a;
             text-align: left;
-            min-width: 220px;
+            min-width: 240px;
         }
 
         .doc-meta {
@@ -248,7 +271,6 @@
             background: var(--ok);
         }
 
-        /* AUDIT LOG */
         .toolbar {
             display: grid;
             grid-template-columns: 1fr 1fr auto;
@@ -260,7 +282,7 @@
             border: 1px solid var(--line);
             border-radius: 8px;
             background: #0a0e12;
-            height: 350px;
+            height: 290px;
             overflow: auto;
             padding: 8px;
         }
@@ -285,9 +307,8 @@
             color: #9bb4cc;
         }
 
-        /* ROLE MANAGER */
         .role-list {
-            max-height: 280px;
+            max-height: 240px;
             overflow: auto;
             border: 1px solid var(--line);
             border-radius: 8px;
@@ -340,7 +361,7 @@
 
         .stats {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 8px;
         }
 
@@ -358,11 +379,93 @@
             margin-top: 3px;
         }
 
-        @media (max-width: 1100px) {
-            .grid { grid-template-columns: 1fr; }
+        .timeline {
+            max-height: 290px;
+            overflow: auto;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #0d1217;
+        }
+
+        .timeline-row {
+            display: grid;
+            grid-template-columns: 1.2fr 0.9fr 0.8fr 0.8fr auto;
+            gap: 8px;
+            align-items: center;
+            border-bottom: 1px solid #1f2833;
+            padding: 8px;
+            font-size: 12px;
+        }
+
+        .timeline-row input {
+            margin: 0;
+            padding: 7px 8px;
+            font-size: 12px;
+        }
+
+        .badge {
+            display: inline-block;
+            border: 1px solid #30404f;
+            color: #9ec7ff;
+            border-radius: 6px;
+            padding: 2px 6px;
+            font-size: 11px;
+            margin-right: 5px;
+        }
+
+        .flag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            border-radius: 999px;
+            border: 1px solid #30404f;
+            padding: 2px 8px;
+            font-size: 11px;
+            margin-right: 5px;
+            margin-top: 3px;
+        }
+
+        .flag-vip { color: #ffd36f; border-color: #5a4a1f; background: #2b2411; }
+        .flag-alert { color: #ff9ca5; border-color: #5a2329; background: #2b1215; }
+        .flag-spec { color: #b9b3ff; border-color: #3e3970; background: #181628; }
+
+        .scroll {
+            max-height: 260px;
+            overflow: auto;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #0d1217;
+        }
+
+        .row {
+            padding: 8px;
+            border-bottom: 1px solid #1f2833;
+            font-size: 12px;
+        }
+
+        .search-res {
+            max-height: 230px;
+            overflow: auto;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #0d1217;
+            padding: 8px;
+        }
+
+        .range-wrap {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            align-items: center;
+        }
+
+        @media (max-width: 1240px) {
+            .layout { grid-template-columns: 1fr; }
             .toolbar { grid-template-columns: 1fr; }
             .topbar { flex-direction: column; align-items: flex-start; }
             .topbar .actions { min-width: 100%; width: 100%; }
+            .stats { grid-template-columns: repeat(2, 1fr); }
+            .timeline-row { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -370,7 +473,7 @@
     <div id="login-screen">
         <div class="login-card">
             <h1 class="title">ADMIN // DYREKCJA</h1>
-            <div class="muted">Autoryzacja wymagana do dostępu do panelu.</div>
+            <div class="muted">Autoryzacja wymagana do dostępu do panelu administracji.</div>
             <input type="password" id="pass_input" placeholder="HASŁO ADMINA" />
             <button class="btn-primary" onclick="checkPass()">AUTORYZUJ</button>
             <button class="btn-back" onclick="window.location.href='index.html'">POWRÓT DO SYSTEMU</button>
@@ -382,18 +485,19 @@
             <h1>ADMIN CONTROL CENTER // HOSPITAL</h1>
             <div class="actions">
                 <button class="btn-back" onclick="window.location.href='index.html'">POWRÓT</button>
+                <button class="btn-warn" onclick="simulateLogin()">TEST: DODAJ LOGIN LOG</button>
                 <button class="btn-danger" onclick="logoutAdmin()">WYLOGUJ</button>
             </div>
         </div>
 
-        <div class="grid">
+        <div class="layout">
             <div>
                 <div class="card">
                     <h2>Visual Permissions Matrix</h2>
-                    <div class="sub">Wiersze = lekarze, kolumny = uprawnienia. Kliknij toggle, aby zmienić uprawnienie.</div>
+                    <div class="sub">Wiersze = personel, kolumny = uprawnienia. Toggle zmienia dostęp.</div>
 
-                    <div style="display:grid;grid-template-columns:1.2fr 1fr 1fr auto;gap:8px;margin-bottom:10px;">
-                        <input id="doc_name" type="text" placeholder="Imię i nazwisko lekarza" />
+                    <div class="split-4" style="grid-template-columns:1.3fr 1fr 1fr auto;">
+                        <input id="doc_name" type="text" placeholder="Imię i nazwisko" />
                         <select id="doc_role"></select>
                         <input id="doc_spec" type="text" placeholder="Specjalizacja (np. Chirurg)" />
                         <button class="btn-primary mini" onclick="addDoctor()">DODAJ</button>
@@ -406,7 +510,7 @@
 
                 <div class="card">
                     <h2>Security Audit Log</h2>
-                    <div class="sub">Log akcji w czasie rzeczywistym z filtrowaniem po specjalizacji.</div>
+                    <div class="sub">Log akcji (kolory: SUCCESS zielony, WARN żółty, ERROR czerwony).</div>
                     <div class="toolbar">
                         <select id="filter_spec" onchange="renderLogs()"></select>
                         <select id="filter_level" onchange="renderLogs()">
@@ -419,12 +523,24 @@
                     </div>
                     <div id="audit_console" class="log-console"></div>
                 </div>
+
+                <div class="card">
+                    <h2>Master Schedule</h2>
+                    <div class="sub">Oś czasu badań dla `registered_patients` (fallback: `hosp_v545`). Admin może zmienić termin.</div>
+                    <div class="timeline" id="schedule_timeline"></div>
+                </div>
+
+                <div class="card">
+                    <h2>Live Session Monitor</h2>
+                    <div class="sub">Aktywni użytkownicy + ostatnie akcje z `system_logs` (localStorage).</div>
+                    <div id="session_table" class="scroll"></div>
+                </div>
             </div>
 
             <div>
                 <div class="card">
                     <h3>Role Manager</h3>
-                    <div class="sub">Tworzenie specjalizacji i domyślnych pakietów uprawnień.</div>
+                    <div class="sub">Definicja specjalizacji i domyślnych pakietów uprawnień.</div>
 
                     <input type="text" id="new_role_name" placeholder="Nowa specjalizacja / rola" />
                     <div id="new-role-perms" class="perm-grid"></div>
@@ -436,17 +552,89 @@
                 </div>
 
                 <div class="card">
+                    <h3>Auto-Timeout Manager</h3>
+                    <div class="sub">Globalny timeout sesji. Zapis pod kluczem `sys_timeout` (minuty).</div>
+                    <div class="range-wrap">
+                        <input type="range" id="timeout_range" min="1" max="180" value="20" oninput="previewTimeout()" />
+                        <b id="timeout_val">20 min</b>
+                    </div>
+                    <button class="btn-primary" onclick="saveTimeout()">ZAPISZ TIMEOUT</button>
+                </div>
+
+                <div class="card">
+                    <h3>Generator Loginów Personelu</h3>
+                    <div class="sub">Tworzy kod `DR-XXXX` i zapisuje do `hospital_staff`.</div>
+                    <input id="staff_name" type="text" placeholder="Imię i nazwisko personelu" />
+                    <select id="staff_rank"></select>
+                    <div class="split-2">
+                        <input id="staff_spec" type="text" placeholder="Specjalizacja" />
+                        <select id="staff_type">
+                            <option value="doctor">Typ: Lekarz</option>
+                            <option value="staff">Typ: Personel medyczny</option>
+                            <option value="admin">Typ: Administracja</option>
+                        </select>
+                    </div>
+                    <button class="btn-primary" onclick="generateStaffCode()">DODAJ + GENERUJ KOD</button>
+
+                    <input id="identity_admin_code" type="password" placeholder="Kod nadrzędny BOSS123 (do zmiany loginu)" />
+                    <div class="split-2">
+                        <input id="identity_target" type="text" placeholder="Aktualny login/kod użytkownika" />
+                        <input id="identity_new" type="text" placeholder="Nowy login/kod" />
+                    </div>
+                    <button class="btn-warn" onclick="changeIdentity()">ZMIEŃ LOGIN/KOD UŻYTKOWNIKA</button>
+                    <div class="sub">Blokada tożsamości: tylko BOSS123 może zmienić login.</div>
+                </div>
+
+                <div class="card">
+                    <h3>System Flagowania Kont</h3>
+                    <div class="sub">VIP/Alert/Specjalny + własna flaga. Wspólna baza: `hospital_staff`.</div>
+                    <select id="flag_target"></select>
+                    <div class="split-4">
+                        <label class="check"><input type="checkbox" id="flag_vip"> VIP</label>
+                        <label class="check"><input type="checkbox" id="flag_alert"> Alert</label>
+                        <label class="check"><input type="checkbox" id="flag_special"> Specjalny</label>
+                        <input type="text" id="flag_custom" placeholder="Custom tag" />
+                    </div>
+                    <button class="btn-primary" onclick="saveFlags()">ZAPISZ FLAGI</button>
+                    <div id="flag_preview" class="scroll"></div>
+                </div>
+
+                <div class="card">
+                    <h3>Master Search</h3>
+                    <div class="sub">Filtruje równocześnie: `hospital_staff`, `registered_patients`, `hosp_v545`.</div>
+                    <input type="text" id="master_search" placeholder="Szukaj po nazwie, kodzie, fladze..." oninput="runMasterSearch()" />
+                    <div id="search_results" class="search-res"></div>
+                </div>
+
+                <div class="card">
+                    <h3>Performance Dashboard</h3>
+                    <div class="stats">
+                        <div class="stat"><small>PRZYJĘCIA</small><b id="perf_adm">0</b></div>
+                        <div class="stat"><small>RECEPTY</small><b id="perf_rx">0</b></div>
+                        <div class="stat"><small>KONSULTACJE</small><b id="perf_cons">0</b></div>
+                        <div class="stat"><small>LOGOWANIA</small><b id="perf_login">0</b></div>
+                    </div>
+                </div>
+
+                <div class="card">
                     <h3>Status Systemu</h3>
                     <div class="stats">
-                        <div class="stat"><small>LEKARZE</small><b id="st_docs">0</b></div>
+                        <div class="stat"><small>PERSONEL</small><b id="st_docs">0</b></div>
                         <div class="stat"><small>ROLE</small><b id="st_roles">0</b></div>
                         <div class="stat"><small>LOGI</small><b id="st_logs">0</b></div>
+                        <div class="stat"><small>KOSZ</small><b id="st_trash">0</b></div>
                     </div>
+                </div>
+
+                <div class="card">
+                    <h3>Data Trash Bin</h3>
+                    <div class="sub">Źródło: `deleted_records`. Przywracanie do `hosp_v545`.</div>
+                    <div id="trash_list" class="scroll"></div>
                 </div>
 
                 <div class="card danger-zone">
                     <h3 style="color:var(--err);">Strefa Krytyczna</h3>
-                    <div class="sub">Usunięcie wszystkich lekarzy i uprawnień (logi zostają).</div>
+                    <div class="sub">Usunięcie wszystkich lekarzy i macierzy uprawnień (logi pozostają).</div>
                     <button class="btn-danger" onclick="wipeStaff()">WYCZYŚĆ PERSONEL I MACIERZ</button>
                 </div>
             </div>
@@ -467,11 +655,12 @@
             appId: "1:234044597162:web:f46e383b858a363aea01d3"
         };
 
-        firebase.initializeApp(firebaseConfig);
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
         // ===== SECURITY =====
         const ADMIN_PASSWORD = "Dyrektor2024";
+        const BOSS_OVERRIDE_CODE = "BOSS123";
 
         // ===== DATA MODEL =====
         const PERMISSIONS = [
@@ -482,6 +671,37 @@
             { key: "issueDocs", label: "Dokumenty" },
             { key: "discharge", label: "Wypisy" },
             { key: "adminAccess", label: "Dostęp admin" }
+        ];
+
+        // Rozszerzona lista rang (kopiowane + rozszerzone)
+        const STAFF_RANKS = [
+            "Student Medycyny",
+            "Młodszy Ratownik",
+            "Ratownik Medyczny",
+            "Pielęgniarz",
+            "Pielęgniarka",
+            "Starsza Pielęgniarka",
+            "Położna",
+            "Fizjoterapeuta",
+            "Diagnosta Laboratoryjny",
+            "Technik RTG",
+            "Lekarz Stażysta",
+            "Lekarz Rezydent",
+            "Lekarz Specjalista",
+            "Anestezjolog",
+            "Chirurg",
+            "Internista",
+            "Kardiolog",
+            "Neurolog",
+            "Psycholog",
+            "Psychiatra",
+            "Farmaceuta Szpitalny",
+            "Zastępca Ordynatora",
+            "Ordynator",
+            "Koordynator SOR",
+            "Zarząd Szpitala",
+            "Dyrektor Szpitala",
+            "Administrator IT"
         ];
 
         let roles = {};
@@ -511,9 +731,36 @@
         function bootstrap() {
             prepareNewRolePerms();
             ensureDefaultRoles();
+            seedLocalStorageDefaults();
+            renderStaffRankSelect();
             listenRoles();
             listenDoctors();
             listenLogs();
+
+            loadTimeout();
+            renderSchedule();
+            renderLiveSessions();
+            renderTrash();
+            renderFlagsTargets();
+            renderFlagsPreview();
+            runMasterSearch();
+            renderPerformance();
+            updateStats();
+
+            setInterval(() => {
+                renderLiveSessions();
+                renderPerformance();
+                renderSchedule();
+            }, 5000);
+        }
+
+        function seedLocalStorageDefaults() {
+            if (!localStorage.getItem("hospital_staff")) localStorage.setItem("hospital_staff", "[]");
+            if (!localStorage.getItem("system_logs")) localStorage.setItem("system_logs", "[]");
+            if (!localStorage.getItem("deleted_records")) localStorage.setItem("deleted_records", "[]");
+            if (!localStorage.getItem("sys_timeout")) localStorage.setItem("sys_timeout", "20");
+            if (!localStorage.getItem("registered_patients")) localStorage.setItem("registered_patients", "[]");
+            if (!localStorage.getItem("hosp_v545")) localStorage.setItem("hosp_v545", "[]");
         }
 
         function ensureDefaultRoles() {
@@ -537,7 +784,7 @@
             });
         }
 
-        // ===== LISTENERS =====
+        // ===== FIREBASE LISTENERS =====
         function listenRoles() {
             db.ref("adminRoles").on("value", (snapshot) => {
                 roles = snapshot.val() || {};
@@ -559,7 +806,7 @@
         }
 
         function listenLogs() {
-            db.ref("adminAuditLogs").limitToLast(300).on("value", (snapshot) => {
+            db.ref("adminAuditLogs").limitToLast(500).on("value", (snapshot) => {
                 const raw = snapshot.val() || {};
                 logs = Object.values(raw).sort((a, b) => (a.ts || 0) - (b.ts || 0));
                 renderLogs();
@@ -567,7 +814,7 @@
             });
         }
 
-        // ===== UI RENDER =====
+        // ===== MATRIX + ROLE UI =====
         function renderRoleSelects() {
             const sel = document.getElementById("doc_role");
             sel.innerHTML = "";
@@ -581,27 +828,23 @@
 
         function renderMatrix() {
             const table = document.getElementById("matrix-table");
-            const headers = ["Lekarz / specjalizacja", ...PERMISSIONS.map(p => p.label), "Akcja"];
+            const headers = ["Personel / specjalizacja", ...PERMISSIONS.map(p => p.label), "Akcja"];
 
             let html = "<thead><tr>";
-            headers.forEach(h => html += `<th>${h}</th>`);
+            headers.forEach(h => html += "<th>" + escapeHtml(h) + "</th>");
             html += "</tr></thead><tbody>";
 
             const docEntries = Object.entries(doctors);
             if (!docEntries.length) {
-                html += `<tr><td colspan="${headers.length}" style="text-align:center;color:var(--muted);">Brak lekarzy w panelu.</td></tr>`;
+                html += '<tr><td colspan="' + headers.length + '" style="text-align:center;color:var(--muted);">Brak personelu w panelu.</td></tr>';
             } else {
                 docEntries.forEach(([id, d]) => {
-                    html += `<tr><td><div class="doc-meta"><span class="doc-name">${escapeHtml(d.name || "Brak nazwy")}</span><span class="doc-role">${escapeHtml(d.role || "-")} | ${escapeHtml(d.specialization || "-")}</span></div></td>`;
+                    html += '<tr><td><div class="doc-meta"><span class="doc-name">' + escapeHtml(d.name || "Brak nazwy") + '</span><span class="doc-role">' + escapeHtml(d.role || "-") + " | " + escapeHtml(d.specialization || "-") + "</span></div></td>";
                     PERMISSIONS.forEach((p) => {
                         const enabled = !!(d.permissions && d.permissions[p.key]);
-                        html += `<td>
-                            <button class="toggle ${enabled ? "on" : ""}" onclick="togglePermission('${id}','${p.key}')">
-                                <span class="dot"></span>
-                            </button>
-                        </td>`;
+                        html += '<td><button class="toggle ' + (enabled ? "on" : "") + '" onclick="togglePermission(\'' + id + '\',\'' + p.key + '\')"><span class="dot"></span></button></td>';
                     });
-                    html += `<td><button class="btn-danger mini" onclick="removeDoctor('${id}')">USUŃ</button></td></tr>`;
+                    html += '<td><button class="btn-danger mini" onclick="removeDoctor(\'' + id + '\')">USUŃ</button></td></tr>';
                 });
             }
 
@@ -614,28 +857,18 @@
             const roleNames = Object.keys(roles);
 
             if (!roleNames.length) {
-                box.innerHTML = `<div class="role-item" style="color:var(--muted);">Brak ról.</div>`;
+                box.innerHTML = '<div class="role-item" style="color:var(--muted);">Brak ról.</div>';
                 return;
             }
 
             let html = "";
             roleNames.forEach((name) => {
-                html += `<div class="role-item">
-                    <div class="role-head">
-                        <span class="role-name">${escapeHtml(name)}</span>
-                        <button class="btn-danger mini" onclick="deleteRole('${name}')">USUŃ</button>
-                    </div>
-                    <div class="perm-grid">`;
-
+                html += '<div class="role-item"><div class="role-head"><span class="role-name">' + escapeHtml(name) + '</span><button class="btn-danger mini" onclick="deleteRole(\'' + escapeJs(name) + '\')">USUŃ</button></div><div class="perm-grid">';
                 PERMISSIONS.forEach((p) => {
                     const checked = roles[name][p.key] ? "checked" : "";
-                    html += `<label class="check">
-                        <input type="checkbox" ${checked} onchange="setRolePerm('${name}','${p.key}', this.checked)" />
-                        ${escapeHtml(p.label)}
-                    </label>`;
+                    html += '<label class="check"><input type="checkbox" ' + checked + ' onchange="setRolePerm(\'' + escapeJs(name) + '\',\'' + p.key + '\', this.checked)" />' + escapeHtml(p.label) + "</label>";
                 });
-
-                html += `</div></div>`;
+                html += "</div></div>";
             });
 
             box.innerHTML = html;
@@ -644,7 +877,6 @@
         function renderSpecFilters() {
             const specs = new Set(["ALL"]);
             Object.values(doctors).forEach(d => specs.add(d.specialization || "Brak"));
-
             const sel = document.getElementById("filter_spec");
             const prev = sel.value || "ALL";
             sel.innerHTML = "";
@@ -669,39 +901,26 @@
             });
 
             if (!filtered.length) {
-                box.innerHTML = `<div class="log-line" style="color:var(--muted)">Brak wpisów dla wybranych filtrów.</div>`;
+                box.innerHTML = '<div class="log-line" style="color:var(--muted)">Brak wpisów dla wybranych filtrów.</div>';
                 return;
             }
 
             box.innerHTML = filtered.map((l) => {
                 const cls = l.level === "ERROR" ? "line-err" : (l.level === "WARN" ? "line-warn" : "line-ok");
                 const time = new Date(l.ts || Date.now()).toLocaleString();
-                return `<div class="log-line ${cls}">
-                    <span class="tag">${time}</span>
-                    <span class="tag">${escapeHtml(l.level || "-")}</span>
-                    <b>${escapeHtml(l.actor || "SYSTEM")}</b>
-                    -> ${escapeHtml(l.action || "-")}
-                    <span style="color:#8fb4ff">[${escapeHtml(l.target || "-")}]</span>
-                    <span style="color:#9da7b3">#${escapeHtml(l.specialization || "Brak")}</span>
-                </div>`;
+                return '<div class="log-line ' + cls + '"><span class="tag">' + escapeHtml(time) + '</span><span class="tag">' + escapeHtml(l.level || "-") + '</span><b>' + escapeHtml(l.actor || "SYSTEM") + "</b> -> " + escapeHtml(l.action || "-") + ' <span style="color:#8fb4ff">[' + escapeHtml(l.target || "-") + ']</span> <span style="color:#9da7b3">#' + escapeHtml(l.specialization || "Brak") + "</span></div>";
             }).join("");
 
             box.scrollTop = box.scrollHeight;
         }
 
-        function updateStats() {
-            document.getElementById("st_docs").innerText = Object.keys(doctors).length;
-            document.getElementById("st_roles").innerText = Object.keys(roles).length;
-            document.getElementById("st_logs").innerText = logs.length;
-        }
-
-        // ===== ACTIONS =====
+        // ===== ACTIONS MATRIX + ROLE =====
         function addDoctor() {
             const name = document.getElementById("doc_name").value.trim();
             const role = document.getElementById("doc_role").value;
             const specialization = document.getElementById("doc_spec").value.trim() || role;
 
-            if (!name) return alert("Podaj imię i nazwisko lekarza.");
+            if (!name) return alert("Podaj imię i nazwisko.");
             if (!role || !roles[role]) return alert("Wybierz prawidłową rolę.");
 
             const id = "doc_" + Date.now();
@@ -724,7 +943,7 @@
         function removeDoctor(id) {
             if (!doctors[id]) return;
             const name = doctors[id].name || id;
-            if (!confirm("Usunąć lekarza z macierzy uprawnień?\n" + name)) return;
+            if (!confirm("Usunąć personel z macierzy?\n" + name)) return;
 
             db.ref("adminDoctors/" + id).remove()
                 .then(() => logAction("ADMIN", "REMOVE_DOCTOR", name, "WARN", doctors[id]?.specialization || "Brak"))
@@ -737,9 +956,9 @@
             const current = !!(d.permissions && d.permissions[permKey]);
             const next = !current;
 
-            db.ref(`adminDoctors/${docId}/permissions/${permKey}`).set(next)
+            db.ref("adminDoctors/" + docId + "/permissions/" + permKey).set(next)
                 .then(() => {
-                    const action = `TOGGLE_${permKey}_${next ? "ON" : "OFF"}`;
+                    const action = "TOGGLE_" + permKey + "_" + (next ? "ON" : "OFF");
                     logAction("ADMIN", action, d.name || docId, "SUCCESS", d.specialization || "Brak");
                 })
                 .catch(() => {
@@ -749,12 +968,9 @@
 
         function prepareNewRolePerms() {
             const box = document.getElementById("new-role-perms");
-            box.innerHTML = PERMISSIONS.map((p) => `
-                <label class="check">
-                    <input type="checkbox" data-perm="${p.key}" />
-                    ${escapeHtml(p.label)}
-                </label>
-            `).join("");
+            box.innerHTML = PERMISSIONS.map((p) => {
+                return '<label class="check"><input type="checkbox" data-perm="' + p.key + '" />' + escapeHtml(p.label) + "</label>";
+            }).join("");
         }
 
         function createRole() {
@@ -763,7 +979,7 @@
 
             const perms = {};
             PERMISSIONS.forEach((p) => {
-                const cb = document.querySelector(`#new-role-perms input[data-perm="${p.key}"]`);
+                const cb = document.querySelector('#new-role-perms input[data-perm="' + p.key + '"]');
                 perms[p.key] = !!(cb && cb.checked);
             });
 
@@ -779,21 +995,20 @@
         }
 
         function setRolePerm(roleName, permKey, isOn) {
-            db.ref(`adminRoles/${roleName}/${permKey}`).set(isOn)
-                .then(() => logAction("ADMIN", `ROLE_PERM_${permKey}_${isOn ? "ON" : "OFF"}`, roleName, "SUCCESS", roleName))
+            db.ref("adminRoles/" + roleName + "/" + permKey).set(isOn)
+                .then(() => logAction("ADMIN", "ROLE_PERM_" + permKey + "_" + (isOn ? "ON" : "OFF"), roleName, "SUCCESS", roleName))
                 .catch(() => logAction("ADMIN", "ROLE_PERM_CHANGE_FAIL", roleName, "ERROR", roleName));
         }
 
         function deleteRole(roleName) {
             if (!confirm("Usunąć rolę: " + roleName + "?")) return;
-
             db.ref("adminRoles/" + roleName).remove()
                 .then(() => logAction("ADMIN", "DELETE_ROLE", roleName, "WARN", roleName))
                 .catch(() => logAction("ADMIN", "DELETE_ROLE", roleName, "ERROR", roleName));
         }
 
         function wipeStaff() {
-            if (!confirm("To usunie wszystkich lekarzy z macierzy. Kontynuować?")) return;
+            if (!confirm("To usunie cały personel z macierzy. Kontynuować?")) return;
             const guard = prompt("Wpisz: USUN_PERSONEL");
             if (guard !== "USUN_PERSONEL") return alert("Przerwano.");
 
@@ -818,7 +1033,427 @@
             db.ref("adminAuditLogs").push(entry);
         }
 
+        // ===== AUTO TIMEOUT =====
+        function loadTimeout() {
+            const val = parseInt(localStorage.getItem("sys_timeout") || "20", 10);
+            const safe = Number.isFinite(val) ? Math.min(180, Math.max(1, val)) : 20;
+            document.getElementById("timeout_range").value = safe;
+            document.getElementById("timeout_val").textContent = safe + " min";
+        }
+
+        function previewTimeout() {
+            const v = parseInt(document.getElementById("timeout_range").value, 10);
+            document.getElementById("timeout_val").textContent = v + " min";
+        }
+
+        function saveTimeout() {
+            const v = parseInt(document.getElementById("timeout_range").value, 10);
+            localStorage.setItem("sys_timeout", String(v));
+            pushSystemLog({ type: "admin", actor: "ADMIN", action: "TIMEOUT_SET", details: "sys_timeout=" + v, level: "SUCCESS" });
+            alert("Zapisano sys_timeout = " + v + " min");
+        }
+
+        // ===== MASTER SCHEDULE =====
+        function getPatientsAny() {
+            const rp = safeParse(localStorage.getItem("registered_patients"), []);
+            if (Array.isArray(rp) && rp.length) return rp;
+            return safeParse(localStorage.getItem("hosp_v545"), []);
+        }
+
+        function extractExamsFromPatient(p, idx) {
+            const patientName = p?.name || p?.fullName || p?.patientName || ("Pacjent #" + (idx + 1));
+            const out = [];
+
+            if (Array.isArray(p.exams)) {
+                p.exams.forEach((e, exi) => {
+                    out.push({
+                        key: "ex-" + idx + "-" + exi,
+                        patientName,
+                        exam: e.type || e.name || "Badanie",
+                        date: e.date || "",
+                        time: e.time || "",
+                        source: "exams"
+                    });
+                });
+            }
+
+            if (Array.isArray(p.history)) {
+                p.history.forEach((h, hi) => {
+                    const txt = String(h?.txt || "");
+                    if (txt.toUpperCase().includes("BADANIE") || txt.toUpperCase().includes("USG") || txt.toUpperCase().includes("MORFOLOGIA")) {
+                        out.push({
+                            key: "hist-" + idx + "-" + hi,
+                            patientName,
+                            exam: txt.slice(0, 60),
+                            date: "",
+                            time: "",
+                            source: "history"
+                        });
+                    }
+                });
+            }
+
+            return out;
+        }
+
+        function renderSchedule() {
+            const box = document.getElementById("schedule_timeline");
+            const patients = getPatientsAny();
+            const rows = [];
+            patients.forEach((p, i) => rows.push(...extractExamsFromPatient(p, i)));
+
+            if (!rows.length) {
+                box.innerHTML = '<div class="row" style="color:var(--muted)">Brak wpisów badań. Dodaj badania w systemie głównym.</div>';
+                return;
+            }
+
+            box.innerHTML = rows.map((r, i) => {
+                return '<div class="timeline-row">' +
+                    '<div><span class="badge">' + escapeHtml(r.patientName) + "</span>" + escapeHtml(r.exam) + '</div>' +
+                    '<input type="date" id="sch_d_' + i + '" value="' + escapeHtml(r.date || "") + '">' +
+                    '<input type="time" id="sch_t_' + i + '" value="' + escapeHtml(r.time || "") + '">' +
+                    '<div style="color:var(--muted)">' + escapeHtml(r.source) + '</div>' +
+                    '<button class="btn-primary mini" onclick="saveScheduleRow(' + i + ', \'' + escapeJs(r.patientName) + '\', \'' + escapeJs(r.exam) + '\')">ZAPISZ</button>' +
+                    '</div>';
+            }).join("");
+        }
+
+        function saveScheduleRow(i, patientName, exam) {
+            const d = document.getElementById("sch_d_" + i).value;
+            const t = document.getElementById("sch_t_" + i).value;
+            const key = "master_schedule";
+            const data = safeParse(localStorage.getItem(key), []);
+            data.push({ ts: Date.now(), patientName, exam, date: d, time: t, by: "ADMIN" });
+            localStorage.setItem(key, JSON.stringify(data));
+            pushSystemLog({ type: "admin", actor: "ADMIN", action: "SCHEDULE_EDIT", details: patientName + " | " + exam + " | " + d + " " + t, level: "SUCCESS" });
+            alert("Termin zapisany.");
+        }
+
+        // ===== LIVE SESSION MONITOR + ACTIVITY LOG =====
+        function pushSystemLog(entry) {
+            const logsLs = safeParse(localStorage.getItem("system_logs"), []);
+            logsLs.push({
+                ts: Date.now(),
+                type: entry.type || "system",
+                actor: entry.actor || "SYSTEM",
+                actorType: entry.actorType || "system",
+                code: entry.code || "-",
+                action: entry.action || "-",
+                details: entry.details || "-",
+                level: entry.level || "SUCCESS"
+            });
+            localStorage.setItem("system_logs", JSON.stringify(logsLs.slice(-1500)));
+        }
+
+        function getSystemLogs() {
+            return safeParse(localStorage.getItem("system_logs"), []);
+        }
+
+        function renderLiveSessions() {
+            const logsLs = getSystemLogs();
+            const lastByCode = {};
+            logsLs.forEach((l) => {
+                const key = l.code || l.actor || ("anon-" + l.ts);
+                if (!lastByCode[key] || (l.ts > lastByCode[key].ts)) lastByCode[key] = l;
+            });
+
+            const list = Object.values(lastByCode).sort((a, b) => (b.ts || 0) - (a.ts || 0)).slice(0, 120);
+            const box = document.getElementById("session_table");
+
+            if (!list.length) {
+                box.innerHTML = '<div class="row" style="color:var(--muted)">Brak aktywności sesji.</div>';
+                return;
+            }
+
+            box.innerHTML = list.map((l) => {
+                const dt = new Date(l.ts || Date.now()).toLocaleString();
+                const cls = l.level === "ERROR" ? "line-err" : (l.level === "WARN" ? "line-warn" : "line-ok");
+                return '<div class="row ' + cls + '">' +
+                    '<span class="tag">' + escapeHtml(dt) + '</span>' +
+                    '<span class="tag">' + escapeHtml((l.actorType || "system").toUpperCase()) + '</span>' +
+                    '<b>' + escapeHtml(l.actor || "-") + '</b> (' + escapeHtml(l.code || "-") + ') -> ' +
+                    escapeHtml(l.action || "-") + ' <span style="color:var(--muted)">[' + escapeHtml(l.details || "-") + "]</span>" +
+                    '</div>';
+            }).join("");
+        }
+
+        function simulateLogin() {
+            const samples = [
+                { actor: "Jan Kowalski", actorType: "doctor", code: "DR-5821", action: "LOGIN_SUCCESS", details: "Lekarz zalogowany", level: "SUCCESS" },
+                { actor: "Pacjent-991", actorType: "patient", code: "PT-9913", action: "LOGIN_SUCCESS", details: "Pacjent zalogowany", level: "SUCCESS" }
+            ];
+            const s = samples[Math.floor(Math.random() * samples.length)];
+            pushSystemLog(s);
+            logAction("ADMIN", "SIM_LOGIN_LOG", s.actor, "WARN", s.actorType);
+            renderLiveSessions();
+            renderPerformance();
+            updateStats();
+        }
+
+        // ===== PERFORMANCE DASHBOARD =====
+        function renderPerformance() {
+            const logsLs = getSystemLogs();
+            const admissions = logsLs.filter(l => hasAny(l.action, ["ADMISSION", "REJESTRACJA", "REGISTER_PATIENT"])).length;
+            const rx = logsLs.filter(l => hasAny(l.action, ["RECEPTA", "RX_ISSUED", "ISSUE_RX"])).length;
+            const consult = logsLs.filter(l => hasAny(l.action, ["CONSULTATION_CLOSED", "KONSULTACJA_ZAMKNIETA", "CLOSE_CONSULT"])).length;
+            const login = logsLs.filter(l => hasAny(l.action, ["LOGIN_SUCCESS"])).length;
+
+            document.getElementById("perf_adm").textContent = String(admissions);
+            document.getElementById("perf_rx").textContent = String(rx);
+            document.getElementById("perf_cons").textContent = String(consult);
+            document.getElementById("perf_login").textContent = String(login);
+        }
+
+        // ===== STAFF GENERATOR + FLAGS + IDENTITY LOCK =====
+        function renderStaffRankSelect() {
+            const sel = document.getElementById("staff_rank");
+            sel.innerHTML = STAFF_RANKS.map(r => '<option>' + escapeHtml(r) + '</option>').join("");
+        }
+
+        function generateCode(prefix) {
+            return prefix + "-" + Math.floor(1000 + Math.random() * 9000);
+        }
+
+        function getStaff() {
+            return safeParse(localStorage.getItem("hospital_staff"), []);
+        }
+
+        function setStaff(arr) {
+            localStorage.setItem("hospital_staff", JSON.stringify(arr));
+            renderFlagsTargets();
+            renderFlagsPreview();
+            runMasterSearch();
+            updateStats();
+        }
+
+        function generateStaffCode() {
+            const name = document.getElementById("staff_name").value.trim();
+            const rank = document.getElementById("staff_rank").value;
+            const spec = document.getElementById("staff_spec").value.trim() || rank;
+            const type = document.getElementById("staff_type").value;
+
+            if (!name) return alert("Podaj imię i nazwisko personelu.");
+
+            const staff = getStaff();
+            let code = generateCode("DR");
+            while (staff.some(s => s.code === code)) code = generateCode("DR");
+
+            staff.push({
+                id: "stf_" + Date.now(),
+                name,
+                rank,
+                specialization: spec,
+                type,
+                code,
+                flags: { vip: false, alert: false, special: false, custom: "" },
+                createdAt: Date.now()
+            });
+
+            setStaff(staff);
+            pushSystemLog({ type: "admin", actor: "ADMIN", action: "STAFF_CODE_CREATED", details: name + " -> " + code, level: "SUCCESS" });
+            logAction("ADMIN", "CREATE_STAFF_CODE", code, "SUCCESS", spec);
+
+            document.getElementById("staff_name").value = "";
+            document.getElementById("staff_spec").value = "";
+            alert("Wygenerowano kod: " + code);
+        }
+
+        function renderFlagsTargets() {
+            const sel = document.getElementById("flag_target");
+            const staff = getStaff();
+            sel.innerHTML = "";
+            if (!staff.length) {
+                sel.innerHTML = '<option value="">Brak kont personelu</option>';
+                return;
+            }
+            staff.forEach((s) => {
+                const opt = document.createElement("option");
+                opt.value = s.id;
+                opt.textContent = s.name + " [" + s.code + "]";
+                sel.appendChild(opt);
+            });
+
+            sel.onchange = syncFlagInputsFromSelected;
+            syncFlagInputsFromSelected();
+        }
+
+        function syncFlagInputsFromSelected() {
+            const id = document.getElementById("flag_target").value;
+            const staff = getStaff();
+            const u = staff.find(x => x.id === id);
+            const f = u?.flags || {};
+            document.getElementById("flag_vip").checked = !!f.vip;
+            document.getElementById("flag_alert").checked = !!f.alert;
+            document.getElementById("flag_special").checked = !!f.special;
+            document.getElementById("flag_custom").value = f.custom || "";
+        }
+
+        function saveFlags() {
+            const id = document.getElementById("flag_target").value;
+            if (!id) return alert("Brak wybranego konta.");
+            const staff = getStaff();
+            const idx = staff.findIndex(s => s.id === id);
+            if (idx === -1) return alert("Nie znaleziono konta.");
+
+            staff[idx].flags = {
+                vip: document.getElementById("flag_vip").checked,
+                alert: document.getElementById("flag_alert").checked,
+                special: document.getElementById("flag_special").checked,
+                custom: document.getElementById("flag_custom").value.trim()
+            };
+
+            setStaff(staff);
+            pushSystemLog({ type: "admin", actor: "ADMIN", action: "FLAGS_UPDATED", details: staff[idx].code, level: "SUCCESS" });
+            alert("Flagi zapisane.");
+        }
+
+        function renderFlagsPreview() {
+            const box = document.getElementById("flag_preview");
+            const staff = getStaff();
+            if (!staff.length) {
+                box.innerHTML = '<div class="row" style="color:var(--muted)">Brak kont personelu.</div>';
+                return;
+            }
+
+            box.innerHTML = staff.map((s) => {
+                const f = s.flags || {};
+                let flagsHtml = "";
+                if (f.vip) flagsHtml += '<span class="flag flag-vip">⭐ VIP</span>';
+                if (f.alert) flagsHtml += '<span class="flag flag-alert">⚠ Alert</span>';
+                if (f.special) flagsHtml += '<span class="flag flag-spec">🧪 Specjalny</span>';
+                if (f.custom) flagsHtml += '<span class="flag">' + escapeHtml(f.custom) + '</span>';
+                if (!flagsHtml) flagsHtml = '<span style="color:var(--muted)">brak flag</span>';
+
+                return '<div class="row"><b>' + escapeHtml(s.name) + '</b> [' + escapeHtml(s.code) + ']<br>' + flagsHtml + "</div>";
+            }).join("");
+        }
+
+        function changeIdentity() {
+            const adminCode = document.getElementById("identity_admin_code").value.trim();
+            const oldCode = document.getElementById("identity_target").value.trim();
+            const newCode = document.getElementById("identity_new").value.trim();
+
+            if (adminCode !== BOSS_OVERRIDE_CODE) return alert("Brak uprawnień. Wymagany kod BOSS123.");
+            if (!oldCode || !newCode) return alert("Wpisz stary i nowy login/kod.");
+
+            const staff = getStaff();
+            const idx = staff.findIndex(s => s.code === oldCode);
+            if (idx === -1) return alert("Nie znaleziono użytkownika o podanym kodzie.");
+            if (staff.some(s => s.code === newCode)) return alert("Nowy kod już istnieje.");
+
+            const old = staff[idx].code;
+            staff[idx].code = newCode;
+            setStaff(staff);
+
+            pushSystemLog({ type: "admin", actor: "BOSS123", action: "IDENTITY_CHANGED", details: old + " -> " + newCode, level: "WARN" });
+            logAction("BOSS123", "IDENTITY_CHANGE", old + "=>" + newCode, "WARN", staff[idx].specialization || "Brak");
+
+            alert("Login/kod został zmieniony.");
+            document.getElementById("identity_target").value = "";
+            document.getElementById("identity_new").value = "";
+        }
+
+        // ===== MASTER SEARCH =====
+        function runMasterSearch() {
+            const q = (document.getElementById("master_search").value || "").trim().toLowerCase();
+            const out = [];
+
+            const staff = getStaff();
+            const reg = safeParse(localStorage.getItem("registered_patients"), []);
+            const hosp = safeParse(localStorage.getItem("hosp_v545"), []);
+
+            staff.forEach((s) => {
+                const line = [s.name, s.rank, s.specialization, s.code, s.flags?.custom].join(" ").toLowerCase();
+                if (!q || line.includes(q)) {
+                    out.push("STAFF | " + (s.name || "-") + " | " + (s.code || "-") + " | " + (s.rank || "-"));
+                }
+            });
+
+            reg.forEach((p, i) => {
+                const name = p?.name || p?.fullName || p?.patientName || ("Pacjent#" + (i + 1));
+                const line = [name, p?.login, p?.id, p?.status].join(" ").toLowerCase();
+                if (!q || line.includes(q)) {
+                    out.push("REGISTERED_PATIENTS | " + name + " | " + (p?.status || "-"));
+                }
+            });
+
+            hosp.forEach((p, i) => {
+                const name = p?.name || ("Pacjent#" + (i + 1));
+                const line = [name, p?.status, p?.triage, p?.reason].join(" ").toLowerCase();
+                if (!q || line.includes(q)) {
+                    out.push("HOSP_V545 | " + name + " | " + (p?.status || "-") + " | " + (p?.triage || "-"));
+                }
+            });
+
+            const box = document.getElementById("search_results");
+            if (!out.length) {
+                box.innerHTML = '<div class="row" style="color:var(--muted)">Brak wyników.</div>';
+                return;
+            }
+            box.innerHTML = out.slice(0, 250).map(x => '<div class="row">' + escapeHtml(x) + "</div>").join("");
+        }
+
+        // ===== TRASH BIN =====
+        function renderTrash() {
+            const box = document.getElementById("trash_list");
+            const trash = safeParse(localStorage.getItem("deleted_records"), []);
+            document.getElementById("st_trash").textContent = String(trash.length);
+
+            if (!trash.length) {
+                box.innerHTML = '<div class="row" style="color:var(--muted)">Kosz jest pusty.</div>';
+                return;
+            }
+
+            box.innerHTML = trash.map((r, i) => {
+                const dt = new Date(r.deletedAt || r.ts || Date.now()).toLocaleString();
+                const nm = r.name || r.patientName || ("Rekord #" + (i + 1));
+                return '<div class="row"><b>' + escapeHtml(nm) + '</b> <span class="tag">' + escapeHtml(dt) + '</span><br><button class="btn-primary mini" onclick="restoreTrash(' + i + ')">RESTORE</button></div>';
+            }).join("");
+        }
+
+        function restoreTrash(i) {
+            const trash = safeParse(localStorage.getItem("deleted_records"), []);
+            const rec = trash[i];
+            if (!rec) return alert("Brak rekordu.");
+
+            const hosp = safeParse(localStorage.getItem("hosp_v545"), []);
+            hosp.push(rec);
+            localStorage.setItem("hosp_v545", JSON.stringify(hosp));
+
+            trash.splice(i, 1);
+            localStorage.setItem("deleted_records", JSON.stringify(trash));
+
+            pushSystemLog({ type: "admin", actor: "ADMIN", action: "RESTORE_RECORD", details: rec.name || rec.patientName || "UNKNOWN", level: "SUCCESS" });
+            logAction("ADMIN", "RESTORE_RECORD", rec.name || "UNKNOWN", "SUCCESS", "ADMIN");
+
+            renderTrash();
+            runMasterSearch();
+            alert("Przywrócono rekord do hosp_v545.");
+        }
+
+        // ===== STATS =====
+        function updateStats() {
+            document.getElementById("st_docs").textContent = String(Object.keys(doctors).length);
+            document.getElementById("st_roles").textContent = String(Object.keys(roles).length);
+            document.getElementById("st_logs").textContent = String(logs.length);
+            document.getElementById("st_trash").textContent = String(safeParse(localStorage.getItem("deleted_records"), []).length);
+        }
+
         // ===== HELPERS =====
+        function safeParse(v, fallback) {
+            try {
+                const x = JSON.parse(v);
+                return x ?? fallback;
+            } catch {
+                return fallback;
+            }
+        }
+
+        function hasAny(text, arr) {
+            const t = String(text || "").toUpperCase();
+            return arr.some(k => t.includes(k));
+        }
+
         function escapeHtml(s) {
             return String(s ?? "")
                 .replaceAll("&", "&amp;")
@@ -826,6 +1461,10 @@
                 .replaceAll(">", "&gt;")
                 .replaceAll('"', "&quot;")
                 .replaceAll("'", "&#39;");
+        }
+
+        function escapeJs(s) {
+            return String(s ?? "").replaceAll("\\", "\\\\").replaceAll("'", "\\'");
         }
     </script>
 </body>
