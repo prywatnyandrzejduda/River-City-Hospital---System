@@ -4,87 +4,75 @@
     <meta charset="UTF-8">
     <title>Logowanie - MedSystem</title>
     <style>
-        body { background: #0b0c0d; color: white; font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .login-box { background: #1c1f22; padding: 30px; border-radius: 12px; border: 1px solid #333; width: 350px; }
-        input { width: 100%; padding: 12px; margin: 10px 0; background: #0b0c0d; border: 1px solid #444; color: white; border-radius: 6px; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; background: #00d2d3; border: none; color: black; font-weight: bold; cursor: pointer; border-radius: 6px; }
-        .switch { font-size: 12px; text-align: center; margin-top: 15px; cursor: pointer; color: #777; }
+        body { background: #0b0c0d; color: white; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .box { background: #1c1f22; padding: 40px; border-radius: 15px; border: 1px solid #333; width: 350px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        input { width: 100%; padding: 12px; margin: 10px 0; background: #0b0c0d; border: 1px solid #444; color: white; border-radius: 6px; box-sizing: border-box; outline: none; }
+        input:focus { border-color: #00d2d3; }
+        button { width: 100%; padding: 12px; background: #00d2d3; border: none; font-weight: bold; cursor: pointer; border-radius: 6px; margin-top: 10px; transition: 0.3s; }
+        button:hover { background: #00b8b9; }
+        .link { font-size: 12px; color: #777; cursor: pointer; margin-top: 20px; display: block; text-decoration: underline; }
     </style>
 </head>
 <body>
+    <div class="box" id="login-box">
+        <h2 style="color: #00d2d3;">MED-SYSTEM LOGIN</h2>
+        <input type="text" id="l_id" placeholder="ID (Kod od Dyrekcji)">
+        <input type="password" id="l_pass" placeholder="Hasło">
+        <button onclick="doLogin()">ZALOGUJ SIĘ</button>
+        <span class="link" onclick="toggle()">Nie masz konta? Zarejestruj się kodem</span>
+    </div>
 
-<div class="login-box" id="box-login">
-    <h2>Zaloguj się</h2>
-    <input type="text" id="l_login" placeholder="Twój unikalny ID (np. LEK-001)">
-    <input type="password" id="l_pass" placeholder="Hasło">
-    <button onclick="login()">WEJDŹ DO SYSTEMU</button>
-    <div class="switch" onclick="toggleBox()">Nie masz konta? Zarejestruj się używając kodu</div>
-</div>
+    <div class="box" id="reg-box" style="display:none;">
+        <h2 style="color: #2ecc71;">REJESTRACJA</h2>
+        <input type="text" id="r_code" placeholder="Kod autoryzacyjny">
+        <input type="text" id="r_name" placeholder="Imię i Nazwisko">
+        <input type="password" id="r_pass" placeholder="Ustaw hasło">
+        <button onclick="doRegister()" style="background:#2ecc71; color:white;">STWÓRZ KONTO</button>
+        <span class="link" onclick="toggle()">Wróć do logowania</span>
+    </div>
 
-<div class="login-box" id="box-reg" style="display:none;">
-    <h2>Rejestracja</h2>
-    <input type="text" id="r_code" placeholder="Kod dostępu od Dyrekcji">
-    <input type="text" id="r_name" placeholder="Imię i Nazwisko">
-    <input type="password" id="r_pass" placeholder="Ustaw hasło">
-    <button onclick="register()">STWÓRZ KONTO</button>
-    <div class="switch" onclick="toggleBox()">Masz już konto? Zaloguj się</div>
-</div>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyC5MioZo7CMVGopaZANfglS12Gy_TMPzEw",
+            databaseURL: "https://baza-danych-cd445-default-rtdb.europe-west1.firebasedatabase.app",
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-<script>
-    const firebaseConfig = { /* TWOJE DANE CONFIGU (takie same jak w index.html) */ };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+        function toggle() {
+            document.getElementById('login-box').style.display = document.getElementById('login-box').style.display === 'none' ? 'block' : 'none';
+            document.getElementById('reg-box').style.display = document.getElementById('reg-box').style.display === 'none' ? 'block' : 'none';
+        }
 
-    function toggleBox() {
-        const lb = document.getElementById('box-login');
-        const rb = document.getElementById('box-reg');
-        lb.style.display = lb.style.display === 'none' ? 'block' : 'none';
-        rb.style.display = rb.style.display === 'none' ? 'block' : 'none';
-    }
+        function doRegister() {
+            const code = document.getElementById('r_code').value;
+            const name = document.getElementById('r_name').value;
+            const pass = document.getElementById('r_pass').value;
+            if(!code || !name || !pass) return alert("Wypełnij wszystkie pola!");
 
-    // REJESTRACJA
-    function register() {
-        const code = document.getElementById('r_code').value;
-        const name = document.getElementById('r_name').value;
-        const pass = document.getElementById('r_pass').value;
+            db.ref('kody/' + code).once('value', snap => {
+                if (snap.exists() && snap.val().used === false) {
+                    db.ref('users/' + code).set({ fullName: name, password: pass });
+                    db.ref('kody/' + code + '/used').set(true);
+                    alert("Konto utworzone! Zaloguj się.");
+                    toggle();
+                } else { alert("Kod nieważny lub zajęty!"); }
+            });
+        }
 
-        // Sprawdzamy czy kod istnieje w bazie dozwolonych loginów
-        db.ref('autoryzowane_kody/' + code).once('value', snapshot => {
-            if (snapshot.exists() && snapshot.val().used === false) {
-                // Kod poprawny i wolny - tworzymy usera
-                db.ref('users/' + code).set({
-                    fullName: name,
-                    password: pass, // W prawdziwym systemie hasła się szyfruje, tu zostawiamy uproszczone
-                    role: snapshot.val().role || "Lekarz"
-                }).then(() => {
-                    // Oznaczamy kod jako zużyty
-                    db.ref('autoryzowane_kody/' + code + '/used').set(true);
-                    alert("Konto utworzone! Możesz się zalogować.");
-                    toggleBox();
-                });
-            } else {
-                alert("Błędny lub wykorzystany kod dostępu!");
-            }
-        });
-    }
-
-    // LOGOWANIE
-    function login() {
-        const login = document.getElementById('l_login').value;
-        const pass = document.getElementById('l_pass').value;
-
-        db.ref('users/' + login).once('value', snapshot => {
-            const user = snapshot.val();
-            if (user && user.password === pass) {
-                localStorage.setItem('loggedUser', JSON.stringify(user));
-                window.location.href = 'index.html';
-            } else {
-                alert("Błędne dane logowania!");
-            }
-        });
-    }
-</script>
+        function doLogin() {
+            const id = document.getElementById('l_id').value;
+            const pass = document.getElementById('l_pass').value;
+            db.ref('users/' + id).once('value', snap => {
+                const user = snap.val();
+                if (user && user.password === pass) {
+                    localStorage.setItem('loggedUser', JSON.stringify(user));
+                    window.location.href = 'index.html';
+                } else { alert("Błędny ID lub hasło!"); }
+            });
+        }
+    </script>
 </body>
 </html>
