@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Patient Portal - Hospital System</title>
+    <style>
+        :root {
+            --bg: #0c1016;
+            --panel: #121a24;
+            --card: #1a2330;
+            --line: #2f3c4f;
+            --text: #e9eef7;
+            --muted: #94a0af;
+            --accent: #00d2d3;
+            --ok: #2ecc71;
+            --warn: #f1c40f;
+            --err: #ff4757;
+        }
+        * { box-sizing: border-box; font-family: Consolas, "Courier New", monospace; }
+        body { margin: 0; background: var(--bg); color: var(--text); }
+        .wrap { max-width: 1400px; margin: 0 auto; padding: 16px; }
+        .topbar {
+            display: flex; justify-content: space-between; gap: 8px; align-items: center;
+            background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px;
+        }
+        .topbar h1 { margin: 0; font-size: 18px; }
+        .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+        .tab-btn {
+            border: 1px solid var(--line); background: #162132; color: var(--text);
+            border-radius: 8px; padding: 9px 12px; cursor: pointer; font-weight: 700;
+        }
+        .tab-btn.active { border-color: var(--accent); color: var(--accent); }
+        .tab { display: none; }
+        .tab.active { display: block; }
+        .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px; margin-bottom: 12px; }
+        h2 { margin: 0 0 10px 0; color: var(--accent); font-size: 16px; }
+        .muted { color: var(--muted); font-size: 12px; margin-bottom: 10px; }
+        input, select, textarea, button {
+            width: 100%; border: 1px solid var(--line); background: #111a28; color: var(--text);
+            border-radius: 8px; padding: 10px; margin-bottom: 8px;
+        }
+        input[disabled] { opacity: 0.6; }
+        button { cursor: pointer; font-weight: 700; }
+        .btn { background: var(--accent); color: #032022; border-color: #00b8b9; }
+        .btn2 { background: #202c3d; }
+        .btn-danger { background: #34171e; border-color: #4c1f29; color: #ff9aa5; }
+        .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .history-item { border: 1px solid var(--line); border-radius: 8px; background: #0f1622; padding: 10px; margin-bottom: 8px; font-size: 12px; }
+        .chat-box { border: 1px solid var(--line); border-radius: 8px; background: #0d141f; max-height: 330px; overflow: auto; padding: 8px; }
+        .chat-line { border-bottom: 1px dashed #243247; padding: 6px 4px; font-size: 12px; }
+        .me { color: #a9f3c7; }
+        .other { color: #b5c6dd; }
+        .msg { font-size: 12px; min-height: 16px; color: var(--muted); }
+        .ok { color: var(--ok); }
+        .err { color: var(--err); }
+        @media (max-width: 950px) { .grid2 { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="topbar">
+            <h1>PATIENT PORTAL</h1>
+            <div>
+                <button class="btn2" onclick="location.href='start.html'">START</button>
+                <button class="btn2" onclick="logoutPatient()">WYLOGUJ</button>
+            </div>
+        </div>
+        <div class="tabs">
+            <button class="tab-btn active" onclick="setTab('p1', this)">Informacje o sobie</button>
+            <button class="tab-btn" onclick="setTab('p2', this)">Moja Karta</button>
+            <button class="tab-btn" onclick="setTab('p3', this)">Zapisy na badania</button>
+            <button class="tab-btn" onclick="setTab('p4', this)">Konsultacje</button>
+        </div>
+        <div id="p1" class="tab active">
+            <div class="card">
+                <h2>Informacje o sobie</h2>
+                <div class="muted">Edycja danych pacjenta. Login/ID zablokowane; odblokowanie tylko kodem admina.</div>
+                <div class="grid2">
+                    <div>
+                        <input id="f_id" disabled />
+                        <input id="f_login" disabled />
+                        <input id="f_name" placeholder="Imię i nazwisko" />
+                        <div class="grid2">
+                            <input id="f_age" type="number" placeholder="Wiek" />
+                            <select id="f_gender"><option value="K">K</option><option value="M">M</option></select>
+                        </div>
+                        <input id="f_address" placeholder="Miejsce zamieszkania" />
+                        <input id="f_job" placeholder="Zawód" />
+                    </div>
+                    <div>
+                        <select id="f_insured"><option value="TAK">Ubezpieczenie: TAK</option><option value="NIE">Ubezpieczenie: NIE</option></select>
+                        <input id="f_insNum" placeholder="Nr ubezpieczenia" />
+                        <input id="f_blood" placeholder="Grupa krwi (opcjonalnie)" />
+                        <input id="f_pass" type="password" placeholder="Nowe hasło (opcjonalnie)" />
+                        <button class="btn" onclick="saveProfile()">ZAPISZ DANE</button>
+                        <div id="save_msg" class="msg"></div>
+                        <hr style="border:0;border-top:1px solid var(--line);margin:10px 0;" />
+                        <input id="boss_code" type="password" placeholder="Kod admina do edycji ID/Loginu" />
+                        <button class="btn-danger" onclick="unlockIdentity()">ODBLOKUJ EDYCJĘ ID/LOGIN</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="p2" class="tab">
+            <div class="card">
+                <h2>Moja Karta</h2>
+                <div class="muted">Historia z bazy oddziału (`hosp_v545`) dopasowana po imieniu i nazwisku.</div>
+                <div id="medical_history"></div>
+            </div>
+        </div>
+        <div id="p3" class="tab">
+            <div class="card">
+                <h2>Zapisy na badania</h2>
+                <div class="grid2">
+                    <div>
+                        <select id="ap_type">
+                            <option>Psychologia</option>
+                            <option>Chirurgia</option>
+                            <option>Kardiologia</option>
+                            <option>Radiologia</option>
+                            <option>Medycyna ogólna</option>
+                        </select>
+                        <input id="ap_date" type="datetime-local" />
+                        <textarea id="ap_note" rows="4" placeholder="Dodatkowa notatka..."></textarea>
+                        <button class="btn" onclick="addAppointment()">ZAPISZ TERMIN</button>
+                        <div id="ap_msg" class="msg"></div>
+                    </div>
+                    <div>
+                        <h2 style="font-size:14px;">Moje terminy</h2>
+                        <div id="appointments_list"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="p4" class="tab">
+            <div class="card">
+                <h2>Konsultacje</h2>
+                <div class="grid2">
+                    <div>
+                        <select id="consult_doctor"></select>
+                        <div id="consult_meta" class="muted"></div>
+                        <div id="chat_box" class="chat-box"></div>
+                    </div>
+                    <div>
+                        <textarea id="chat_text" rows="8" placeholder="Wiadomość do lekarza..."></textarea>
+                        <button class="btn" onclick="sendMessage()">WYŚLIJ</button>
+                        <button class="btn2" onclick="refreshChat()">ODŚWIEŻ ROZMOWĘ</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function readLS(key, fallback) { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } }
+        function writeLS(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
+        function uid(prefix) { return prefix + "-" + Date.now().toString(36).toUpperCase() + "-" + Math.floor(Math.random() * 9999).toString().padStart(4, "0"); }
+        function esc(s) { return String(s ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;"); }
+        function logSystem(type, action, details) {
+            const logs = readLS("system_logs", []);
+            logs.push({ id: uid("LOG"), ts: Date.now(), type, action, details: details || {} });
+            writeLS("system_logs", logs.slice(-900));
+        }
+        const session = readLS("current_patient_session", null);
+        let patients = readLS("registered_patients", []);
+        let me = session ? patients.find(p => p.id === session.patientId) : null;
+        let identityUnlocked = false;
+        if (!me) {
+            alert("Brak sesji pacjenta. Zaloguj się w start.html");
+            location.href = "start.html";
+        }
+        function setTab(id, btn) {
+            document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+            document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+            document.getElementById(id).classList.add("active");
+            btn.classList.add("active");
+        }
+        function bindProfile() {
+            document.getElementById("f_id").value = "ID: " + me.id;
+            document.getElementById("f_login").value = "Login: " + me.login;
+            document.getElementById("f_name").value = me.name || "";
+            document.getElementById("f_age").value = me.age || "";
+            document.getElementById("f_gender").value = me.gender || "K";
+            document.getElementById("f_address").value = me.address || "";
+            document.getElementById("f_job").value = me.job || "";
+            document.getElementById("f_insured").value = me.insured || "TAK";
+            document.getElementById("f_insNum").value = me.insNumber || "";
+            document.getElementById("f_blood").value = me.blood || "";
+        }
+        function saveProfile() {
+            patients = readLS("registered_patients", []);
+            const idx = patients.findIndex(p => p.id === me.id);
+            if (idx < 0) return;
+            patients[idx].name = document.getElementById("f_name").value.trim();
+            patients[idx].age = Number(document.getElementById("f_age").value || 0);
+            patients[idx].gender = document.getElementById("f_gender").value;
+            patients[idx].address = document.getElementById("f_address").value.trim();
+            patients[idx].job = document.getElementById("f_job").value.trim();
+            patients[idx].insured = document.getElementById("f_insured").value;
+            patients[idx].insNumber = document.getElementById("f_insNum").value.trim();
+            patients[idx].blood = document.getElementById("f_blood").value.trim();
+            const np = document.getElementById("f_pass").value;
+            if (np) patients[idx].password = np;
+            if (identityUnlocked) {
+                const idRaw = document.getElementById("f_id").value.replace("ID: ", "").trim();
+                const loginRaw = document.getElementById("f_login").value.replace("Login: ", "").trim();
+                if (idRaw && loginRaw) {
+                    patients[idx].id = idRaw;
+                    patients[idx].login = loginRaw;
+                    writeLS("current_patient_session", { patientId: idRaw, login: loginRaw, ts: Date.now() });
+                }
+            }
+            writeLS("registered_patients", patients);
+            me = patients[idx];
+            bindProfile();
+            document.getElementById("f_pass").value = "";
+            document.getElementById("save_msg").className = "msg ok";
+            document.getElementById("save_msg").textContent = "Dane zapisane.";
+            logSystem("patient", "PROFILE_UPDATE", { patientId: me.id });
+            renderHistory();
+            renderAppointments();
+            loadDoctorSelect();
+        }
+        function unlockIdentity() {
+            const code = document.getElementById("boss_code").value.trim();
+            if (code !== "BOSS123") {
+                document.getElementById("save_msg").className = "msg err";
+                document.getElementById("save_msg").textContent = "Brak uprawnień. Tylko kod BOSS123.";
+                return;
+            }
+            identityUnlocked = true;
+            document.getElementById("f_id").disabled = false;
+            document.getElementById("f_login").disabled = false;
+            document.getElementById("f_id").value = me.id;
+            document.getElementById("f_login").value = me.login;
+            document.getElementById("save_msg").className = "msg ok";
+            document.getElementById("save_msg").textContent = "Edycja ID/Loginu odblokowana przez admina.";
+            logSystem("admin", "IDENTITY_UNLOCK", { patientId: me.id });
+        }
+        function renderHistory() {
+            const box = document.getElementById("medical_history");
+            const hosp = readLS("hosp_v545", []);
+            const rec = hosp.find(r => String(r.name || "").trim().toLowerCase() === String(me.name || "").trim().toLowerCase());
+            if (!rec || !Array.isArray(rec.history) || !rec.history.length) {
+                box.innerHTML = `<div class="muted">Brak historii choroby powiązanej z profilem.</div>`;
+                return;
+            }
+            box.innerHTML = rec.history.slice().reverse().map(h => `
+                <div class="history-item">
+                    <small>${esc(h.time || "")}</small><br>
+                    <b>${esc(h.doc || "Lekarz")}</b> (${esc(h.rank || "-")})<br>
+                    ${esc(h.txt || "")}
+                </div>
+            `).join("");
+        }
+        function addAppointment() {
+            const type = document.getElementById("ap_type").value;
+            const date = document.getElementById("ap_date").value;
+            const note = document.getElementById("ap_note").value.trim();
+            if (!date) return;
+            patients = readLS("registered_patients", []);
+            const idx = patients.findIndex(p => p.id === me.id);
+            if (idx < 0) return;
+            if (!Array.isArray(patients[idx].appointments)) patients[idx].appointments = [];
+            patients[idx].appointments.push({ id: uid("AP"), type, date, note, createdAt: Date.now() });
+            writeLS("registered_patients", patients);
+            me = patients[idx];
+            document.getElementById("ap_note").value = "";
+            document.getElementById("ap_msg").className = "msg ok";
+            document.getElementById("ap_msg").textContent = "Termin zapisany.";
+            logSystem("patient", "APPOINTMENT_ADD", { patientId: me.id, type, date });
+            renderAppointments();
+        }
+        function renderAppointments() {
+            const box = document.getElementById("appointments_list");
+            const arr = (me.appointments || []).slice().sort((a, b) => String(a.date).localeCompare(String(b.date)));
+            if (!arr.length) {
+                box.innerHTML = `<div class="muted">Brak zapisów.</div>`;
+                return;
+            }
+            box.innerHTML = arr.map(a => `<div class="history-item"><b>${esc(a.type)}</b><br>${esc(a.date)}<br><small>${esc(a.note || "")}</small></div>`).join("");
+        }
+        function loadDoctorSelect() {
+            const docs = readLS("hospital_staff", []);
+            const sel = document.getElementById("consult_doctor");
+            sel.innerHTML = docs.length
+                ? docs.map(d => `<option value="${esc(d.id)}">${esc(d.name || d.code)} (${esc(d.specialization || "Ogólna")})</option>`).join("")
+                : `<option value="">Brak lekarzy w systemie</option>`;
+            sel.onchange = refreshChat;
+            refreshChat();
+        }
+        function refreshChat() {
+            const doctorId = document.getElementById("consult_doctor").value;
+            const docs = readLS("hospital_staff", []);
+            const d = docs.find(x => x.id === doctorId);
+            document.getElementById("consult_meta").textContent = d ? ("Lekarz: " + (d.name || d.code)) : "Brak lekarza";
+            const thread = readLS("consultations", []).filter(m =>
+                m.patientId === me.id && m.doctorId === doctorId
+            ).sort((a, b) => a.ts - b.ts);
+            const box = document.getElementById("chat_box");
+            box.innerHTML = thread.length
+                ? thread.map(m => `<div class="chat-line ${m.senderType === "patient" ? "me" : "other"}"><small>${new Date(m.ts).toLocaleString()}</small><br>${esc(m.text)}</div>`).join("")
+                : `<div class="muted">Brak wiadomości.</div>`;
+            box.scrollTop = box.scrollHeight;
+        }
+        function sendMessage() {
+            const doctorId = document.getElementById("consult_doctor").value;
+            const text = document.getElementById("chat_text").value.trim();
+            if (!doctorId || !text) return;
+            const data = readLS("consultations", []);
+            data.push({
+                id: uid("MSG"),
+                doctorId,
+                patientId: me.id,
+                senderType: "patient",
+                senderId: me.id,
+                text,
+                ts: Date.now()
+            });
+            writeLS("consultations", data);
+            document.getElementById("chat_text").value = "";
+            logSystem("patient", "SEND_CONSULTATION_MSG", { patientId: me.id, doctorId });
+            refreshChat();
+        }
+        function logoutPatient() {
+            logSystem("patient", "LOGOUT", { patientId: me.id });
+            localStorage.removeItem("current_patient_session");
+            location.href = "start.html";
+        }
+        bindProfile();
+        renderHistory();
+        renderAppointments();
+        loadDoctorSelect();
+    </script>
+</body>
+</html>
