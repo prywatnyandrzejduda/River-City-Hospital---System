@@ -3,211 +3,231 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Hospital System - Start</title>
+    <title>Admin Center - Hospital</title>
     <style>
         :root {
-            --bg: #0b0d11;
-            --panel: #141922;
-            --card: #1b222d;
-            --line: #2d3746;
-            --text: #e8edf5;
-            --muted: #8f9bab;
-            --accent: #00d2d3;
-            --ok: #2ecc71;
-            --warn: #f1c40f;
-            --err: #ff4757;
+            --bg: #0a0d12; --panel: #111824; --card: #1a2230; --line: #2c3748;
+            --text: #e7edf6; --muted: #95a2b4; --accent: #00d2d3; --ok: #2ecc71; --err: #ff4757; --warn: #f1c40f;
         }
         * { box-sizing: border-box; font-family: Consolas, "Courier New", monospace; }
         body { margin: 0; background: var(--bg); color: var(--text); }
-        .wrap { max-width: 1300px; margin: 0 auto; padding: 20px; }
-        h1 { margin: 0 0 6px 0; }
-        .sub { color: var(--muted); margin-bottom: 16px; font-size: 13px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-        .card {
-            background: var(--card);
-            border: 1px solid var(--line);
-            border-radius: 12px;
-            padding: 16px;
-        }
-        h2 { margin: 0 0 10px 0; color: var(--accent); font-size: 18px; }
-        h3 { margin: 14px 0 8px 0; color: #9ddfe0; font-size: 14px; }
-        input, select, button {
-            width: 100%;
-            margin-bottom: 8px;
-            border: 1px solid var(--line);
-            border-radius: 8px;
-            background: #111722;
-            color: var(--text);
-            padding: 10px;
-        }
+        .wrap { max-width: 1500px; margin: 0 auto; padding: 16px; }
+        .hidden { display: none !important; }
+        input, select, button { width: 100%; border: 1px solid var(--line); background: #121b29; color: var(--text); border-radius: 8px; padding: 10px; margin-bottom: 8px; }
         button { cursor: pointer; font-weight: 700; text-transform: uppercase; }
-        .btn { background: var(--accent); color: #042022; border-color: #00b9bb; }
-        .btn2 { background: #1f2a37; }
-        .msg { min-height: 18px; font-size: 12px; color: var(--muted); }
-        .ok { color: var(--ok); }
-        .err { color: var(--err); }
-        .row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .line { border-top: 1px solid var(--line); margin: 10px 0; }
-        .badge { display: inline-block; border: 1px solid var(--line); border-radius: 8px; padding: 2px 6px; font-size: 11px; color: var(--warn); }
-        @media (max-width: 980px) { .grid { grid-template-columns: 1fr; } }
+        .btn { background: var(--accent); color: #022224; border-color: #00b8b9; }
+        .btn2 { background: #1d2939; }
+        .btn-danger { background: #36171f; border-color: #4e202a; color: #ff9aa5; }
+        .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px; margin-bottom: 12px; }
+        h1, h2 { margin: 0 0 10px 0; }
+        h2 { color: var(--accent); font-size: 16px; }
+        .sub { color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .row4 { display: grid; grid-template-columns: 1fr 140px 140px 160px; gap: 8px; }
+        .row3 { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border-bottom: 1px solid var(--line); padding: 8px; font-size: 12px; text-align: left; }
+        th { font-size: 11px; color: #a7e4e5; text-transform: uppercase; }
+        .login-wrap { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
+        .login-card { width: 100%; max-width: 420px; background: var(--card); border: 1px solid var(--line); border-top: 3px solid var(--err); border-radius: 10px; padding: 18px; }
+        .msg { min-height: 16px; font-size: 12px; color: var(--muted); }
+        .ok { color: var(--ok); } .err { color: var(--err); }
+        @media (max-width: 1100px) { .grid { grid-template-columns: 1fr; } .row4, .row3 { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
-    <div class="wrap">
-        <h1>HOSPITAL ACCESS GATEWAY</h1>
-        <div class="sub">Logowanie lekarza i rejestracja/logowanie pacjenta. Dane synchronizowane przez `localStorage`.</div>
-        <div class="grid">
-            <div class="card">
-                <h2>DOCTOR</h2>
-                <div class="badge">Kod musi istnieć w `hospital_staff`</div>
-                <h3>Logowanie</h3>
-                <input id="doc_code" type="text" placeholder="Kod personelu (np. DR-2A91)" />
-                <button class="btn" onclick="doctorLogin()">WEJDŹ DO PANELU LEKARZA</button>
-                <div id="doc_msg" class="msg"></div>
-                <button class="btn2" onclick="goToAdmin()">PRZEJDŹ DO ADMINA</button>
+    <div id="loginScreen" class="login-wrap">
+        <div class="login-card">
+            <h1>ADMIN CENTER</h1>
+            <div class="sub">Dostęp tylko dla kodu bezpieczeństwa.</div>
+            <input id="bossPass" type="password" placeholder="Kod bezpieczeństwa" />
+            <button class="btn" onclick="adminLogin()">AUTORYZUJ</button>
+            <button class="btn2" onclick="location.href='start.html'">POWRÓT</button>
+            <div id="loginMsg" class="msg"></div>
+        </div>
+    </div>
+    <div id="panel" class="wrap hidden">
+        <div class="card">
+            <h1>Hospital Administration</h1>
+            <div class="row3">
+                <button class="btn2" onclick="location.href='start.html'">START</button>
+                <button class="btn2" onclick="location.href='index.html'">ODDZIAŁ</button>
+                <button class="btn-danger" onclick="logout()">WYLOGUJ</button>
             </div>
-            <div class="card">
-                <h2>PATIENT</h2>
-                <h3>Logowanie</h3>
-                <input id="pat_login" type="text" placeholder="Login pacjenta (np. PT-01AF)" />
-                <input id="pat_pass" type="password" placeholder="Hasło pacjenta" />
-                <button class="btn" onclick="patientLogin()">WEJDŹ DO PORTALU PACJENTA</button>
-                <div id="pat_msg" class="msg"></div>
-                <div class="line"></div>
-                <h3>Rejestracja pacjenta</h3>
-                <input id="reg_name" type="text" placeholder="Imię i nazwisko" />
-                <div class="row">
-                    <input id="reg_age" type="number" min="1" max="120" placeholder="Wiek" />
-                    <select id="reg_gender">
-                        <option value="K">Płeć: K</option>
-                        <option value="M">Płeć: M</option>
-                    </select>
+        </div>
+        <div class="grid">
+            <div>
+                <div class="card">
+                    <h2>Generator Kodów</h2>
+                    <div class="sub">Jednorazowe tokeny zapisywane do `pending_codes`.</div>
+                    <div class="row4">
+                        <select id="genType"><option value="doctor">Lekarz</option><option value="patient">Pacjent</option></select>
+                        <input id="genCount" type="number" min="1" max="20" value="1" />
+                        <input id="genPrefix" type="text" placeholder="Prefix (opcj.)" />
+                        <button class="btn" onclick="generateCodes()">GENERUJ</button>
+                    </div>
+                    <div id="genMsg" class="msg"></div>
+                    <table id="pendingTable"></table>
                 </div>
-                <input id="reg_address" type="text" placeholder="Miejsce zamieszkania" />
-                <input id="reg_job" type="text" placeholder="Zawód" />
-                <select id="reg_ins_yes" onchange="toggleInsuranceNo()">
-                    <option value="TAK">Ubezpieczenie: TAK</option>
-                    <option value="NIE">Ubezpieczenie: NIE</option>
-                </select>
-                <input id="reg_ins_num" type="text" placeholder="Nr ubezpieczenia (jeśli jest)" />
-                <input id="reg_blood" type="text" placeholder="Grupa krwi (opcjonalnie)" />
-                <input id="reg_pass" type="password" placeholder="Ustaw hasło do portalu" />
-                <button class="btn2" onclick="registerPatient()">ZAREJESTRUJ PACJENTA</button>
-                <div id="reg_msg" class="msg"></div>
+                <div class="card">
+                    <h2>Baza Lekarzy</h2>
+                    <div class="sub">Zmiana rangi, specjalizacji i usuwanie kont.</div>
+                    <table id="doctorsTable"></table>
+                </div>
+            </div>
+            <div>
+                <div class="card">
+                    <h2>Baza Cywili (Pacjentów)</h2>
+                    <div class="sub">Pełne dane pacjentów z systemu rejestracji.</div>
+                    <table id="patientsTable"></table>
+                </div>
             </div>
         </div>
     </div>
     <script>
-        function readLS(key, fallback) {
-            try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; }
-        }
-        function writeLS(key, value) {
-            localStorage.setItem(key, JSON.stringify(value));
-        }
-        function uid(prefix) {
-            return prefix + "-" + Date.now().toString(36).toUpperCase() + "-" + Math.floor(Math.random() * 9999).toString().padStart(4, "0");
-        }
-        function logSystem(type, action, details) {
-            const logs = readLS("system_logs", []);
-            logs.push({ id: uid("LOG"), ts: Date.now(), type, action, details: details || {} });
-            writeLS("system_logs", logs.slice(-800));
-        }
-        function ensureSeeds() {
+        const BOSS = "BOSS123";
+        function readLS(k, f) { try { return JSON.parse(localStorage.getItem(k)) ?? f; } catch { return f; } }
+        function writeLS(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
+        function uid(p) { return p + "-" + Date.now().toString(36).toUpperCase() + "-" + Math.floor(Math.random() * 9999).toString().padStart(4, "0"); }
+        function esc(s) { return String(s ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;"); }
+        function seed() {
+            if (!Array.isArray(readLS("pending_codes", null))) writeLS("pending_codes", []);
             if (!Array.isArray(readLS("hospital_staff", null))) writeLS("hospital_staff", []);
             if (!Array.isArray(readLS("registered_patients", null))) writeLS("registered_patients", []);
-            if (!Array.isArray(readLS("consultations", null))) writeLS("consultations", []);
         }
-        ensureSeeds();
-        function toggleInsuranceNo() {
-            const has = document.getElementById("reg_ins_yes").value === "TAK";
-            const inp = document.getElementById("reg_ins_num");
-            inp.disabled = !has;
-            if (!has) inp.value = "";
-        }
-        function doctorLogin() {
-            const code = document.getElementById("doc_code").value.trim();
-            const staff = readLS("hospital_staff", []);
-            const msg = document.getElementById("doc_msg");
-            const doctor = staff.find(s => s.code === code);
-            if (!doctor) {
-                msg.className = "msg err";
-                msg.textContent = "Kod nie istnieje. Poproś admina o wygenerowanie kodu.";
-                logSystem("doctor", "LOGIN_FAIL", { code });
+        seed();
+        function adminLogin() {
+            const v = document.getElementById("bossPass").value.trim();
+            if (v !== BOSS) {
+                const m = document.getElementById("loginMsg");
+                m.className = "msg err"; m.textContent = "Błędny kod. Dostęp odrzucony.";
                 return;
             }
-            writeLS("current_doctor_session", { doctorId: doctor.id, code: doctor.code, ts: Date.now() });
-            logSystem("doctor", "LOGIN_SUCCESS", { doctorId: doctor.id, name: doctor.name, code: doctor.code });
+            document.getElementById("loginScreen").classList.add("hidden");
+            document.getElementById("panel").classList.remove("hidden");
+            renderAll();
+        }
+        function logout() { location.reload(); }
+        function buildCode(type, customPrefix) {
+            const prefix = customPrefix ? customPrefix.toUpperCase() : (type === "doctor" ? "DR" : "PT");
+            return prefix + "-" + Math.random().toString(36).slice(2, 6).toUpperCase();
+        }
+        function generateCodes() {
+            const type = document.getElementById("genType").value;
+            const count = Math.max(1, Math.min(20, Number(document.getElementById("genCount").value || 1)));
+            const prefix = document.getElementById("genPrefix").value.trim();
+            const pending = readLS("pending_codes", []);
+            const created = [];
+            for (let i = 0; i < count; i += 1) {
+                let code = buildCode(type, prefix);
+                while (pending.some(x => x.code === code)) code = buildCode(type, prefix);
+                const row = {
+                    id: uid("PC"),
+                    code,
+                    type,
+                    rank: type === "doctor" ? "Rezydent" : "",
+                    specialization: type === "doctor" ? "Ogólna" : "",
+                    createdAt: Date.now()
+                };
+                pending.push(row);
+                created.push(code);
+            }
+            writeLS("pending_codes", pending);
+            const msg = document.getElementById("genMsg");
             msg.className = "msg ok";
-            msg.textContent = "Autoryzacja OK. Przekierowanie...";
-            setTimeout(() => location.href = "doctor_panel.html", 250);
+            msg.textContent = "Wygenerowano: " + created.join(", ");
+            renderPending();
         }
-        function registerPatient() {
-            const name = document.getElementById("reg_name").value.trim();
-            const age = Number(document.getElementById("reg_age").value || 0);
-            const gender = document.getElementById("reg_gender").value;
-            const address = document.getElementById("reg_address").value.trim();
-            const job = document.getElementById("reg_job").value.trim();
-            const insured = document.getElementById("reg_ins_yes").value;
-            const insNumber = document.getElementById("reg_ins_num").value.trim();
-            const blood = document.getElementById("reg_blood").value.trim();
-            const pass = document.getElementById("reg_pass").value;
-            const msg = document.getElementById("reg_msg");
-            if (!name || !address || !job || !pass || age < 1) {
-                msg.className = "msg err";
-                msg.textContent = "Uzupełnij wszystkie wymagane pola.";
-                return;
-            }
-            if (insured === "TAK" && !insNumber) {
-                msg.className = "msg err";
-                msg.textContent = "Podaj numer ubezpieczenia.";
-                return;
-            }
-            const patients = readLS("registered_patients", []);
-            const patientId = uid("PAT");
-            const login = "PT-" + Math.random().toString(36).slice(2, 6).toUpperCase();
-            const record = {
-                id: patientId,
-                login,
-                password: pass,
-                name,
-                age,
-                gender,
-                address,
-                job,
-                insured,
-                insNumber: insured === "TAK" ? insNumber : "",
-                blood: blood || "",
-                appointments: [],
-                createdAt: Date.now()
-            };
-            patients.push(record);
-            writeLS("registered_patients", patients);
-            writeLS("current_patient_session", { patientId, login, ts: Date.now() });
-            logSystem("patient", "REGISTER_SUCCESS", { patientId, login, name });
-            msg.className = "msg ok";
-            msg.innerHTML = "Rejestracja OK. Twój login: <b>" + login + "</b>. Zapisz go.";
-            setTimeout(() => location.href = "patient_portal.html", 400);
+        function removePending(id) {
+            const pending = readLS("pending_codes", []).filter(p => p.id !== id);
+            writeLS("pending_codes", pending);
+            renderPending();
         }
-        function patientLogin() {
-            const login = document.getElementById("pat_login").value.trim();
-            const pass = document.getElementById("pat_pass").value;
-            const patients = readLS("registered_patients", []);
-            const msg = document.getElementById("pat_msg");
-            const patient = patients.find(p => p.login === login && p.password === pass);
-            if (!patient) {
-                msg.className = "msg err";
-                msg.textContent = "Błędny login lub hasło.";
-                logSystem("patient", "LOGIN_FAIL", { login });
-                return;
-            }
-            writeLS("current_patient_session", { patientId: patient.id, login: patient.login, ts: Date.now() });
-            logSystem("patient", "LOGIN_SUCCESS", { patientId: patient.id, login: patient.login, name: patient.name });
-            msg.className = "msg ok";
-            msg.textContent = "Autoryzacja OK. Przekierowanie...";
-            setTimeout(() => location.href = "patient_portal.html", 250);
+        function updateDoctor(id, field, value) {
+            const docs = readLS("hospital_staff", []);
+            const idx = docs.findIndex(d => d.id === id);
+            if (idx < 0) return;
+            docs[idx][field] = value;
+            writeLS("hospital_staff", docs);
+            renderDoctors();
         }
-        function goToAdmin() {
-            location.href = "admin.html";
+        function deleteDoctor(id) {
+            if (!confirm("Usunąć konto lekarza?")) return;
+            writeLS("hospital_staff", readLS("hospital_staff", []).filter(d => d.id !== id));
+            renderDoctors();
+        }
+        function deletePatient(id) {
+            if (!confirm("Usunąć konto pacjenta?")) return;
+            writeLS("registered_patients", readLS("registered_patients", []).filter(p => p.id !== id));
+            renderPatients();
+        }
+        function renderPending() {
+            const rows = readLS("pending_codes", []);
+            const table = document.getElementById("pendingTable");
+            table.innerHTML = `
+                <thead><tr><th>Kod</th><th>Typ</th><th>Parametry</th><th>Akcja</th></tr></thead>
+                <tbody>
+                    ${rows.length ? rows.map(r => `
+                        <tr>
+                            <td>${esc(r.code)}</td>
+                            <td>${esc(r.type)}</td>
+                            <td>${esc(r.rank || "-")} ${r.specialization ? "| " + esc(r.specialization) : ""}</td>
+                            <td><button class="btn-danger" onclick="removePending('${esc(r.id)}')">USUŃ</button></td>
+                        </tr>
+                    `).join("") : `<tr><td colspan="4">Brak aktywnych kodów.</td></tr>`}
+                </tbody>
+            `;
+        }
+        function renderDoctors() {
+            const docs = readLS("hospital_staff", []);
+            const ranks = ["Rezydent", "Młodszy Lekarz", "Lekarz", "Starszy Lekarz", "Ordynator", "Konsultant"];
+            const table = document.getElementById("doctorsTable");
+            table.innerHTML = `
+                <thead><tr><th>Kod</th><th>Imię i nazwisko</th><th>Ranga</th><th>Specjalizacja</th><th>Akcja</th></tr></thead>
+                <tbody>
+                ${docs.length ? docs.map(d => `
+                    <tr>
+                        <td>${esc(d.code)}</td>
+                        <td>${esc(d.name || ((d.firstName || "") + " " + (d.lastName || "")).trim())}</td>
+                        <td>
+                            <select onchange="updateDoctor('${esc(d.id)}','rank',this.value)">
+                                ${ranks.map(r => `<option value="${esc(r)}" ${d.rank === r ? "selected" : ""}>${esc(r)}</option>`).join("")}
+                            </select>
+                        </td>
+                        <td><input value="${esc(d.specialization || "Ogólna")}" onchange="updateDoctor('${esc(d.id)}','specialization',this.value)" /></td>
+                        <td><button class="btn-danger" onclick="deleteDoctor('${esc(d.id)}')">USUŃ</button></td>
+                    </tr>
+                `).join("") : `<tr><td colspan="5">Brak lekarzy.</td></tr>`}
+                </tbody>
+            `;
+        }
+        function renderPatients() {
+            const pats = readLS("registered_patients", []);
+            const table = document.getElementById("patientsTable");
+            table.innerHTML = `
+                <thead><tr><th>Login</th><th>Imię i nazwisko</th><th>Dane</th><th>Akcja</th></tr></thead>
+                <tbody>
+                ${pats.length ? pats.map(p => `
+                    <tr>
+                        <td>${esc(p.login)}</td>
+                        <td>${esc(p.name)}</td>
+                        <td>
+                            Wiek: ${esc(p.age)} | Płeć: ${esc(p.gender)}<br>
+                            Ubezp.: ${esc(p.insured)} ${p.insNumber ? "(" + esc(p.insNumber) + ")" : ""}<br>
+                            Adres: ${esc(p.address)}<br>
+                            Zawód: ${esc(p.job)}<br>
+                            Krew: ${esc(p.blood || "-")}
+                        </td>
+                        <td><button class="btn-danger" onclick="deletePatient('${esc(p.id)}')">USUŃ</button></td>
+                    </tr>
+                `).join("") : `<tr><td colspan="4">Brak pacjentów.</td></tr>`}
+                </tbody>
+            `;
+        }
+        function renderAll() {
+            renderPending();
+            renderDoctors();
+            renderPatients();
         }
     </script>
 </body>
