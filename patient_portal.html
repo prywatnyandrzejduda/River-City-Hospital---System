@@ -6,35 +6,37 @@
     <title>Patient Portal - Hospital System</title>
     <style>
         :root {
-            --bg: #0c1016; --panel: #121a24; --card: #1a2330; --line: #2f3c4f;
-            --text: #e9eef7; --muted: #94a0af; --accent: #00d2d3; --ok: #2ecc71; --err: #ff4757;
+            --bg: #070c12; --glass: rgba(255,255,255,.05); --line: rgba(255,255,255,.11);
+            --text: #e9eef7; --muted: #94a0af; --accent: #37ff94; --doc: #33c7ff; --err: #ff5c73;
         }
         * { box-sizing: border-box; font-family: Consolas, "Courier New", monospace; }
-        body { margin: 0; background: var(--bg); color: var(--text); }
+        body { margin: 0; color: var(--text); background: radial-gradient(circle at 80% 10%, #0f1e2b, transparent 40%), linear-gradient(120deg,#030507,#0a131d); }
         .hidden { display: none !important; }
         .wrap { max-width: 1400px; margin: 0 auto; padding: 16px; }
         .auth-wrap { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
         .auth-grid { width: 100%; max-width: 1100px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px; margin-bottom: 12px; }
+        .card { background: var(--glass); backdrop-filter: blur(15px); border: 1px solid var(--line); border-radius: 10px; padding: 14px; margin-bottom: 12px; }
         h1, h2 { margin: 0 0 10px 0; } h2 { color: var(--accent); font-size: 16px; }
         .muted { color: var(--muted); font-size: 12px; margin-bottom: 10px; }
-        input, select, textarea, button { width: 100%; border: 1px solid var(--line); background: #111a28; color: var(--text); border-radius: 8px; padding: 10px; margin-bottom: 8px; }
-        button { cursor: pointer; font-weight: 700; text-transform: uppercase; }
-        .btn { background: var(--accent); color: #032022; border-color: #00b8b9; }
-        .btn2 { background: #202c3d; }
-        .btn-danger { background: #34171e; border-color: #4c1f29; color: #ff9aa5; }
-        .msg { font-size: 12px; min-height: 16px; color: var(--muted); }
-        .ok { color: var(--ok); } .err { color: var(--err); }
-        .topbar { display: flex; justify-content: space-between; gap: 8px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+        input, select, textarea, button { width: 100%; border: 1px solid var(--line); background: rgba(12, 21, 33, .75); color: var(--text); border-radius: 8px; padding: 10px; margin-bottom: 8px; }
+        button { cursor: pointer; font-weight: 700; text-transform: uppercase; transition: .2s ease; }
+        .btn { border-color: rgba(55,255,148,.55); color: #dbffe9; }
+        .btn:hover { box-shadow: 0 0 16px rgba(55,255,148,.45); }
+        .btn2 { border-color: rgba(51,199,255,.45); color: #d8f6ff; }
+        .btn2:hover { box-shadow: 0 0 16px rgba(51,199,255,.35); }
+        .btn-danger { border-color: rgba(255,92,115,.45); color: #ffc2cb; }
+        .btn-danger:hover { box-shadow: 0 0 16px rgba(255,92,115,.35); }
+        .msg { font-size: 12px; min-height: 16px; color: var(--muted); } .ok { color: var(--accent); } .err { color: var(--err); }
+        .topbar { display: flex; justify-content: space-between; gap: 8px; align-items: center; background: var(--glass); backdrop-filter: blur(15px); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
         .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
-        .tab-btn { border: 1px solid var(--line); background: #162132; color: var(--text); border-radius: 8px; padding: 9px 12px; cursor: pointer; font-weight: 700; }
+        .tab-btn { border: 1px solid var(--line); background: rgba(13,22,34,.8); color: var(--text); border-radius: 8px; padding: 9px 12px; cursor: pointer; font-weight: 700; }
         .tab-btn.active { border-color: var(--accent); color: var(--accent); }
         .tab { display: none; } .tab.active { display: block; }
         .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .history-item { border: 1px solid var(--line); border-radius: 8px; background: #0f1622; padding: 10px; margin-bottom: 8px; font-size: 12px; }
-        .chat-box { border: 1px solid var(--line); border-radius: 8px; background: #0d141f; max-height: 330px; overflow: auto; padding: 8px; }
+        .history-item { border: 1px solid var(--line); border-radius: 8px; background: rgba(10, 18, 29, .8); padding: 10px; margin-bottom: 8px; font-size: 12px; }
+        .chat-box { border: 1px solid var(--line); border-radius: 8px; background: rgba(9, 15, 24, .9); max-height: 330px; overflow: auto; padding: 8px; }
         .chat-line { border-bottom: 1px dashed #243247; padding: 6px 4px; font-size: 12px; }
-        .me { color: #a9f3c7; } .other { color: #b5c6dd; }
+        .me { color: #afffd0; } .other { color: #bfd0ea; }
         @media (max-width: 950px) { .auth-grid, .grid2 { grid-template-columns: 1fr; } }
     </style>
 </head>
@@ -78,14 +80,14 @@
             </div>
         </div>
         <div class="tabs">
-            <button class="tab-btn active" onclick="setTab('p1', this)">Informacje o sobie</button>
-            <button class="tab-btn" onclick="setTab('p2', this)">Moja Karta</button>
-            <button class="tab-btn" onclick="setTab('p3', this)">Zapisy na badania</button>
+            <button class="tab-btn active" onclick="setTab('p1', this)">Profil</button>
+            <button class="tab-btn" onclick="setTab('p2', this)">Karta</button>
+            <button class="tab-btn" onclick="setTab('p3', this)">Zapisy</button>
             <button class="tab-btn" onclick="setTab('p4', this)">Konsultacje</button>
         </div>
         <div id="p1" class="tab active"><div class="card">
             <h2>Informacje o sobie</h2>
-            <div class="muted">Login/ID domyślnie zablokowane. Zmiana tylko kodem BOSS123.</div>
+            <div class="muted">Edycja wieku, zawodu, adresu, ubezpieczenia i danych podstawowych.</div>
             <div class="grid2">
                 <div>
                     <input id="f_id" disabled />
@@ -134,25 +136,12 @@
         function writeLS(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
         function uid(prefix) { return prefix + "-" + Date.now().toString(36).toUpperCase() + "-" + Math.floor(Math.random() * 9999).toString().padStart(4, "0"); }
         function esc(s) { return String(s ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;"); }
-        function logSystem(type, action, details) {
-            const logs = readLS("system_logs", []);
-            logs.push({ id: uid("LOG"), ts: Date.now(), type, action, details: details || {} });
-            writeLS("system_logs", logs.slice(-900));
-        }
         function ensureSeeds() {
             if (!Array.isArray(readLS("pending_codes", null))) writeLS("pending_codes", []);
             if (!Array.isArray(readLS("registered_patients", null))) writeLS("registered_patients", []);
             if (!Array.isArray(readLS("hospital_staff", null))) writeLS("hospital_staff", []);
             if (!Array.isArray(readLS("consultations", null))) writeLS("consultations", []);
-        }
-        ensureSeeds();
-        let me = null;
-        let identityUnlocked = false;
-        function toggleInsurance() {
-            const has = document.getElementById("r_insured").value === "TAK";
-            const i = document.getElementById("r_ins_num");
-            i.disabled = !has;
-            if (!has) i.value = "";
+            if (!Array.isArray(readLS("hosp_v545", null))) writeLS("hosp_v545", []);
         }
         function consumePendingCode(rawCode, type) {
             const code = String(rawCode || "").trim().toUpperCase();
@@ -162,6 +151,41 @@
             pending.splice(idx, 1);
             writeLS("pending_codes", pending);
             return code;
+        }
+        function upsertHospRecord(patient, reason) {
+            const db = readLS("hosp_v545", []);
+            const idx = db.findIndex(x => x.patientId === patient.id);
+            const base = idx >= 0 ? db[idx] : {
+                id: uid("MED"),
+                patientId: patient.id,
+                arch: false,
+                history: [{ id: Date.now(), time: new Date().toLocaleString(), doc: "SYSTEM", rank: "Automatyczny", txt: "Auto-utworzono kartę medyczną pacjenta." }]
+            };
+            base.name = patient.name || "";
+            base.adr = patient.address || "";
+            base.job = patient.job || "";
+            base.ins = patient.insured || "";
+            base.insNumber = patient.insNumber || "";
+            base.blood = patient.blood || "Nieznana";
+            base.age = patient.age || 0;
+            base.gender = patient.gender || "K";
+            base.reason = base.reason || "";
+            base.status = base.status || "Stabilny";
+            base.triage = base.triage || "none";
+            base.cert = base.cert || "BRAK";
+            base.linkedAt = Date.now();
+            if (reason) base.lastSyncReason = reason;
+            if (idx >= 0) db[idx] = base; else db.push(base);
+            writeLS("hosp_v545", db);
+        }
+        ensureSeeds();
+        let me = null;
+        let identityUnlocked = false;
+        function toggleInsurance() {
+            const has = document.getElementById("r_insured").value === "TAK";
+            const i = document.getElementById("r_ins_num");
+            i.disabled = !has;
+            if (!has) i.value = "";
         }
         function authRegister() {
             const code = document.getElementById("r_code").value.trim().toUpperCase();
@@ -175,22 +199,16 @@
             const blood = document.getElementById("r_blood").value.trim();
             const password = document.getElementById("r_pass").value;
             const msg = document.getElementById("reg_msg");
-            if (!code || !name || !address || !job || !password || age < 1) {
-                msg.className = "msg err"; msg.textContent = "Uzupełnij wymagane pola."; return;
-            }
-            if (insured === "TAK" && !insNumber) {
-                msg.className = "msg err"; msg.textContent = "Podaj numer ubezpieczenia."; return;
-            }
+            if (!code || !name || !address || !job || !password || age < 1) { msg.className = "msg err"; msg.textContent = "Uzupełnij wymagane pola."; return; }
+            if (insured === "TAK" && !insNumber) { msg.className = "msg err"; msg.textContent = "Podaj numer ubezpieczenia."; return; }
             const login = consumePendingCode(code, "patient");
-            if (!login) {
-                msg.className = "msg err"; msg.textContent = "Błędny lub wykorzystany kod admina."; return;
-            }
+            if (!login) { msg.className = "msg err"; msg.textContent = "Błędny lub wykorzystany kod admina."; return; }
             const patients = readLS("registered_patients", []);
             const item = { id: uid("PAT"), login, password, name, age, gender, address, job, insured, insNumber: insured === "TAK" ? insNumber : "", blood, appointments: [], createdAt: Date.now() };
             patients.push(item);
             writeLS("registered_patients", patients);
+            upsertHospRecord(item, "REGISTER");
             writeLS("current_patient_session", { patientId: item.id, login: item.login, ts: Date.now() });
-            logSystem("patient", "REGISTER_SUCCESS", { patientId: item.id, login: item.login });
             initPortal();
         }
         function authLogin() {
@@ -200,7 +218,6 @@
             const msg = document.getElementById("auth_msg");
             if (!p) { msg.className = "msg err"; msg.textContent = "Błędny login lub hasło."; return; }
             writeLS("current_patient_session", { patientId: p.id, login: p.login, ts: Date.now() });
-            logSystem("patient", "LOGIN_SUCCESS", { patientId: p.id, login: p.login });
             initPortal();
         }
         function initPortal() {
@@ -208,6 +225,7 @@
             const patients = readLS("registered_patients", []);
             me = session ? patients.find(p => p.id === session.patientId) : null;
             if (!me) return;
+            upsertHospRecord(me, "LOGIN_SYNC");
             document.getElementById("authScreen").classList.add("hidden");
             document.getElementById("portalScreen").classList.remove("hidden");
             bindProfile(); renderHistory(); renderAppointments(); loadDoctorSelect();
@@ -245,8 +263,9 @@
             }
             writeLS("registered_patients", pats);
             me = pats[idx];
+            upsertHospRecord(me, "PROFILE_UPDATE");
             document.getElementById("save_msg").className = "msg ok";
-            document.getElementById("save_msg").textContent = "Dane zapisane.";
+            document.getElementById("save_msg").textContent = "Dane zapisane i zsynchronizowane z kartą medyczną.";
             bindProfile(); renderHistory(); renderAppointments(); loadDoctorSelect();
         }
         function unlockIdentity() {
@@ -262,8 +281,7 @@
         }
         function renderHistory() {
             const box = document.getElementById("medical_history");
-            const hosp = readLS("hosp_v545", []);
-            const rec = hosp.find(r => String(r.name || "").trim().toLowerCase() === String(me.name || "").trim().toLowerCase());
+            const rec = readLS("hosp_v545", []).find(r => r.patientId === me.id);
             if (!rec || !Array.isArray(rec.history) || !rec.history.length) { box.innerHTML = `<div class="muted">Brak historii choroby.</div>`; return; }
             box.innerHTML = rec.history.slice().reverse().map(h => `<div class="history-item"><small>${esc(h.time || "")}</small><br><b>${esc(h.doc || "Lekarz")}</b> (${esc(h.rank || "-")})<br>${esc(h.txt || "")}</div>`).join("");
         }
