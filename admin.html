@@ -5,82 +5,88 @@
     <title>ADMIN PANEL - Hospital System</title>
     <style>
         :root { 
-            --red: #ff4757; --bg: #0b0c0d; --card: #1c1f22; --accent: #00d2d3;
+            --red: #ff4757; --bg: #0b0c0d; --card: #1c1f22; --accent: #00d2d3; --green: #2ecc71;
         }
-        body { background: var(--bg); color: white; font-family: 'Inter', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        body { background: var(--bg); color: white; font-family: 'Inter', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
         
         /* EKRAN LOGOWANIA */
-        #login-screen { text-align: center; background: var(--card); padding: 40px; border-radius: 15px; border: 1px solid var(--red); box-shadow: 0 0 30px rgba(255, 71, 87, 0.2); }
+        #login-screen { text-align: center; background: var(--card); padding: 40px; border-radius: 15px; border: 1px solid var(--red); box-shadow: 0 0 30px rgba(255, 71, 87, 0.2); width: 350px; }
         
         /* PANEL ADMINA */
-        #admin-panel { width: 90%; max-width: 800px; display: none; }
+        #admin-panel { width: 100%; max-width: 600px; display: none; }
         .card { background: var(--card); padding: 25px; border-radius: 12px; border: 1px solid #333; margin-bottom: 20px; }
         
-        input { background: #0f1113; border: 1px solid #333; color: white; padding: 12px; border-radius: 6px; width: 250px; margin-bottom: 10px; outline: none; }
-        button { padding: 12px 25px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.3s; }
+        input { background: #0f1113; border: 1px solid #444; color: white; padding: 12px; border-radius: 6px; width: 100%; margin-bottom: 15px; box-sizing: border-box; outline: none; }
+        input:focus { border-color: var(--accent); }
+        
+        button { width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.3s; margin-bottom: 10px; }
         
         .btn-danger { background: var(--red); color: white; }
         .btn-danger:hover { background: #ff6b81; box-shadow: 0 0 20px rgba(255, 71, 87, 0.4); }
-        .btn-back { background: #333; color: white; margin-top: 20px; }
+        
+        .btn-accent { background: var(--accent); color: #000; }
+        .btn-accent:hover { background: #00b8b9; }
 
-        .warning-text { color: var(--red); font-weight: bold; margin-bottom: 15px; }
-        #stats-preview { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 20px; }
-        .stat-item { background: #0b0c0d; padding: 15px; border-radius: 8px; text-align: center; border: 1px solid #222; }
+        .btn-back { background: #333; color: white; }
+        .btn-back:hover { background: #444; }
+
+        .warning-text { color: var(--red); font-weight: bold; margin-bottom: 10px; display: block; }
+        #stats-preview { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .stat-item { background: #0b0c0d; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #222; }
+        hr { border: 0; border-top: 1px solid #333; margin: 20px 0; }
     </style>
 </head>
 <body>
 
     <div id="login-screen">
-        <h1 style="color: var(--red);">🔒 SYSTEM AUTHENTICATION</h1>
-        <p>Wprowadź kod autoryzacji Dyrekcji</p>
-        <input type="password" id="pass_input" placeholder="KOD DOSTĘPU..."> <br>
-        <button class="btn-danger" onclick="checkPass()">AUTORYZUJ</button> <br>
-        <button class="btn-back" onclick="window.location.href='index.html'">POWRÓT DO SYSTEMU</button>
+        <h1 style="color: var(--red); margin-top: 0;">🔒 DYREKCJA</h1>
+        <p>Wprowadź kod autoryzacji</p>
+        <input type="password" id="pass_input" placeholder="HASŁO...">
+        <button class="btn-danger" onclick="checkPass()">AUTORYZUJ</button>
+        <button class="btn-back" onclick="window.location.href='index.html'">POWRÓT</button>
     </div>
 
     <div id="admin-panel">
-        <h1 style="border-left: 5px solid var(--red); padding-left: 15px;">PANEL ZARZĄDZANIA BAZĄ</h1>
+        <h2 style="border-left: 5px solid var(--accent); padding-left: 15px; color: var(--accent);">PANEL ZARZĄDZANIA</h2>
         
+        <div class="card">
+            <h3>🎟️ GENERATOR LOGINÓW</h3>
+            <p style="font-size: 13px; color: #aaa;">Dodaj kod, który dasz pracownikowi do rejestracji:</p>
+            <input type="text" id="new_code" placeholder="np. LEKARZ-77">
+            <button class="btn-accent" onclick="addCode()">DODAJ KOD DO BAZY</button>
+        </div>
+
         <div class="card">
             <h3>📊 STATUS BAZY DANYCH</h3>
             <div id="stats-preview">
-                <div class="stat-item"><small>PACJENCI</small><br><b id="st_total" style="font-size: 20px; color: var(--accent);">0</b></div>
-                <div class="stat-item"><small>AKTYWNI</small><br><b id="st_active" style="font-size: 20px; color: var(--green);">0</b></div>
-                <div class="stat-item"><small>ARCHIWALNI</small><br><b id="st_arch" style="font-size: 20px; color: #777;">0</b></div>
+                <div class="stat-item"><small>WSZYSCY</small><br><b id="st_total" style="color: var(--accent);">0</b></div>
+                <div class="stat-item"><small>AKTYWNI</small><br><b id="st_active" style="color: var(--green);">0</b></div>
+                <div class="stat-item"><small>ARCHIWUM</small><br><b id="st_arch" style="color: #777;">0</b></div>
             </div>
         </div>
 
-        <div class="card">
-            <h3 class="warning-text">⚠️ STREFA KRYTYCZNA</h3>
-            <p>Poniższe akcje są nieodwracalne i wpływają na wszystkich użytkowników systemu.</p>
-            
-            <button class="btn-danger" onclick="clearDatabase()">Wyczyść całą bazę danych</button>
-            <p style="font-size: 11px; color: #666; margin-top: 10px;">* Funkcja ta usunie wszystkich pacjentów z listy (aktywnych i archiwalnych).</p>
+        <div class="card" style="border-color: var(--red);">
+            <span class="warning-text">⚠️ STREFA KRYTYCZNA</span>
+            <button class="btn-danger" onclick="clearDatabase()">Wyczyść wszystkich pacjentów</button>
         </div>
 
-        <div class="card">
-            <h3>⚙️ KONFIGURACJA</h3>
-            <button class="btn-back" onclick="window.location.href='index.html'">Wyjdź z Panelu</button>
-        </div>
+        <button class="btn-back" onclick="window.location.href='index.html'">WYJDŹ Z PANELU</button>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
     <script>
+        // TWOJA KONFIGURACJA FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyC5MioZo7CMVGopaZANfglS12Gy_TMPzEw",
-            authDomain: "baza-danych-cd445.firebaseapp.com",
             databaseURL: "https://baza-danych-cd445-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "baza-danych-cd445",
-            storageBucket: "baza-danych-cd445.firebasestorage.app",
-            messagingSenderId: "234044597162",
-            appId: "1:234044597162:web:f46e383b858a363aea01d3"
         };
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // 1. Logowanie do panelu
         function checkPass() {
             const p = document.getElementById('pass_input').value;
             if(p === "Dyrektor2024") {
@@ -92,75 +98,40 @@
             }
         }
 
+        // 2. Ładowanie statystyk pacjentów
         function loadStats() {
             db.ref('pacjenci').on('value', (snapshot) => {
                 const data = snapshot.val() || [];
                 const pacjenci = Array.isArray(data) ? data : Object.values(data);
                 
                 document.getElementById('st_total').innerText = pacjenci.length;
-                document.getElementById('st_active').innerText = pacjenci.filter(p => !p.arch).length;
-                document.getElementById('st_arch').innerText = pacjenci.filter(p => p.arch).length;
+                document.getElementById('st_active').innerText = pacjenci.filter(p => p && !p.arch).length;
+                document.getElementById('st_arch').innerText = pacjenci.filter(p => p && p.arch).length;
             });
         }
 
+        // 3. Dodawanie kodów dla pracowników
+        function addCode() {
+            const code = document.getElementById('new_code').value.trim();
+            if(!code) return alert("Wpisz jakiś kod!");
+            
+            db.ref('kody/' + code).set({ used: false }).then(() => {
+                alert("Kod " + code + " został aktywowany!");
+                document.getElementById('new_code').value = "";
+            });
+        }
+
+        // 4. Kasowanie pacjentów
         function clearDatabase() {
-            if(confirm("CZY NA PEWNO CHCESZ USUNĄĆ WSZYSTKICH PACJENTÓW? Tej operacji nie da się cofnąć!")) {
-                const doubleCheck = prompt("Wpisz 'POTWIERDZAM', aby wykonać operację:");
-                if(doubleCheck === "POTWIERDZAM") {
+            if(confirm("CZY NA PEWNO CHCESZ USUNĄĆ WSZYSTKICH PACJENTÓW?")) {
+                const confirmText = prompt("Wpisz 'USUŃ', aby potwierdzić:");
+                if(confirmText === "USUŃ") {
                     db.ref('pacjenci').set(null).then(() => {
-                        alert("Baza danych została wyczyszczona.");
+                        alert("Baza pacjentów została wyczyszczona.");
                     });
-                } else {
-                    alert("Anulowano. Błędne hasło potwierdzające.");
                 }
             }
         }
     </script>
-
-    </style>
-</head>
-<body>
-    <div class="card" id="lock">
-        <h2>🔒 Autoryzacja Dyrekcji</h2>
-        <input type="password" id="pass" placeholder="Hasło...">
-        <button onclick="check()">WEJDŹ</button>
-    </div>
-
-    <div class="card" id="panel" style="display:none; border-color: #00d2d3;">
-        <h2>🎟️ Generator Loginów</h2>
-        <p>Wpisz kod, który dasz nowemu pracownikowi:</p>
-        <input type="text" id="new_code" placeholder="np. LEKARZ-1">
-        <button onclick="addCode()" style="background:#00d2d3; color:black;">DODAJ KOD DO BAZY</button>
-        <hr>
-        <button onclick="window.location.href='index.html'" style="background:#444;">POWRÓT</button>
-    </div>
-
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyC5MioZo7CMVGopaZANfglS12Gy_TMPzEw",
-            databaseURL: "https://baza-danych-cd445-default-rtdb.europe-west1.firebasedatabase.app",
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
-        function check() {
-            if(document.getElementById('pass').value === "Dyrektor2024") {
-                document.getElementById('lock').style.display = 'none';
-                document.getElementById('panel').style.display = 'block';
-            } else { alert("Złe hasło!"); }
-        }
-
-        function addCode() {
-            const code = document.getElementById('new_code').value;
-            if(!code) return;
-            db.ref('kody/' + code).set({ used: false }).then(() => {
-                alert("Kod " + code + " dodany! Możesz go teraz podać pracownikowi.");
-                document.getElementById('new_code').value = "";
-            });
-        }
-    </script>
-
 </body>
 </html>
