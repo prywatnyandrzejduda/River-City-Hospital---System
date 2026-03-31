@@ -116,30 +116,51 @@
             }
         }
     </script>
-    <div class="card">
-    <h3>🎟️ GENERATOR DOSTĘPÓW</h3>
-    <input type="text" id="new_code" placeholder="Wpisz nowy login (np. LEK-05)">
-    <select id="new_role">
-        <option value="Lekarz">Lekarz</option>
-        <option value="Ratownik">Ratownik</option>
-    </select>
-    <button class="btn-danger" style="background: var(--accent); color: black;" onclick="generateCode()">DODAJ DO BAZY</button>
-</div>
 
-<script>
-    function generateCode() {
-        const code = document.getElementById('new_code').value;
-        const role = document.getElementById('new_role').value;
-        if(!code) return;
+    </style>
+</head>
+<body>
+    <div class="card" id="lock">
+        <h2>🔒 Autoryzacja Dyrekcji</h2>
+        <input type="password" id="pass" placeholder="Hasło...">
+        <button onclick="check()">WEJDŹ</button>
+    </div>
 
-        db.ref('autoryzowane_kody/' + code).set({
-            used: false,
-            role: role
-        }).then(() => {
-            alert("Kod " + code + " został dodany. Możesz go przekazać pracownikowi.");
-            document.getElementById('new_code').value = "";
-        });
-    }
-</script>
+    <div class="card" id="panel" style="display:none; border-color: #00d2d3;">
+        <h2>🎟️ Generator Loginów</h2>
+        <p>Wpisz kod, który dasz nowemu pracownikowi:</p>
+        <input type="text" id="new_code" placeholder="np. LEKARZ-1">
+        <button onclick="addCode()" style="background:#00d2d3; color:black;">DODAJ KOD DO BAZY</button>
+        <hr>
+        <button onclick="window.location.href='index.html'" style="background:#444;">POWRÓT</button>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyC5MioZo7CMVGopaZANfglS12Gy_TMPzEw",
+            databaseURL: "https://baza-danych-cd445-default-rtdb.europe-west1.firebasedatabase.app",
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        function check() {
+            if(document.getElementById('pass').value === "Dyrektor2024") {
+                document.getElementById('lock').style.display = 'none';
+                document.getElementById('panel').style.display = 'block';
+            } else { alert("Złe hasło!"); }
+        }
+
+        function addCode() {
+            const code = document.getElementById('new_code').value;
+            if(!code) return;
+            db.ref('kody/' + code).set({ used: false }).then(() => {
+                alert("Kod " + code + " dodany! Możesz go teraz podać pracownikowi.");
+                document.getElementById('new_code').value = "";
+            });
+        }
+    </script>
+
 </body>
 </html>
