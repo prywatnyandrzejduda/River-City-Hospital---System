@@ -3,1468 +3,231 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>ADMIN PANEL - Hospital System</title>
+    <title>Admin Center - Hospital</title>
     <style>
         :root {
-            --bg: #0b0c0d;
-            --panel: #14171a;
-            --card: #1b1f24;
-            --line: #2b3138;
-            --text: #e6edf3;
-            --muted: #9da7b3;
-            --accent: #00d2d3;
-            --ok: #2ecc71;
-            --err: #ff4757;
-            --warn: #f1c40f;
-            --violet: #a29bfe;
-            --blue: #54a0ff;
+            --bg: #0a0d12; --panel: #111824; --card: #1a2230; --line: #2c3748;
+            --text: #e7edf6; --muted: #95a2b4; --accent: #00d2d3; --ok: #2ecc71; --err: #ff4757; --warn: #f1c40f;
         }
-
-        * {
-            box-sizing: border-box;
-            font-family: Consolas, "Courier New", monospace;
-        }
-
-        body {
-            margin: 0;
-            background: var(--bg);
-            color: var(--text);
-        }
-
-        .wrap {
-            max-width: 1700px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
+        * { box-sizing: border-box; font-family: Consolas, "Courier New", monospace; }
+        body { margin: 0; background: var(--bg); color: var(--text); }
+        .wrap { max-width: 1500px; margin: 0 auto; padding: 16px; }
         .hidden { display: none !important; }
-
-        #login-screen {
-            min-height: 100vh;
-            display: grid;
-            place-items: center;
-            padding: 20px;
-        }
-
-        .login-card {
-            width: 100%;
-            max-width: 440px;
-            background: var(--card);
-            border: 1px solid var(--line);
-            border-top: 3px solid var(--err);
-            padding: 24px;
-            border-radius: 10px;
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
-        }
-
-        .title {
-            margin: 0 0 8px 0;
-            font-size: 22px;
-            color: var(--err);
-            letter-spacing: 1px;
-        }
-
-        .muted {
-            color: var(--muted);
-            font-size: 13px;
-            margin-bottom: 14px;
-        }
-
-        input, select, button, textarea {
-            width: 100%;
-            border-radius: 8px;
-            border: 1px solid var(--line);
-            background: #101317;
-            color: var(--text);
-            padding: 11px 12px;
-            margin-bottom: 10px;
-            outline: none;
-        }
-
-        input:focus, select:focus, textarea:focus {
-            border-color: var(--accent);
-        }
-
-        button {
-            cursor: pointer;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .btn-primary {
-            background: var(--accent);
-            color: #041316;
-            border-color: #00babc;
-        }
-
-        .btn-danger {
-            background: #2a1013;
-            border-color: #4a1f23;
-            color: #ff9098;
-        }
-
-        .btn-back {
-            background: #1a2027;
-        }
-
-        .btn-warn {
-            background: #2e2710;
-            border-color: #4e4217;
-            color: #ffe08a;
-        }
-
-        #admin-panel {
-            display: none;
-        }
-
-        .topbar {
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            justify-content: space-between;
-            background: var(--panel);
-            border: 1px solid var(--line);
-            border-left: 4px solid var(--accent);
-            border-radius: 10px;
-            padding: 14px 16px;
-            margin-bottom: 14px;
-        }
-
-        .topbar h1 {
-            margin: 0;
-            font-size: 20px;
-        }
-
-        .topbar .actions {
-            display: flex;
-            gap: 8px;
-            min-width: 380px;
-        }
-
-        .topbar .actions button {
-            margin: 0;
-        }
-
-        .layout {
-            display: grid;
-            grid-template-columns: 1.5fr 1fr;
-            gap: 14px;
-        }
-
-        .card {
-            background: var(--card);
-            border: 1px solid var(--line);
-            border-radius: 10px;
-            padding: 14px;
-            margin-bottom: 14px;
-        }
-
-        .card h2, .card h3 {
-            margin: 0 0 10px 0;
-            font-size: 16px;
-            color: var(--accent);
-        }
-
-        .sub {
-            color: var(--muted);
-            font-size: 12px;
-            margin-bottom: 10px;
-        }
-
-        .split-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-        }
-
-        .split-3 {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 8px;
-        }
-
-        .split-4 {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1fr;
-            gap: 8px;
-        }
-
-        .matrix-wrap {
-            overflow: auto;
-            border: 1px solid var(--line);
-            border-radius: 8px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 960px;
-        }
-
-        th, td {
-            border-bottom: 1px solid var(--line);
-            border-right: 1px solid var(--line);
-            padding: 8px;
-            font-size: 12px;
-            text-align: center;
-            white-space: nowrap;
-        }
-
-        th {
-            position: sticky;
-            top: 0;
-            z-index: 2;
-            background: #11161b;
-            color: #9fdfe0;
-            text-transform: uppercase;
-            font-size: 11px;
-            letter-spacing: 0.5px;
-        }
-
-        th:first-child, td:first-child {
-            position: sticky;
-            left: 0;
-            z-index: 1;
-            background: #10151a;
-            text-align: left;
-            min-width: 240px;
-        }
-
-        .doc-meta {
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-        }
-
-        .doc-name { font-weight: 700; color: #ffffff; }
-        .doc-role { color: #8fb4ff; font-size: 11px; }
-
-        .toggle {
-            width: 56px;
-            height: 26px;
-            border-radius: 999px;
-            border: 1px solid #3c4652;
-            display: inline-flex;
-            align-items: center;
-            padding: 2px;
-            transition: 0.2s;
-            background: #1a2027;
-            margin: 0;
-        }
-
-        .toggle .dot {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #6f7b88;
-            transition: 0.2s;
-        }
-
-        .toggle.on {
-            background: #143125;
-            border-color: #25593f;
-        }
-
-        .toggle.on .dot {
-            transform: translateX(29px);
-            background: var(--ok);
-        }
-
-        .toolbar {
-            display: grid;
-            grid-template-columns: 1fr 1fr auto;
-            gap: 8px;
-        }
-
-        .log-console {
-            margin-top: 10px;
-            border: 1px solid var(--line);
-            border-radius: 8px;
-            background: #0a0e12;
-            height: 290px;
-            overflow: auto;
-            padding: 8px;
-        }
-
-        .log-line {
-            font-size: 12px;
-            border-bottom: 1px dashed #1f2730;
-            padding: 6px 4px;
-            line-height: 1.45;
-        }
-
-        .line-ok { color: #9ff2c0; }
-        .line-err { color: #ff9098; }
-        .line-warn { color: #ffe08a; }
-
-        .tag {
-            border: 1px solid #2f3a46;
-            border-radius: 6px;
-            padding: 1px 6px;
-            margin-right: 6px;
-            font-size: 11px;
-            color: #9bb4cc;
-        }
-
-        .role-list {
-            max-height: 240px;
-            overflow: auto;
-            border: 1px solid var(--line);
-            border-radius: 8px;
-        }
-
-        .role-item {
-            border-bottom: 1px solid var(--line);
-            padding: 10px;
-        }
-
-        .role-head {
-            display: flex;
-            justify-content: space-between;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .role-name {
-            font-weight: 700;
-            color: #ffd580;
-        }
-
-        .perm-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(150px, 1fr));
-            gap: 6px;
-            margin-top: 8px;
-        }
-
-        .check {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            color: var(--muted);
-        }
-
-        .check input { margin: 0; width: auto; }
-
-        .mini {
-            padding: 8px 10px;
-            margin: 0;
-            width: auto;
-        }
-
-        .danger-zone {
-            border-color: #4a1f23;
-            border-left: 4px solid var(--err);
-        }
-
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-        }
-
-        .stat {
-            border: 1px solid var(--line);
-            background: #10151a;
-            border-radius: 8px;
-            text-align: center;
-            padding: 8px;
-        }
-
-        .stat b {
-            display: block;
-            font-size: 18px;
-            margin-top: 3px;
-        }
-
-        .timeline {
-            max-height: 290px;
-            overflow: auto;
-            border: 1px solid var(--line);
-            border-radius: 8px;
-            background: #0d1217;
-        }
-
-        .timeline-row {
-            display: grid;
-            grid-template-columns: 1.2fr 0.9fr 0.8fr 0.8fr auto;
-            gap: 8px;
-            align-items: center;
-            border-bottom: 1px solid #1f2833;
-            padding: 8px;
-            font-size: 12px;
-        }
-
-        .timeline-row input {
-            margin: 0;
-            padding: 7px 8px;
-            font-size: 12px;
-        }
-
-        .badge {
-            display: inline-block;
-            border: 1px solid #30404f;
-            color: #9ec7ff;
-            border-radius: 6px;
-            padding: 2px 6px;
-            font-size: 11px;
-            margin-right: 5px;
-        }
-
-        .flag {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            border-radius: 999px;
-            border: 1px solid #30404f;
-            padding: 2px 8px;
-            font-size: 11px;
-            margin-right: 5px;
-            margin-top: 3px;
-        }
-
-        .flag-vip { color: #ffd36f; border-color: #5a4a1f; background: #2b2411; }
-        .flag-alert { color: #ff9ca5; border-color: #5a2329; background: #2b1215; }
-        .flag-spec { color: #b9b3ff; border-color: #3e3970; background: #181628; }
-
-        .scroll {
-            max-height: 260px;
-            overflow: auto;
-            border: 1px solid var(--line);
-            border-radius: 8px;
-            background: #0d1217;
-        }
-
-        .row {
-            padding: 8px;
-            border-bottom: 1px solid #1f2833;
-            font-size: 12px;
-        }
-
-        .search-res {
-            max-height: 230px;
-            overflow: auto;
-            border: 1px solid var(--line);
-            border-radius: 8px;
-            background: #0d1217;
-            padding: 8px;
-        }
-
-        .range-wrap {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 10px;
-            align-items: center;
-        }
-
-        @media (max-width: 1240px) {
-            .layout { grid-template-columns: 1fr; }
-            .toolbar { grid-template-columns: 1fr; }
-            .topbar { flex-direction: column; align-items: flex-start; }
-            .topbar .actions { min-width: 100%; width: 100%; }
-            .stats { grid-template-columns: repeat(2, 1fr); }
-            .timeline-row { grid-template-columns: 1fr; }
-        }
+        input, select, button { width: 100%; border: 1px solid var(--line); background: #121b29; color: var(--text); border-radius: 8px; padding: 10px; margin-bottom: 8px; }
+        button { cursor: pointer; font-weight: 700; text-transform: uppercase; }
+        .btn { background: var(--accent); color: #022224; border-color: #00b8b9; }
+        .btn2 { background: #1d2939; }
+        .btn-danger { background: #36171f; border-color: #4e202a; color: #ff9aa5; }
+        .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px; margin-bottom: 12px; }
+        h1, h2 { margin: 0 0 10px 0; }
+        h2 { color: var(--accent); font-size: 16px; }
+        .sub { color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .row4 { display: grid; grid-template-columns: 1fr 140px 140px 160px; gap: 8px; }
+        .row3 { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border-bottom: 1px solid var(--line); padding: 8px; font-size: 12px; text-align: left; }
+        th { font-size: 11px; color: #a7e4e5; text-transform: uppercase; }
+        .login-wrap { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
+        .login-card { width: 100%; max-width: 420px; background: var(--card); border: 1px solid var(--line); border-top: 3px solid var(--err); border-radius: 10px; padding: 18px; }
+        .msg { min-height: 16px; font-size: 12px; color: var(--muted); }
+        .ok { color: var(--ok); } .err { color: var(--err); }
+        @media (max-width: 1100px) { .grid { grid-template-columns: 1fr; } .row4, .row3 { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
-    <div id="login-screen">
+    <div id="loginScreen" class="login-wrap">
         <div class="login-card">
-            <h1 class="title">ADMIN // DYREKCJA</h1>
-            <div class="muted">Autoryzacja wymagana do dostępu do panelu administracji.</div>
-            <input type="password" id="pass_input" placeholder="HASŁO ADMINA" />
-            <button class="btn-primary" onclick="checkPass()">AUTORYZUJ</button>
-            <button class="btn-back" onclick="window.location.href='index.html'">POWRÓT DO SYSTEMU</button>
+            <h1>ADMIN CENTER</h1>
+            <div class="sub">Dostęp tylko dla kodu bezpieczeństwa.</div>
+            <input id="bossPass" type="password" placeholder="Kod bezpieczeństwa" />
+            <button class="btn" onclick="adminLogin()">AUTORYZUJ</button>
+            <button class="btn2" onclick="location.href='start.html'">POWRÓT</button>
+            <div id="loginMsg" class="msg"></div>
         </div>
     </div>
-
-    <div id="admin-panel" class="wrap">
-        <div class="topbar">
-            <h1>ADMIN CONTROL CENTER // HOSPITAL</h1>
-            <div class="actions">
-                <button class="btn-back" onclick="window.location.href='index.html'">POWRÓT</button>
-                <button class="btn-warn" onclick="simulateLogin()">TEST: DODAJ LOGIN LOG</button>
-                <button class="btn-danger" onclick="logoutAdmin()">WYLOGUJ</button>
+    <div id="panel" class="wrap hidden">
+        <div class="card">
+            <h1>Hospital Administration</h1>
+            <div class="row3">
+                <button class="btn2" onclick="location.href='start.html'">START</button>
+                <button class="btn2" onclick="location.href='index.html'">ODDZIAŁ</button>
+                <button class="btn-danger" onclick="logout()">WYLOGUJ</button>
             </div>
         </div>
-
-        <div class="layout">
+        <div class="grid">
             <div>
                 <div class="card">
-                    <h2>Visual Permissions Matrix</h2>
-                    <div class="sub">Wiersze = personel, kolumny = uprawnienia. Toggle zmienia dostęp.</div>
-
-                    <div class="split-4" style="grid-template-columns:1.3fr 1fr 1fr auto;">
-                        <input id="doc_name" type="text" placeholder="Imię i nazwisko" />
-                        <select id="doc_role"></select>
-                        <input id="doc_spec" type="text" placeholder="Specjalizacja (np. Chirurg)" />
-                        <button class="btn-primary mini" onclick="addDoctor()">DODAJ</button>
+                    <h2>Generator Kodów</h2>
+                    <div class="sub">Jednorazowe tokeny zapisywane do `pending_codes`.</div>
+                    <div class="row4">
+                        <select id="genType"><option value="doctor">Lekarz</option><option value="patient">Pacjent</option></select>
+                        <input id="genCount" type="number" min="1" max="20" value="1" />
+                        <input id="genPrefix" type="text" placeholder="Prefix (opcj.)" />
+                        <button class="btn" onclick="generateCodes()">GENERUJ</button>
                     </div>
-
-                    <div class="matrix-wrap">
-                        <table id="matrix-table"></table>
-                    </div>
+                    <div id="genMsg" class="msg"></div>
+                    <table id="pendingTable"></table>
                 </div>
-
                 <div class="card">
-                    <h2>Security Audit Log</h2>
-                    <div class="sub">Log akcji (kolory: SUCCESS zielony, WARN żółty, ERROR czerwony).</div>
-                    <div class="toolbar">
-                        <select id="filter_spec" onchange="renderLogs()"></select>
-                        <select id="filter_level" onchange="renderLogs()">
-                            <option value="ALL">Poziom: Wszystkie</option>
-                            <option value="SUCCESS">Poziom: SUCCESS</option>
-                            <option value="WARN">Poziom: WARN</option>
-                            <option value="ERROR">Poziom: ERROR</option>
-                        </select>
-                        <button class="btn-back mini" onclick="clearAuditView()">WYCZYŚĆ WIDOK</button>
-                    </div>
-                    <div id="audit_console" class="log-console"></div>
-                </div>
-
-                <div class="card">
-                    <h2>Master Schedule</h2>
-                    <div class="sub">Oś czasu badań dla `registered_patients` (fallback: `hosp_v545`). Admin może zmienić termin.</div>
-                    <div class="timeline" id="schedule_timeline"></div>
-                </div>
-
-                <div class="card">
-                    <h2>Live Session Monitor</h2>
-                    <div class="sub">Aktywni użytkownicy + ostatnie akcje z `system_logs` (localStorage).</div>
-                    <div id="session_table" class="scroll"></div>
+                    <h2>Baza Lekarzy</h2>
+                    <div class="sub">Zmiana rangi, specjalizacji i usuwanie kont.</div>
+                    <table id="doctorsTable"></table>
                 </div>
             </div>
-
             <div>
                 <div class="card">
-                    <h3>Role Manager</h3>
-                    <div class="sub">Definicja specjalizacji i domyślnych pakietów uprawnień.</div>
-
-                    <input type="text" id="new_role_name" placeholder="Nowa specjalizacja / rola" />
-                    <div id="new-role-perms" class="perm-grid"></div>
-                    <button class="btn-primary" onclick="createRole()">DODAJ ROLĘ</button>
-
-                    <hr style="border:0;border-top:1px solid var(--line);margin:12px 0;" />
-
-                    <div id="role_list" class="role-list"></div>
-                </div>
-
-                <div class="card">
-                    <h3>Auto-Timeout Manager</h3>
-                    <div class="sub">Globalny timeout sesji. Zapis pod kluczem `sys_timeout` (minuty).</div>
-                    <div class="range-wrap">
-                        <input type="range" id="timeout_range" min="1" max="180" value="20" oninput="previewTimeout()" />
-                        <b id="timeout_val">20 min</b>
-                    </div>
-                    <button class="btn-primary" onclick="saveTimeout()">ZAPISZ TIMEOUT</button>
-                </div>
-
-                <div class="card">
-                    <h3>Generator Loginów Personelu</h3>
-                    <div class="sub">Tworzy kod `DR-XXXX` i zapisuje do `hospital_staff`.</div>
-                    <input id="staff_name" type="text" placeholder="Imię i nazwisko personelu" />
-                    <select id="staff_rank"></select>
-                    <div class="split-2">
-                        <input id="staff_spec" type="text" placeholder="Specjalizacja" />
-                        <select id="staff_type">
-                            <option value="doctor">Typ: Lekarz</option>
-                            <option value="staff">Typ: Personel medyczny</option>
-                            <option value="admin">Typ: Administracja</option>
-                        </select>
-                    </div>
-                    <button class="btn-primary" onclick="generateStaffCode()">DODAJ + GENERUJ KOD</button>
-
-                    <input id="identity_admin_code" type="password" placeholder="Kod nadrzędny BOSS123 (do zmiany loginu)" />
-                    <div class="split-2">
-                        <input id="identity_target" type="text" placeholder="Aktualny login/kod użytkownika" />
-                        <input id="identity_new" type="text" placeholder="Nowy login/kod" />
-                    </div>
-                    <button class="btn-warn" onclick="changeIdentity()">ZMIEŃ LOGIN/KOD UŻYTKOWNIKA</button>
-                    <div class="sub">Blokada tożsamości: tylko BOSS123 może zmienić login.</div>
-                </div>
-
-                <div class="card">
-                    <h3>System Flagowania Kont</h3>
-                    <div class="sub">VIP/Alert/Specjalny + własna flaga. Wspólna baza: `hospital_staff`.</div>
-                    <select id="flag_target"></select>
-                    <div class="split-4">
-                        <label class="check"><input type="checkbox" id="flag_vip"> VIP</label>
-                        <label class="check"><input type="checkbox" id="flag_alert"> Alert</label>
-                        <label class="check"><input type="checkbox" id="flag_special"> Specjalny</label>
-                        <input type="text" id="flag_custom" placeholder="Custom tag" />
-                    </div>
-                    <button class="btn-primary" onclick="saveFlags()">ZAPISZ FLAGI</button>
-                    <div id="flag_preview" class="scroll"></div>
-                </div>
-
-                <div class="card">
-                    <h3>Master Search</h3>
-                    <div class="sub">Filtruje równocześnie: `hospital_staff`, `registered_patients`, `hosp_v545`.</div>
-                    <input type="text" id="master_search" placeholder="Szukaj po nazwie, kodzie, fladze..." oninput="runMasterSearch()" />
-                    <div id="search_results" class="search-res"></div>
-                </div>
-
-                <div class="card">
-                    <h3>Performance Dashboard</h3>
-                    <div class="stats">
-                        <div class="stat"><small>PRZYJĘCIA</small><b id="perf_adm">0</b></div>
-                        <div class="stat"><small>RECEPTY</small><b id="perf_rx">0</b></div>
-                        <div class="stat"><small>KONSULTACJE</small><b id="perf_cons">0</b></div>
-                        <div class="stat"><small>LOGOWANIA</small><b id="perf_login">0</b></div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <h3>Status Systemu</h3>
-                    <div class="stats">
-                        <div class="stat"><small>PERSONEL</small><b id="st_docs">0</b></div>
-                        <div class="stat"><small>ROLE</small><b id="st_roles">0</b></div>
-                        <div class="stat"><small>LOGI</small><b id="st_logs">0</b></div>
-                        <div class="stat"><small>KOSZ</small><b id="st_trash">0</b></div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <h3>Data Trash Bin</h3>
-                    <div class="sub">Źródło: `deleted_records`. Przywracanie do `hosp_v545`.</div>
-                    <div id="trash_list" class="scroll"></div>
-                </div>
-
-                <div class="card danger-zone">
-                    <h3 style="color:var(--err);">Strefa Krytyczna</h3>
-                    <div class="sub">Usunięcie wszystkich lekarzy i macierzy uprawnień (logi pozostają).</div>
-                    <button class="btn-danger" onclick="wipeStaff()">WYCZYŚĆ PERSONEL I MACIERZ</button>
+                    <h2>Baza Cywili (Pacjentów)</h2>
+                    <div class="sub">Pełne dane pacjentów z systemu rejestracji.</div>
+                    <table id="patientsTable"></table>
                 </div>
             </div>
         </div>
     </div>
-
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script>
-        // ===== FIREBASE CONFIG =====
-        const firebaseConfig = {
-            apiKey: "AIzaSyC5MioZo7CMVGopaZANfglS12Gy_TMPzEw",
-            authDomain: "baza-danych-cd445.firebaseapp.com",
-            databaseURL: "https://baza-danych-cd445-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "baza-danych-cd445",
-            storageBucket: "baza-danych-cd445.firebasestorage.app",
-            messagingSenderId: "234044597162",
-            appId: "1:234044597162:web:f46e383b858a363aea01d3"
-        };
-
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
-        // ===== SECURITY =====
-        const ADMIN_PASSWORD = "Dyrektor2024";
-        const BOSS_OVERRIDE_CODE = "BOSS123";
-
-        // ===== DATA MODEL =====
-        const PERMISSIONS = [
-            { key: "readPatients", label: "Podgląd kart" },
-            { key: "writeNotes", label: "Wpisy medyczne" },
-            { key: "orderLabs", label: "Zlecenia lab" },
-            { key: "orderImaging", label: "Zlecenia obrazowe" },
-            { key: "issueDocs", label: "Dokumenty" },
-            { key: "discharge", label: "Wypisy" },
-            { key: "adminAccess", label: "Dostęp admin" }
-        ];
-
-        // Rozszerzona lista rang (kopiowane + rozszerzone)
-        const STAFF_RANKS = [
-            "Student Medycyny",
-            "Młodszy Ratownik",
-            "Ratownik Medyczny",
-            "Pielęgniarz",
-            "Pielęgniarka",
-            "Starsza Pielęgniarka",
-            "Położna",
-            "Fizjoterapeuta",
-            "Diagnosta Laboratoryjny",
-            "Technik RTG",
-            "Lekarz Stażysta",
-            "Lekarz Rezydent",
-            "Lekarz Specjalista",
-            "Anestezjolog",
-            "Chirurg",
-            "Internista",
-            "Kardiolog",
-            "Neurolog",
-            "Psycholog",
-            "Psychiatra",
-            "Farmaceuta Szpitalny",
-            "Zastępca Ordynatora",
-            "Ordynator",
-            "Koordynator SOR",
-            "Zarząd Szpitala",
-            "Dyrektor Szpitala",
-            "Administrator IT"
-        ];
-
-        let roles = {};
-        let doctors = {};
-        let logs = [];
-
-        // ===== LOGIN =====
-        function checkPass() {
-            const p = document.getElementById("pass_input").value;
-            if (p === ADMIN_PASSWORD) {
-                document.getElementById("login-screen").classList.add("hidden");
-                document.getElementById("admin-panel").style.display = "block";
-                bootstrap();
-                logAction("SYSTEM", "AUTH_SUCCESS", "ADMIN_LOGIN", "SUCCESS", "ADMIN");
-            } else {
-                alert("BŁĄD AUTORYZACJI");
-                logAction("SYSTEM", "AUTH_FAIL", "ADMIN_LOGIN", "ERROR", "ADMIN");
+        const BOSS = "BOSS123";
+        function readLS(k, f) { try { return JSON.parse(localStorage.getItem(k)) ?? f; } catch { return f; } }
+        function writeLS(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
+        function uid(p) { return p + "-" + Date.now().toString(36).toUpperCase() + "-" + Math.floor(Math.random() * 9999).toString().padStart(4, "0"); }
+        function esc(s) { return String(s ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;"); }
+        function seed() {
+            if (!Array.isArray(readLS("pending_codes", null))) writeLS("pending_codes", []);
+            if (!Array.isArray(readLS("hospital_staff", null))) writeLS("hospital_staff", []);
+            if (!Array.isArray(readLS("registered_patients", null))) writeLS("registered_patients", []);
+        }
+        seed();
+        function adminLogin() {
+            const v = document.getElementById("bossPass").value.trim();
+            if (v !== BOSS) {
+                const m = document.getElementById("loginMsg");
+                m.className = "msg err"; m.textContent = "Błędny kod. Dostęp odrzucony.";
+                return;
             }
+            document.getElementById("loginScreen").classList.add("hidden");
+            document.getElementById("panel").classList.remove("hidden");
+            renderAll();
         }
-
-        function logoutAdmin() {
-            logAction("SYSTEM", "ADMIN_LOGOUT", "-", "WARN", "ADMIN");
-            location.reload();
+        function logout() { location.reload(); }
+        function buildCode(type, customPrefix) {
+            const prefix = customPrefix ? customPrefix.toUpperCase() : (type === "doctor" ? "DR" : "PT");
+            return prefix + "-" + Math.random().toString(36).slice(2, 6).toUpperCase();
         }
-
-        // ===== INIT =====
-        function bootstrap() {
-            prepareNewRolePerms();
-            ensureDefaultRoles();
-            seedLocalStorageDefaults();
-            renderStaffRankSelect();
-            listenRoles();
-            listenDoctors();
-            listenLogs();
-
-            loadTimeout();
-            renderSchedule();
-            renderLiveSessions();
-            renderTrash();
-            renderFlagsTargets();
-            renderFlagsPreview();
-            runMasterSearch();
-            renderPerformance();
-            updateStats();
-
-            setInterval(() => {
-                renderLiveSessions();
-                renderPerformance();
-                renderSchedule();
-            }, 5000);
-        }
-
-        function seedLocalStorageDefaults() {
-            if (!localStorage.getItem("hospital_staff")) localStorage.setItem("hospital_staff", "[]");
-            if (!localStorage.getItem("system_logs")) localStorage.setItem("system_logs", "[]");
-            if (!localStorage.getItem("deleted_records")) localStorage.setItem("deleted_records", "[]");
-            if (!localStorage.getItem("sys_timeout")) localStorage.setItem("sys_timeout", "20");
-            if (!localStorage.getItem("registered_patients")) localStorage.setItem("registered_patients", "[]");
-            if (!localStorage.getItem("hosp_v545")) localStorage.setItem("hosp_v545", "[]");
-        }
-
-        function ensureDefaultRoles() {
-            db.ref("adminRoles").once("value", (snap) => {
-                if (snap.exists()) return;
-                const seed = {
-                    "Chirurg": {
-                        readPatients: true, writeNotes: true, orderLabs: true, orderImaging: true, issueDocs: true, discharge: true, adminAccess: false
-                    },
-                    "Psycholog": {
-                        readPatients: true, writeNotes: true, orderLabs: false, orderImaging: false, issueDocs: true, discharge: false, adminAccess: false
-                    },
-                    "Lekarz Dyżurny": {
-                        readPatients: true, writeNotes: true, orderLabs: true, orderImaging: true, issueDocs: true, discharge: true, adminAccess: false
-                    },
-                    "Dyrekcja": {
-                        readPatients: true, writeNotes: true, orderLabs: true, orderImaging: true, issueDocs: true, discharge: true, adminAccess: true
-                    }
+        function generateCodes() {
+            const type = document.getElementById("genType").value;
+            const count = Math.max(1, Math.min(20, Number(document.getElementById("genCount").value || 1)));
+            const prefix = document.getElementById("genPrefix").value.trim();
+            const pending = readLS("pending_codes", []);
+            const created = [];
+            for (let i = 0; i < count; i += 1) {
+                let code = buildCode(type, prefix);
+                while (pending.some(x => x.code === code)) code = buildCode(type, prefix);
+                const row = {
+                    id: uid("PC"),
+                    code,
+                    type,
+                    rank: type === "doctor" ? "Rezydent" : "",
+                    specialization: type === "doctor" ? "Ogólna" : "",
+                    createdAt: Date.now()
                 };
-                db.ref("adminRoles").set(seed);
-            });
-        }
-
-        // ===== FIREBASE LISTENERS =====
-        function listenRoles() {
-            db.ref("adminRoles").on("value", (snapshot) => {
-                roles = snapshot.val() || {};
-                renderRoleManager();
-                renderRoleSelects();
-                renderMatrix();
-                renderSpecFilters();
-                updateStats();
-            });
-        }
-
-        function listenDoctors() {
-            db.ref("adminDoctors").on("value", (snapshot) => {
-                doctors = snapshot.val() || {};
-                renderMatrix();
-                renderSpecFilters();
-                updateStats();
-            });
-        }
-
-        function listenLogs() {
-            db.ref("adminAuditLogs").limitToLast(500).on("value", (snapshot) => {
-                const raw = snapshot.val() || {};
-                logs = Object.values(raw).sort((a, b) => (a.ts || 0) - (b.ts || 0));
-                renderLogs();
-                updateStats();
-            });
-        }
-
-        // ===== MATRIX + ROLE UI =====
-        function renderRoleSelects() {
-            const sel = document.getElementById("doc_role");
-            sel.innerHTML = "";
-            Object.keys(roles).forEach((r) => {
-                const o = document.createElement("option");
-                o.value = r;
-                o.textContent = r;
-                sel.appendChild(o);
-            });
-        }
-
-        function renderMatrix() {
-            const table = document.getElementById("matrix-table");
-            const headers = ["Personel / specjalizacja", ...PERMISSIONS.map(p => p.label), "Akcja"];
-
-            let html = "<thead><tr>";
-            headers.forEach(h => html += "<th>" + escapeHtml(h) + "</th>");
-            html += "</tr></thead><tbody>";
-
-            const docEntries = Object.entries(doctors);
-            if (!docEntries.length) {
-                html += '<tr><td colspan="' + headers.length + '" style="text-align:center;color:var(--muted);">Brak personelu w panelu.</td></tr>';
-            } else {
-                docEntries.forEach(([id, d]) => {
-                    html += '<tr><td><div class="doc-meta"><span class="doc-name">' + escapeHtml(d.name || "Brak nazwy") + '</span><span class="doc-role">' + escapeHtml(d.role || "-") + " | " + escapeHtml(d.specialization || "-") + "</span></div></td>";
-                    PERMISSIONS.forEach((p) => {
-                        const enabled = !!(d.permissions && d.permissions[p.key]);
-                        html += '<td><button class="toggle ' + (enabled ? "on" : "") + '" onclick="togglePermission(\'' + id + '\',\'' + p.key + '\')"><span class="dot"></span></button></td>';
-                    });
-                    html += '<td><button class="btn-danger mini" onclick="removeDoctor(\'' + id + '\')">USUŃ</button></td></tr>';
-                });
+                pending.push(row);
+                created.push(code);
             }
-
-            html += "</tbody>";
-            table.innerHTML = html;
+            writeLS("pending_codes", pending);
+            const msg = document.getElementById("genMsg");
+            msg.className = "msg ok";
+            msg.textContent = "Wygenerowano: " + created.join(", ");
+            renderPending();
         }
-
-        function renderRoleManager() {
-            const box = document.getElementById("role_list");
-            const roleNames = Object.keys(roles);
-
-            if (!roleNames.length) {
-                box.innerHTML = '<div class="role-item" style="color:var(--muted);">Brak ról.</div>';
-                return;
-            }
-
-            let html = "";
-            roleNames.forEach((name) => {
-                html += '<div class="role-item"><div class="role-head"><span class="role-name">' + escapeHtml(name) + '</span><button class="btn-danger mini" onclick="deleteRole(\'' + escapeJs(name) + '\')">USUŃ</button></div><div class="perm-grid">';
-                PERMISSIONS.forEach((p) => {
-                    const checked = roles[name][p.key] ? "checked" : "";
-                    html += '<label class="check"><input type="checkbox" ' + checked + ' onchange="setRolePerm(\'' + escapeJs(name) + '\',\'' + p.key + '\', this.checked)" />' + escapeHtml(p.label) + "</label>";
-                });
-                html += "</div></div>";
-            });
-
-            box.innerHTML = html;
+        function removePending(id) {
+            const pending = readLS("pending_codes", []).filter(p => p.id !== id);
+            writeLS("pending_codes", pending);
+            renderPending();
         }
-
-        function renderSpecFilters() {
-            const specs = new Set(["ALL"]);
-            Object.values(doctors).forEach(d => specs.add(d.specialization || "Brak"));
-            const sel = document.getElementById("filter_spec");
-            const prev = sel.value || "ALL";
-            sel.innerHTML = "";
-            [...specs].forEach((s) => {
-                const o = document.createElement("option");
-                o.value = s;
-                o.textContent = s === "ALL" ? "Specjalizacja: Wszystkie" : "Specjalizacja: " + s;
-                sel.appendChild(o);
-            });
-            sel.value = [...specs].includes(prev) ? prev : "ALL";
+        function updateDoctor(id, field, value) {
+            const docs = readLS("hospital_staff", []);
+            const idx = docs.findIndex(d => d.id === id);
+            if (idx < 0) return;
+            docs[idx][field] = value;
+            writeLS("hospital_staff", docs);
+            renderDoctors();
         }
-
-        function renderLogs() {
-            const box = document.getElementById("audit_console");
-            const spec = document.getElementById("filter_spec").value || "ALL";
-            const lvl = document.getElementById("filter_level").value || "ALL";
-
-            const filtered = logs.filter((l) => {
-                const specOk = (spec === "ALL") || ((l.specialization || "Brak") === spec);
-                const lvlOk = (lvl === "ALL") || (l.level === lvl);
-                return specOk && lvlOk;
-            });
-
-            if (!filtered.length) {
-                box.innerHTML = '<div class="log-line" style="color:var(--muted)">Brak wpisów dla wybranych filtrów.</div>';
-                return;
-            }
-
-            box.innerHTML = filtered.map((l) => {
-                const cls = l.level === "ERROR" ? "line-err" : (l.level === "WARN" ? "line-warn" : "line-ok");
-                const time = new Date(l.ts || Date.now()).toLocaleString();
-                return '<div class="log-line ' + cls + '"><span class="tag">' + escapeHtml(time) + '</span><span class="tag">' + escapeHtml(l.level || "-") + '</span><b>' + escapeHtml(l.actor || "SYSTEM") + "</b> -> " + escapeHtml(l.action || "-") + ' <span style="color:#8fb4ff">[' + escapeHtml(l.target || "-") + ']</span> <span style="color:#9da7b3">#' + escapeHtml(l.specialization || "Brak") + "</span></div>";
-            }).join("");
-
-            box.scrollTop = box.scrollHeight;
+        function deleteDoctor(id) {
+            if (!confirm("Usunąć konto lekarza?")) return;
+            writeLS("hospital_staff", readLS("hospital_staff", []).filter(d => d.id !== id));
+            renderDoctors();
         }
-
-        // ===== ACTIONS MATRIX + ROLE =====
-        function addDoctor() {
-            const name = document.getElementById("doc_name").value.trim();
-            const role = document.getElementById("doc_role").value;
-            const specialization = document.getElementById("doc_spec").value.trim() || role;
-
-            if (!name) return alert("Podaj imię i nazwisko.");
-            if (!role || !roles[role]) return alert("Wybierz prawidłową rolę.");
-
-            const id = "doc_" + Date.now();
-            const defaultPerms = { ...roles[role] };
-
-            db.ref("adminDoctors/" + id).set({
-                name,
-                role,
-                specialization,
-                permissions: defaultPerms
-            }).then(() => {
-                document.getElementById("doc_name").value = "";
-                document.getElementById("doc_spec").value = "";
-                logAction("ADMIN", "ADD_DOCTOR", name, "SUCCESS", specialization);
-            }).catch(() => {
-                logAction("ADMIN", "ADD_DOCTOR", name, "ERROR", specialization);
-            });
+        function deletePatient(id) {
+            if (!confirm("Usunąć konto pacjenta?")) return;
+            writeLS("registered_patients", readLS("registered_patients", []).filter(p => p.id !== id));
+            renderPatients();
         }
-
-        function removeDoctor(id) {
-            if (!doctors[id]) return;
-            const name = doctors[id].name || id;
-            if (!confirm("Usunąć personel z macierzy?\n" + name)) return;
-
-            db.ref("adminDoctors/" + id).remove()
-                .then(() => logAction("ADMIN", "REMOVE_DOCTOR", name, "WARN", doctors[id]?.specialization || "Brak"))
-                .catch(() => logAction("ADMIN", "REMOVE_DOCTOR", name, "ERROR", doctors[id]?.specialization || "Brak"));
+        function renderPending() {
+            const rows = readLS("pending_codes", []);
+            const table = document.getElementById("pendingTable");
+            table.innerHTML = `
+                <thead><tr><th>Kod</th><th>Typ</th><th>Parametry</th><th>Akcja</th></tr></thead>
+                <tbody>
+                    ${rows.length ? rows.map(r => `
+                        <tr>
+                            <td>${esc(r.code)}</td>
+                            <td>${esc(r.type)}</td>
+                            <td>${esc(r.rank || "-")} ${r.specialization ? "| " + esc(r.specialization) : ""}</td>
+                            <td><button class="btn-danger" onclick="removePending('${esc(r.id)}')">USUŃ</button></td>
+                        </tr>
+                    `).join("") : `<tr><td colspan="4">Brak aktywnych kodów.</td></tr>`}
+                </tbody>
+            `;
         }
-
-        function togglePermission(docId, permKey) {
-            const d = doctors[docId];
-            if (!d) return;
-            const current = !!(d.permissions && d.permissions[permKey]);
-            const next = !current;
-
-            db.ref("adminDoctors/" + docId + "/permissions/" + permKey).set(next)
-                .then(() => {
-                    const action = "TOGGLE_" + permKey + "_" + (next ? "ON" : "OFF");
-                    logAction("ADMIN", action, d.name || docId, "SUCCESS", d.specialization || "Brak");
-                })
-                .catch(() => {
-                    logAction("ADMIN", "TOGGLE_PERMISSION_FAIL", d.name || docId, "ERROR", d.specialization || "Brak");
-                });
+        function renderDoctors() {
+            const docs = readLS("hospital_staff", []);
+            const ranks = ["Rezydent", "Młodszy Lekarz", "Lekarz", "Starszy Lekarz", "Ordynator", "Konsultant"];
+            const table = document.getElementById("doctorsTable");
+            table.innerHTML = `
+                <thead><tr><th>Kod</th><th>Imię i nazwisko</th><th>Ranga</th><th>Specjalizacja</th><th>Akcja</th></tr></thead>
+                <tbody>
+                ${docs.length ? docs.map(d => `
+                    <tr>
+                        <td>${esc(d.code)}</td>
+                        <td>${esc(d.name || ((d.firstName || "") + " " + (d.lastName || "")).trim())}</td>
+                        <td>
+                            <select onchange="updateDoctor('${esc(d.id)}','rank',this.value)">
+                                ${ranks.map(r => `<option value="${esc(r)}" ${d.rank === r ? "selected" : ""}>${esc(r)}</option>`).join("")}
+                            </select>
+                        </td>
+                        <td><input value="${esc(d.specialization || "Ogólna")}" onchange="updateDoctor('${esc(d.id)}','specialization',this.value)" /></td>
+                        <td><button class="btn-danger" onclick="deleteDoctor('${esc(d.id)}')">USUŃ</button></td>
+                    </tr>
+                `).join("") : `<tr><td colspan="5">Brak lekarzy.</td></tr>`}
+                </tbody>
+            `;
         }
-
-        function prepareNewRolePerms() {
-            const box = document.getElementById("new-role-perms");
-            box.innerHTML = PERMISSIONS.map((p) => {
-                return '<label class="check"><input type="checkbox" data-perm="' + p.key + '" />' + escapeHtml(p.label) + "</label>";
-            }).join("");
+        function renderPatients() {
+            const pats = readLS("registered_patients", []);
+            const table = document.getElementById("patientsTable");
+            table.innerHTML = `
+                <thead><tr><th>Login</th><th>Imię i nazwisko</th><th>Dane</th><th>Akcja</th></tr></thead>
+                <tbody>
+                ${pats.length ? pats.map(p => `
+                    <tr>
+                        <td>${esc(p.login)}</td>
+                        <td>${esc(p.name)}</td>
+                        <td>
+                            Wiek: ${esc(p.age)} | Płeć: ${esc(p.gender)}<br>
+                            Ubezp.: ${esc(p.insured)} ${p.insNumber ? "(" + esc(p.insNumber) + ")" : ""}<br>
+                            Adres: ${esc(p.address)}<br>
+                            Zawód: ${esc(p.job)}<br>
+                            Krew: ${esc(p.blood || "-")}
+                        </td>
+                        <td><button class="btn-danger" onclick="deletePatient('${esc(p.id)}')">USUŃ</button></td>
+                    </tr>
+                `).join("") : `<tr><td colspan="4">Brak pacjentów.</td></tr>`}
+                </tbody>
+            `;
         }
-
-        function createRole() {
-            const name = document.getElementById("new_role_name").value.trim();
-            if (!name) return alert("Podaj nazwę roli/specjalizacji.");
-
-            const perms = {};
-            PERMISSIONS.forEach((p) => {
-                const cb = document.querySelector('#new-role-perms input[data-perm="' + p.key + '"]');
-                perms[p.key] = !!(cb && cb.checked);
-            });
-
-            db.ref("adminRoles/" + name).set(perms)
-                .then(() => {
-                    document.getElementById("new_role_name").value = "";
-                    document.querySelectorAll("#new-role-perms input[type='checkbox']").forEach(c => c.checked = false);
-                    logAction("ADMIN", "CREATE_ROLE", name, "SUCCESS", name);
-                })
-                .catch(() => {
-                    logAction("ADMIN", "CREATE_ROLE", name, "ERROR", name);
-                });
-        }
-
-        function setRolePerm(roleName, permKey, isOn) {
-            db.ref("adminRoles/" + roleName + "/" + permKey).set(isOn)
-                .then(() => logAction("ADMIN", "ROLE_PERM_" + permKey + "_" + (isOn ? "ON" : "OFF"), roleName, "SUCCESS", roleName))
-                .catch(() => logAction("ADMIN", "ROLE_PERM_CHANGE_FAIL", roleName, "ERROR", roleName));
-        }
-
-        function deleteRole(roleName) {
-            if (!confirm("Usunąć rolę: " + roleName + "?")) return;
-            db.ref("adminRoles/" + roleName).remove()
-                .then(() => logAction("ADMIN", "DELETE_ROLE", roleName, "WARN", roleName))
-                .catch(() => logAction("ADMIN", "DELETE_ROLE", roleName, "ERROR", roleName));
-        }
-
-        function wipeStaff() {
-            if (!confirm("To usunie cały personel z macierzy. Kontynuować?")) return;
-            const guard = prompt("Wpisz: USUN_PERSONEL");
-            if (guard !== "USUN_PERSONEL") return alert("Przerwano.");
-
-            db.ref("adminDoctors").set(null)
-                .then(() => logAction("ADMIN", "WIPE_STAFF", "ALL", "WARN", "ALL"))
-                .catch(() => logAction("ADMIN", "WIPE_STAFF", "ALL", "ERROR", "ALL"));
-        }
-
-        function clearAuditView() {
-            document.getElementById("audit_console").innerHTML = "";
-        }
-
-        function logAction(actor, action, target, level, specialization) {
-            const entry = {
-                ts: Date.now(),
-                actor: actor || "SYSTEM",
-                action: action || "-",
-                target: target || "-",
-                level: level || "SUCCESS",
-                specialization: specialization || "Brak"
-            };
-            db.ref("adminAuditLogs").push(entry);
-        }
-
-        // ===== AUTO TIMEOUT =====
-        function loadTimeout() {
-            const val = parseInt(localStorage.getItem("sys_timeout") || "20", 10);
-            const safe = Number.isFinite(val) ? Math.min(180, Math.max(1, val)) : 20;
-            document.getElementById("timeout_range").value = safe;
-            document.getElementById("timeout_val").textContent = safe + " min";
-        }
-
-        function previewTimeout() {
-            const v = parseInt(document.getElementById("timeout_range").value, 10);
-            document.getElementById("timeout_val").textContent = v + " min";
-        }
-
-        function saveTimeout() {
-            const v = parseInt(document.getElementById("timeout_range").value, 10);
-            localStorage.setItem("sys_timeout", String(v));
-            pushSystemLog({ type: "admin", actor: "ADMIN", action: "TIMEOUT_SET", details: "sys_timeout=" + v, level: "SUCCESS" });
-            alert("Zapisano sys_timeout = " + v + " min");
-        }
-
-        // ===== MASTER SCHEDULE =====
-        function getPatientsAny() {
-            const rp = safeParse(localStorage.getItem("registered_patients"), []);
-            if (Array.isArray(rp) && rp.length) return rp;
-            return safeParse(localStorage.getItem("hosp_v545"), []);
-        }
-
-        function extractExamsFromPatient(p, idx) {
-            const patientName = p?.name || p?.fullName || p?.patientName || ("Pacjent #" + (idx + 1));
-            const out = [];
-
-            if (Array.isArray(p.exams)) {
-                p.exams.forEach((e, exi) => {
-                    out.push({
-                        key: "ex-" + idx + "-" + exi,
-                        patientName,
-                        exam: e.type || e.name || "Badanie",
-                        date: e.date || "",
-                        time: e.time || "",
-                        source: "exams"
-                    });
-                });
-            }
-
-            if (Array.isArray(p.history)) {
-                p.history.forEach((h, hi) => {
-                    const txt = String(h?.txt || "");
-                    if (txt.toUpperCase().includes("BADANIE") || txt.toUpperCase().includes("USG") || txt.toUpperCase().includes("MORFOLOGIA")) {
-                        out.push({
-                            key: "hist-" + idx + "-" + hi,
-                            patientName,
-                            exam: txt.slice(0, 60),
-                            date: "",
-                            time: "",
-                            source: "history"
-                        });
-                    }
-                });
-            }
-
-            return out;
-        }
-
-        function renderSchedule() {
-            const box = document.getElementById("schedule_timeline");
-            const patients = getPatientsAny();
-            const rows = [];
-            patients.forEach((p, i) => rows.push(...extractExamsFromPatient(p, i)));
-
-            if (!rows.length) {
-                box.innerHTML = '<div class="row" style="color:var(--muted)">Brak wpisów badań. Dodaj badania w systemie głównym.</div>';
-                return;
-            }
-
-            box.innerHTML = rows.map((r, i) => {
-                return '<div class="timeline-row">' +
-                    '<div><span class="badge">' + escapeHtml(r.patientName) + "</span>" + escapeHtml(r.exam) + '</div>' +
-                    '<input type="date" id="sch_d_' + i + '" value="' + escapeHtml(r.date || "") + '">' +
-                    '<input type="time" id="sch_t_' + i + '" value="' + escapeHtml(r.time || "") + '">' +
-                    '<div style="color:var(--muted)">' + escapeHtml(r.source) + '</div>' +
-                    '<button class="btn-primary mini" onclick="saveScheduleRow(' + i + ', \'' + escapeJs(r.patientName) + '\', \'' + escapeJs(r.exam) + '\')">ZAPISZ</button>' +
-                    '</div>';
-            }).join("");
-        }
-
-        function saveScheduleRow(i, patientName, exam) {
-            const d = document.getElementById("sch_d_" + i).value;
-            const t = document.getElementById("sch_t_" + i).value;
-            const key = "master_schedule";
-            const data = safeParse(localStorage.getItem(key), []);
-            data.push({ ts: Date.now(), patientName, exam, date: d, time: t, by: "ADMIN" });
-            localStorage.setItem(key, JSON.stringify(data));
-            pushSystemLog({ type: "admin", actor: "ADMIN", action: "SCHEDULE_EDIT", details: patientName + " | " + exam + " | " + d + " " + t, level: "SUCCESS" });
-            alert("Termin zapisany.");
-        }
-
-        // ===== LIVE SESSION MONITOR + ACTIVITY LOG =====
-        function pushSystemLog(entry) {
-            const logsLs = safeParse(localStorage.getItem("system_logs"), []);
-            logsLs.push({
-                ts: Date.now(),
-                type: entry.type || "system",
-                actor: entry.actor || "SYSTEM",
-                actorType: entry.actorType || "system",
-                code: entry.code || "-",
-                action: entry.action || "-",
-                details: entry.details || "-",
-                level: entry.level || "SUCCESS"
-            });
-            localStorage.setItem("system_logs", JSON.stringify(logsLs.slice(-1500)));
-        }
-
-        function getSystemLogs() {
-            return safeParse(localStorage.getItem("system_logs"), []);
-        }
-
-        function renderLiveSessions() {
-            const logsLs = getSystemLogs();
-            const lastByCode = {};
-            logsLs.forEach((l) => {
-                const key = l.code || l.actor || ("anon-" + l.ts);
-                if (!lastByCode[key] || (l.ts > lastByCode[key].ts)) lastByCode[key] = l;
-            });
-
-            const list = Object.values(lastByCode).sort((a, b) => (b.ts || 0) - (a.ts || 0)).slice(0, 120);
-            const box = document.getElementById("session_table");
-
-            if (!list.length) {
-                box.innerHTML = '<div class="row" style="color:var(--muted)">Brak aktywności sesji.</div>';
-                return;
-            }
-
-            box.innerHTML = list.map((l) => {
-                const dt = new Date(l.ts || Date.now()).toLocaleString();
-                const cls = l.level === "ERROR" ? "line-err" : (l.level === "WARN" ? "line-warn" : "line-ok");
-                return '<div class="row ' + cls + '">' +
-                    '<span class="tag">' + escapeHtml(dt) + '</span>' +
-                    '<span class="tag">' + escapeHtml((l.actorType || "system").toUpperCase()) + '</span>' +
-                    '<b>' + escapeHtml(l.actor || "-") + '</b> (' + escapeHtml(l.code || "-") + ') -> ' +
-                    escapeHtml(l.action || "-") + ' <span style="color:var(--muted)">[' + escapeHtml(l.details || "-") + "]</span>" +
-                    '</div>';
-            }).join("");
-        }
-
-        function simulateLogin() {
-            const samples = [
-                { actor: "Jan Kowalski", actorType: "doctor", code: "DR-5821", action: "LOGIN_SUCCESS", details: "Lekarz zalogowany", level: "SUCCESS" },
-                { actor: "Pacjent-991", actorType: "patient", code: "PT-9913", action: "LOGIN_SUCCESS", details: "Pacjent zalogowany", level: "SUCCESS" }
-            ];
-            const s = samples[Math.floor(Math.random() * samples.length)];
-            pushSystemLog(s);
-            logAction("ADMIN", "SIM_LOGIN_LOG", s.actor, "WARN", s.actorType);
-            renderLiveSessions();
-            renderPerformance();
-            updateStats();
-        }
-
-        // ===== PERFORMANCE DASHBOARD =====
-        function renderPerformance() {
-            const logsLs = getSystemLogs();
-            const admissions = logsLs.filter(l => hasAny(l.action, ["ADMISSION", "REJESTRACJA", "REGISTER_PATIENT"])).length;
-            const rx = logsLs.filter(l => hasAny(l.action, ["RECEPTA", "RX_ISSUED", "ISSUE_RX"])).length;
-            const consult = logsLs.filter(l => hasAny(l.action, ["CONSULTATION_CLOSED", "KONSULTACJA_ZAMKNIETA", "CLOSE_CONSULT"])).length;
-            const login = logsLs.filter(l => hasAny(l.action, ["LOGIN_SUCCESS"])).length;
-
-            document.getElementById("perf_adm").textContent = String(admissions);
-            document.getElementById("perf_rx").textContent = String(rx);
-            document.getElementById("perf_cons").textContent = String(consult);
-            document.getElementById("perf_login").textContent = String(login);
-        }
-
-        // ===== STAFF GENERATOR + FLAGS + IDENTITY LOCK =====
-        function renderStaffRankSelect() {
-            const sel = document.getElementById("staff_rank");
-            sel.innerHTML = STAFF_RANKS.map(r => '<option>' + escapeHtml(r) + '</option>').join("");
-        }
-
-        function generateCode(prefix) {
-            return prefix + "-" + Math.floor(1000 + Math.random() * 9000);
-        }
-
-        function getStaff() {
-            return safeParse(localStorage.getItem("hospital_staff"), []);
-        }
-
-        function setStaff(arr) {
-            localStorage.setItem("hospital_staff", JSON.stringify(arr));
-            renderFlagsTargets();
-            renderFlagsPreview();
-            runMasterSearch();
-            updateStats();
-        }
-
-        function generateStaffCode() {
-            const name = document.getElementById("staff_name").value.trim();
-            const rank = document.getElementById("staff_rank").value;
-            const spec = document.getElementById("staff_spec").value.trim() || rank;
-            const type = document.getElementById("staff_type").value;
-
-            if (!name) return alert("Podaj imię i nazwisko personelu.");
-
-            const staff = getStaff();
-            let code = generateCode("DR");
-            while (staff.some(s => s.code === code)) code = generateCode("DR");
-
-            staff.push({
-                id: "stf_" + Date.now(),
-                name,
-                rank,
-                specialization: spec,
-                type,
-                code,
-                flags: { vip: false, alert: false, special: false, custom: "" },
-                createdAt: Date.now()
-            });
-
-            setStaff(staff);
-            pushSystemLog({ type: "admin", actor: "ADMIN", action: "STAFF_CODE_CREATED", details: name + " -> " + code, level: "SUCCESS" });
-            logAction("ADMIN", "CREATE_STAFF_CODE", code, "SUCCESS", spec);
-
-            document.getElementById("staff_name").value = "";
-            document.getElementById("staff_spec").value = "";
-            alert("Wygenerowano kod: " + code);
-        }
-
-        function renderFlagsTargets() {
-            const sel = document.getElementById("flag_target");
-            const staff = getStaff();
-            sel.innerHTML = "";
-            if (!staff.length) {
-                sel.innerHTML = '<option value="">Brak kont personelu</option>';
-                return;
-            }
-            staff.forEach((s) => {
-                const opt = document.createElement("option");
-                opt.value = s.id;
-                opt.textContent = s.name + " [" + s.code + "]";
-                sel.appendChild(opt);
-            });
-
-            sel.onchange = syncFlagInputsFromSelected;
-            syncFlagInputsFromSelected();
-        }
-
-        function syncFlagInputsFromSelected() {
-            const id = document.getElementById("flag_target").value;
-            const staff = getStaff();
-            const u = staff.find(x => x.id === id);
-            const f = u?.flags || {};
-            document.getElementById("flag_vip").checked = !!f.vip;
-            document.getElementById("flag_alert").checked = !!f.alert;
-            document.getElementById("flag_special").checked = !!f.special;
-            document.getElementById("flag_custom").value = f.custom || "";
-        }
-
-        function saveFlags() {
-            const id = document.getElementById("flag_target").value;
-            if (!id) return alert("Brak wybranego konta.");
-            const staff = getStaff();
-            const idx = staff.findIndex(s => s.id === id);
-            if (idx === -1) return alert("Nie znaleziono konta.");
-
-            staff[idx].flags = {
-                vip: document.getElementById("flag_vip").checked,
-                alert: document.getElementById("flag_alert").checked,
-                special: document.getElementById("flag_special").checked,
-                custom: document.getElementById("flag_custom").value.trim()
-            };
-
-            setStaff(staff);
-            pushSystemLog({ type: "admin", actor: "ADMIN", action: "FLAGS_UPDATED", details: staff[idx].code, level: "SUCCESS" });
-            alert("Flagi zapisane.");
-        }
-
-        function renderFlagsPreview() {
-            const box = document.getElementById("flag_preview");
-            const staff = getStaff();
-            if (!staff.length) {
-                box.innerHTML = '<div class="row" style="color:var(--muted)">Brak kont personelu.</div>';
-                return;
-            }
-
-            box.innerHTML = staff.map((s) => {
-                const f = s.flags || {};
-                let flagsHtml = "";
-                if (f.vip) flagsHtml += '<span class="flag flag-vip">⭐ VIP</span>';
-                if (f.alert) flagsHtml += '<span class="flag flag-alert">⚠ Alert</span>';
-                if (f.special) flagsHtml += '<span class="flag flag-spec">🧪 Specjalny</span>';
-                if (f.custom) flagsHtml += '<span class="flag">' + escapeHtml(f.custom) + '</span>';
-                if (!flagsHtml) flagsHtml = '<span style="color:var(--muted)">brak flag</span>';
-
-                return '<div class="row"><b>' + escapeHtml(s.name) + '</b> [' + escapeHtml(s.code) + ']<br>' + flagsHtml + "</div>";
-            }).join("");
-        }
-
-        function changeIdentity() {
-            const adminCode = document.getElementById("identity_admin_code").value.trim();
-            const oldCode = document.getElementById("identity_target").value.trim();
-            const newCode = document.getElementById("identity_new").value.trim();
-
-            if (adminCode !== BOSS_OVERRIDE_CODE) return alert("Brak uprawnień. Wymagany kod BOSS123.");
-            if (!oldCode || !newCode) return alert("Wpisz stary i nowy login/kod.");
-
-            const staff = getStaff();
-            const idx = staff.findIndex(s => s.code === oldCode);
-            if (idx === -1) return alert("Nie znaleziono użytkownika o podanym kodzie.");
-            if (staff.some(s => s.code === newCode)) return alert("Nowy kod już istnieje.");
-
-            const old = staff[idx].code;
-            staff[idx].code = newCode;
-            setStaff(staff);
-
-            pushSystemLog({ type: "admin", actor: "BOSS123", action: "IDENTITY_CHANGED", details: old + " -> " + newCode, level: "WARN" });
-            logAction("BOSS123", "IDENTITY_CHANGE", old + "=>" + newCode, "WARN", staff[idx].specialization || "Brak");
-
-            alert("Login/kod został zmieniony.");
-            document.getElementById("identity_target").value = "";
-            document.getElementById("identity_new").value = "";
-        }
-
-        // ===== MASTER SEARCH =====
-        function runMasterSearch() {
-            const q = (document.getElementById("master_search").value || "").trim().toLowerCase();
-            const out = [];
-
-            const staff = getStaff();
-            const reg = safeParse(localStorage.getItem("registered_patients"), []);
-            const hosp = safeParse(localStorage.getItem("hosp_v545"), []);
-
-            staff.forEach((s) => {
-                const line = [s.name, s.rank, s.specialization, s.code, s.flags?.custom].join(" ").toLowerCase();
-                if (!q || line.includes(q)) {
-                    out.push("STAFF | " + (s.name || "-") + " | " + (s.code || "-") + " | " + (s.rank || "-"));
-                }
-            });
-
-            reg.forEach((p, i) => {
-                const name = p?.name || p?.fullName || p?.patientName || ("Pacjent#" + (i + 1));
-                const line = [name, p?.login, p?.id, p?.status].join(" ").toLowerCase();
-                if (!q || line.includes(q)) {
-                    out.push("REGISTERED_PATIENTS | " + name + " | " + (p?.status || "-"));
-                }
-            });
-
-            hosp.forEach((p, i) => {
-                const name = p?.name || ("Pacjent#" + (i + 1));
-                const line = [name, p?.status, p?.triage, p?.reason].join(" ").toLowerCase();
-                if (!q || line.includes(q)) {
-                    out.push("HOSP_V545 | " + name + " | " + (p?.status || "-") + " | " + (p?.triage || "-"));
-                }
-            });
-
-            const box = document.getElementById("search_results");
-            if (!out.length) {
-                box.innerHTML = '<div class="row" style="color:var(--muted)">Brak wyników.</div>';
-                return;
-            }
-            box.innerHTML = out.slice(0, 250).map(x => '<div class="row">' + escapeHtml(x) + "</div>").join("");
-        }
-
-        // ===== TRASH BIN =====
-        function renderTrash() {
-            const box = document.getElementById("trash_list");
-            const trash = safeParse(localStorage.getItem("deleted_records"), []);
-            document.getElementById("st_trash").textContent = String(trash.length);
-
-            if (!trash.length) {
-                box.innerHTML = '<div class="row" style="color:var(--muted)">Kosz jest pusty.</div>';
-                return;
-            }
-
-            box.innerHTML = trash.map((r, i) => {
-                const dt = new Date(r.deletedAt || r.ts || Date.now()).toLocaleString();
-                const nm = r.name || r.patientName || ("Rekord #" + (i + 1));
-                return '<div class="row"><b>' + escapeHtml(nm) + '</b> <span class="tag">' + escapeHtml(dt) + '</span><br><button class="btn-primary mini" onclick="restoreTrash(' + i + ')">RESTORE</button></div>';
-            }).join("");
-        }
-
-        function restoreTrash(i) {
-            const trash = safeParse(localStorage.getItem("deleted_records"), []);
-            const rec = trash[i];
-            if (!rec) return alert("Brak rekordu.");
-
-            const hosp = safeParse(localStorage.getItem("hosp_v545"), []);
-            hosp.push(rec);
-            localStorage.setItem("hosp_v545", JSON.stringify(hosp));
-
-            trash.splice(i, 1);
-            localStorage.setItem("deleted_records", JSON.stringify(trash));
-
-            pushSystemLog({ type: "admin", actor: "ADMIN", action: "RESTORE_RECORD", details: rec.name || rec.patientName || "UNKNOWN", level: "SUCCESS" });
-            logAction("ADMIN", "RESTORE_RECORD", rec.name || "UNKNOWN", "SUCCESS", "ADMIN");
-
-            renderTrash();
-            runMasterSearch();
-            alert("Przywrócono rekord do hosp_v545.");
-        }
-
-        // ===== STATS =====
-        function updateStats() {
-            document.getElementById("st_docs").textContent = String(Object.keys(doctors).length);
-            document.getElementById("st_roles").textContent = String(Object.keys(roles).length);
-            document.getElementById("st_logs").textContent = String(logs.length);
-            document.getElementById("st_trash").textContent = String(safeParse(localStorage.getItem("deleted_records"), []).length);
-        }
-
-        // ===== HELPERS =====
-        function safeParse(v, fallback) {
-            try {
-                const x = JSON.parse(v);
-                return x ?? fallback;
-            } catch {
-                return fallback;
-            }
-        }
-
-        function hasAny(text, arr) {
-            const t = String(text || "").toUpperCase();
-            return arr.some(k => t.includes(k));
-        }
-
-        function escapeHtml(s) {
-            return String(s ?? "")
-                .replaceAll("&", "&amp;")
-                .replaceAll("<", "&lt;")
-                .replaceAll(">", "&gt;")
-                .replaceAll('"', "&quot;")
-                .replaceAll("'", "&#39;");
-        }
-
-        function escapeJs(s) {
-            return String(s ?? "").replaceAll("\\", "\\\\").replaceAll("'", "\\'");
+        function renderAll() {
+            renderPending();
+            renderDoctors();
+            renderPatients();
         }
     </script>
 </body>
