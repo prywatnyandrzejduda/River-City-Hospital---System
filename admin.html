@@ -116,5 +116,30 @@
             }
         }
     </script>
+    <div class="card">
+    <h3>🎟️ GENERATOR DOSTĘPÓW</h3>
+    <input type="text" id="new_code" placeholder="Wpisz nowy login (np. LEK-05)">
+    <select id="new_role">
+        <option value="Lekarz">Lekarz</option>
+        <option value="Ratownik">Ratownik</option>
+    </select>
+    <button class="btn-danger" style="background: var(--accent); color: black;" onclick="generateCode()">DODAJ DO BAZY</button>
+</div>
+
+<script>
+    function generateCode() {
+        const code = document.getElementById('new_code').value;
+        const role = document.getElementById('new_role').value;
+        if(!code) return;
+
+        db.ref('autoryzowane_kody/' + code).set({
+            used: false,
+            role: role
+        }).then(() => {
+            alert("Kod " + code + " został dodany. Możesz go przekazać pracownikowi.");
+            document.getElementById('new_code').value = "";
+        });
+    }
+</script>
 </body>
 </html>
