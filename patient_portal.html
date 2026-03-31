@@ -52,7 +52,7 @@
                 <input id="auth_login" type="text" placeholder="Login pacjenta (PT-XXXX)" />
                 <input id="auth_pass" type="password" placeholder="Hasło" />
                 <button class="btn" onclick="authLogin()">ZALOGUJ</button>
-                <button class="btn2" onclick="location.href='start.html'">POWRÓT DO START</button>
+                <button class="btn2" onclick="location.href='hospital_system.html'">POWRÓT DO START</button>
                 <div id="auth_msg" class="msg"></div>
             </div>
             <div class="card">
@@ -80,11 +80,488 @@
         <div class="topbar">
             <h1>PATIENT PORTAL</h1>
             <div>
-                <button class="btn2" onclick="location.href='start.html'">START</button>
+                <button class="btn2" onclick="location.href='hospital_system.html'">START</button>
                 <button class="btn2" onclick="logoutPatient()">WYLOGUJ</button>
             </div>
         </div>
         <div class="tabs">
             <button class="tab-btn active" onclick="setTab('p1', this)">Informacje o sobie</button>
             <button class="tab-btn" onclick="setTab('p2', this)">Moja Karta</button>
-            <button class="tab-btn" onclick="setTab('p3
+            <button class="tab-btn" onclick="setTab('p3', this)">Zapisy na badania</button>
+            <button class="tab-btn" onclick="setTab('p4', this)">Konsultacje</button>
+        </div>
+
+        <div id="p1" class="tab active"><div class="card">
+            <h2>Informacje o sobie</h2>
+            <div class="muted">Login/ID domyślnie zablokowane. Zmiana tylko kodem BOSS123.</div>
+            <div class="grid2">
+                <div>
+                    <input id="f_id" disabled />
+                    <input id="f_login" disabled />
+                    <input id="f_name" placeholder="Imię i nazwisko" />
+                    <div class="grid2"><input id="f_age" type="number" placeholder="Wiek" /><select id="f_gender"><option value="K">K</option><option value="M">M</option></select></div>
+                    <input id="f_address" placeholder="Miejsce zamieszkania" />
+                    <input id="f_job" placeholder="Zawód" />
+                </div>
+                <div>
+                    <select id="f_insured"><option value="TAK">Ubezpieczenie: TAK</option><option value="NIE">Ubezpieczenie: NIE</option></select>
+                    <input id="f_insNum" placeholder="Nr ubezpieczenia" />
+                    <input id="f_blood" placeholder="Grupa krwi (opcjonalnie)" />
+                    <input id="f_pass" type="password" placeholder="Nowe hasło (opcjonalnie)" />
+                    <button class="btn" onclick="saveProfile()">ZAPISZ DANE</button>
+                    <div id="save_msg" class="msg"></div>
+                    <input id="boss_code" type="password" placeholder="Kod admina do edycji ID/Loginu" />
+                    <button class="btn-danger" onclick="unlockIdentity()">ODBLOKUJ EDYCJĘ ID/LOGIN</button>
+                </div>
+            </div>
+        </div></div>
+        <div id="p2" class="tab"><div class="card"><h2>Moja Karta</h2><div id="medical_history"></div></div></div>
+        <div id="p3" class="tab"><div class="card">
+            <h2>Zapisy na badania</h2>
+            <div class="grid2">
+                <div>
+                    <select id="ap_type"><option>Psychologia</option><option>Chirurgia</option><option>Kardiologia</option><option>Radiologia</option><option>Medycyna ogólna</option></select>
+                    <input id="ap_date" type="datetime-local" />
+                    <textarea id="ap_note" rows="4" placeholder="Notatka..."></textarea>
+                    <button class="btn" onclick="addAppointment()">ZAPISZ TERMIN</button>
+                    <div id="ap_msg" class="msg"></div>
+                </div>
+                <div><div id="appointments_list"></div></div>
+            </div>
+        </div></div>
+        <div id="p4" class="tab"><div class="card">
+            <h2>Konsultacje</h2>
+            <div class="grid2">
+                <div><select id="consult_doctor"></select><div id="consult_meta" class="muted"></div><div id="chat_box" class="chat-box"></div></div>
+                <div><textarea id="chat_text" rows="8" placeholder="Wiadomość do lekarza..."></textarea><button class="btn" onclick="sendMessage()">WYŚLIJ</button><button class="btn2" onclick="refreshChat()">ODŚWIEŻ</button></div>
+            </div>
+        </div></div>
+    </div>
+
+    <script>
+        function readLS(key, fallback) { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } }
+        function writeLS(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
+        function uid(prefix) { return prefix + "-" + Date.now().toString(36).toUpperCase() + "-" + Math.floor(Math.random() * 9999).toString().padStart(4, "0"); }
+        function esc(s) { return String(s ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;"); }
+        function logSystem(type, action, details) {
+            const logs = readLS("system_logs", []);
+            logs.push({ id: uid("LOG"), ts: Date.now(), type, action, details: details || {} });
+            writeLS("system_logs", logs.slice(-900));
+        }
+        function ensureSeeds() {
+            if (!Array.isArray(readLS("pending_codes", null))) writeLS("pending_codes", []);
+            if (!Array.isArray(readLS("registered_patients", null))) writeLS("registered_patients", []);
+            if (!Array.isArray(readLS("hospital_staff", null))) writeLS("hospital_staff", []);
+            if (!Array.isArray(readLS("consultations", null))) writeLS("consultations", []);
+            if (!Array.isArray(readLS("hosp_v545", null))) writeLS("hosp_v545", []);
+        }
+        ensureSeeds();
+
+        let me = null;
+        let identityUnlocked = false;
+
+        function createDefaultHospRecord(patient) {
+            return {
+                patientLinkId: patient.id,
+                name: patient.name || "",
+                adr: patient.address || "",
+                job: patient.job || "",
+                ins: patient.insured === "TAK" ? (patient.insNumber || "TAK") : "NIE",
+                blood: patient.blood || "Nieznana",
+                alergie: "",
+                reason: "",
+                status: "Stabilny",
+                triage: "none",
+                cert: "BRAK",
+                arch: false,
+                history: []
+            };
+        }
+
+        function syncPatientToHosp(patient) {
+            const hosp = readLS("hosp_v545", []);
+            if (!Array.isArray(hosp)) return;
+            const byLink = hosp.findIndex(r => String(r.patientLinkId || "") === String(patient.id));
+            const byName = hosp.findIndex(r => String(r.name || "").trim().toLowerCase() === String(patient.name || "").trim().toLowerCase());
+            const idx = byLink >= 0 ? byLink : byName;
+
+            if (idx >= 0) {
+                const rec = hosp[idx];
+                rec.patientLinkId = patient.id;
+                rec.name = patient.name || rec.name || "";
+                rec.adr = patient.address || "";
+                rec.job = patient.job || "";
+                rec.ins = patient.insured === "TAK" ? (patient.insNumber || "TAK") : "NIE";
+                rec.blood = patient.blood || "Nieznana";
+            } else {
+                hosp.push(createDefaultHospRecord(patient));
+            }
+            writeLS("hosp_v545", hosp);
+        }
+
+        function toggleInsurance() {
+            const has = document.getElementById("r_insured").value === "TAK";
+            const i = document.getElementById("r_ins_num");
+            i.disabled = !has;
+            if (!has) i.value = "";
+        }
+
+        function consumePendingCode(rawCode, type) {
+            const code = String(rawCode || "").trim().toUpperCase();
+            const pending = readLS("pending_codes", []);
+            const idx = pending.findIndex(p => p.code === code && p.type === type);
+            if (idx < 0) return null;
+            const token = pending[idx];
+            pending.splice(idx, 1);
+            writeLS("pending_codes", pending);
+            return token;
+        }
+
+        function authLogin() {
+            const login = document.getElementById("auth_login").value.trim().toUpperCase();
+            const pass = document.getElementById("auth_pass").value;
+            const msg = document.getElementById("auth_msg");
+            const patients = readLS("registered_patients", []);
+            const patient = patients.find(p => String(p.login).toUpperCase() === login && p.password === pass);
+
+            if (!patient) {
+                msg.className = "msg err";
+                msg.textContent = "Błędny login lub hasło.";
+                logSystem("patient", "LOGIN_FAIL", { login });
+                return;
+            }
+
+            me = patient;
+            writeLS("current_patient_session", { patientId: patient.id, login: patient.login, ts: Date.now() });
+            logSystem("patient", "LOGIN_SUCCESS", { patientId: patient.id, login: patient.login });
+            showPortal();
+        }
+
+        function authRegister() {
+            const code = document.getElementById("r_code").value.trim().toUpperCase();
+            const name = document.getElementById("r_name").value.trim();
+            const age = parseInt(document.getElementById("r_age").value);
+            const gender = document.getElementById("r_gender").value;
+            const address = document.getElementById("r_address").value.trim();
+            const job = document.getElementById("r_job").value.trim();
+            const insured = document.getElementById("r_insured").value;
+            const insNum = document.getElementById("r_ins_num").value.trim();
+            const blood = document.getElementById("r_blood").value.trim();
+            const pass = document.getElementById("r_pass").value;
+            const msg = document.getElementById("reg_msg");
+
+            if (!code || !name || !age || !address || !pass) {
+                msg.className = "msg err";
+                msg.textContent = "Uzupełnij wymagane pola.";
+                return;
+            }
+
+            const token = consumePendingCode(code, "patient");
+            if (!token) {
+                msg.className = "msg err";
+                msg.textContent = "Nieprawidłowy lub wykorzystany kod.";
+                logSystem("patient", "REGISTER_FAIL_CODE", { code });
+                return;
+            }
+
+            const patients = readLS("registered_patients", []);
+            const patient = {
+                id: uid("PT"),
+                login: code,
+                password: pass,
+                name,
+                age,
+                gender,
+                address,
+                job,
+                insured,
+                insNumber: insured === "TAK" ? insNum : "",
+                blood,
+                createdAt: Date.now()
+            };
+
+            patients.push(patient);
+            writeLS("registered_patients", patients);
+            syncPatientToHosp(patient);
+            logSystem("patient", "REGISTER_SUCCESS", { patientId: patient.id, login: patient.login });
+
+            msg.className = "msg ok";
+            msg.textContent = "Rejestracja zakończona. Możesz się zalogować.";
+            document.getElementById("r_code").value = "";
+            document.getElementById("r_name").value = "";
+            document.getElementById("r_age").value = "";
+            document.getElementById("r_address").value = "";
+            document.getElementById("r_job").value = "";
+            document.getElementById("r_ins_num").value = "";
+            document.getElementById("r_blood").value = "";
+            document.getElementById("r_pass").value = "";
+        }
+
+        function showPortal() {
+            document.getElementById("authScreen").classList.add("hidden");
+            document.getElementById("portalScreen").classList.remove("hidden");
+            loadProfile();
+            loadMedicalHistory();
+            loadAppointments();
+            loadDoctors();
+        }
+
+        function setTab(tabId, btn) {
+            document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+            document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+            btn.classList.add("active");
+            document.getElementById(tabId).classList.add("active");
+        }
+
+        function loadProfile() {
+            if (!me) return;
+            document.getElementById("f_id").value = me.id;
+            document.getElementById("f_login").value = me.login;
+            document.getElementById("f_name").value = me.name || "";
+            document.getElementById("f_age").value = me.age || "";
+            document.getElementById("f_gender").value = me.gender || "K";
+            document.getElementById("f_address").value = me.address || "";
+            document.getElementById("f_job").value = me.job || "";
+            document.getElementById("f_insured").value = me.insured || "TAK";
+            document.getElementById("f_insNum").value = me.insNumber || "";
+            document.getElementById("f_blood").value = me.blood || "";
+        }
+
+        function saveProfile() {
+            if (!me) return;
+            const msg = document.getElementById("save_msg");
+            
+            me.name = document.getElementById("f_name").value.trim();
+            me.age = parseInt(document.getElementById("f_age").value);
+            me.gender = document.getElementById("f_gender").value;
+            me.address = document.getElementById("f_address").value.trim();
+            me.job = document.getElementById("f_job").value.trim();
+            me.insured = document.getElementById("f_insured").value;
+            me.insNumber = me.insured === "TAK" ? document.getElementById("f_insNum").value.trim() : "";
+            me.blood = document.getElementById("f_blood").value.trim();
+            
+            const newPass = document.getElementById("f_pass").value;
+            if (newPass) me.password = newPass;
+
+            const patients = readLS("registered_patients", []);
+            const idx = patients.findIndex(p => p.id === me.id);
+            if (idx >= 0) {
+                patients[idx] = me;
+                writeLS("registered_patients", patients);
+                syncPatientToHosp(me);
+                logSystem("patient", "PROFILE_UPDATE", { patientId: me.id });
+                msg.className = "msg ok";
+                msg.textContent = "Dane zapisane.";
+                document.getElementById("f_pass").value = "";
+            }
+        }
+
+        function unlockIdentity() {
+            const code = document.getElementById("boss_code").value;
+            const msg = document.getElementById("save_msg");
+            
+            if (code !== "BOSS123") {
+                msg.className = "msg err";
+                msg.textContent = "Nieprawidłowy kod admina.";
+                return;
+            }
+            
+            identityUnlocked = !identityUnlocked;
+            document.getElementById("f_id").disabled = !identityUnlocked;
+            document.getElementById("f_login").disabled = !identityUnlocked;
+            
+            msg.className = "msg ok";
+            msg.textContent = identityUnlocked ? "Edycja ID/Login odblokowana." : "Edycja ID/Login zablokowana.";
+            document.getElementById("boss_code").value = "";
+        }
+
+        function loadMedicalHistory() {
+            const hosp = readLS("hosp_v545", []);
+            const record = hosp.find(r => r.patientLinkId === me.id);
+            const container = document.getElementById("medical_history");
+            
+            if (!record || !record.history || record.history.length === 0) {
+                container.innerHTML = "<div class='muted'>Brak historii medycznej.</div>";
+                return;
+            }
+            
+            container.innerHTML = record.history.map(item => `
+                <div class="history-item">
+                    <strong>${new Date(item.ts).toLocaleString()}</strong><br>
+                    ${esc(item.note || "Brak opisu")}
+                </div>
+            `).join("");
+        }
+
+        function addAppointment() {
+            const type = document.getElementById("ap_type").value;
+            const date = document.getElementById("ap_date").value;
+            const note = document.getElementById("ap_note").value.trim();
+            const msg = document.getElementById("ap_msg");
+            
+            if (!date) {
+                msg.className = "msg err";
+                msg.textContent = "Wybierz datę.";
+                return;
+            }
+            
+            const appointments = readLS("appointments", []);
+            const appointment = {
+                id: uid("AP"),
+                patientId: me.id,
+                patientName: me.name,
+                type,
+                date: new Date(date).getTime(),
+                note,
+                status: "Zaplanowany",
+                createdAt: Date.now()
+            };
+            
+            appointments.push(appointment);
+            writeLS("appointments", appointments);
+            logSystem("patient", "APPOINTMENT_CREATE", { appointmentId: appointment.id, type });
+            
+            msg.className = "msg ok";
+            msg.textContent = "Termin zapisany.";
+            document.getElementById("ap_date").value = "";
+            document.getElementById("ap_note").value = "";
+            loadAppointments();
+        }
+
+        function loadAppointments() {
+            const appointments = readLS("appointments", []);
+            const myApps = appointments.filter(a => a.patientId === me.id).sort((a, b) => b.date - a.date);
+            const container = document.getElementById("appointments_list");
+            
+            if (myApps.length === 0) {
+                container.innerHTML = "<div class='muted'>Brak zapisanych terminów.</div>";
+                return;
+            }
+            
+            container.innerHTML = myApps.map(app => `
+                <div class="history-item">
+                    <strong>${app.type}</strong><br>
+                    ${new Date(app.date).toLocaleString()}<br>
+                    Status: ${app.status}<br>
+                    ${app.note ? `Notatka: ${esc(app.note)}` : ""}
+                </div>
+            `).join("");
+        }
+
+        function loadDoctors() {
+            const staff = readLS("hospital_staff", []);
+            const select = document.getElementById("consult_doctor");
+            select.innerHTML = "<option value=''>Wybierz lekarza...</option>";
+            
+            staff.forEach(doctor => {
+                select.innerHTML += `<option value='${doctor.id}'>${doctor.name} - ${doctor.specialization}</option>`;
+            });
+            
+            select.addEventListener("change", loadConsultation);
+        }
+
+        function loadConsultation() {
+            const doctorId = document.getElementById("consult_doctor").value;
+            const meta = document.getElementById("consult_meta");
+            const chatBox = document.getElementById("chat_box");
+            
+            if (!doctorId) {
+                meta.innerHTML = "";
+                chatBox.innerHTML = "<div class='muted'>Wybierz lekarza.</div>";
+                return;
+            }
+            
+            const staff = readLS("hospital_staff", []);
+            const doctor = staff.find(d => d.id === doctorId);
+            
+            if (doctor) {
+                meta.innerHTML = `${doctor.name} - ${doctor.specialization} - ${doctor.rank}`;
+            }
+            
+            loadChat();
+        }
+
+        function loadChat() {
+            const doctorId = document.getElementById("consult_doctor").value;
+            const chatBox = document.getElementById("chat_box");
+            
+            if (!doctorId) return;
+            
+            const consultations = readLS("consultations", []);
+            const consultation = consultations.find(c => 
+                (c.patientId === me.id && c.doctorId === doctorId) ||
+                (c.patientId === doctorId && c.doctorId === me.id)
+            );
+            
+            if (!consultation || !consultation.messages) {
+                chatBox.innerHTML = "<div class='muted'>Brak wiadomości.</div>";
+                return;
+            }
+            
+            chatBox.innerHTML = consultation.messages.map(msg => `
+                <div class="chat-line ${msg.sender === me.id ? 'me' : 'other'}">
+                    <strong>${msg.sender === me.id ? 'Ty' : 'Lekarz'}:</strong> ${esc(msg.text)}
+                </div>
+            `).join("");
+            
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function sendMessage() {
+            const doctorId = document.getElementById("consult_doctor").value;
+            const text = document.getElementById("chat_text").value.trim();
+            
+            if (!doctorId || !text) return;
+            
+            const consultations = readLS("consultations", []);
+            let consultation = consultations.find(c => 
+                (c.patientId === me.id && c.doctorId === doctorId) ||
+                (c.patientId === doctorId && c.doctorId === me.id)
+            );
+            
+            if (!consultation) {
+                consultation = {
+                    id: uid("CONS"),
+                    patientId: me.id,
+                    doctorId,
+                    createdAt: Date.now(),
+                    messages: []
+                };
+                consultations.push(consultation);
+            }
+            
+            consultation.messages.push({
+                sender: me.id,
+                text,
+                ts: Date.now()
+            });
+            
+            writeLS("consultations", consultations);
+            logSystem("patient", "MESSAGE_SEND", { consultationId: consultation.id, doctorId });
+            
+            document.getElementById("chat_text").value = "";
+            loadChat();
+        }
+
+        function refreshChat() {
+            loadChat();
+        }
+
+        function logoutPatient() {
+            writeLS("current_patient_session", null);
+            logSystem("patient", "LOGOUT", { patientId: me.id });
+            location.href = "hospital_system.html";
+        }
+
+        // Sprawdź sesję przy ładowaniu
+        const session = readLS("current_patient_session", null);
+        if (session && session.patientId) {
+            const patients = readLS("registered_patients", []);
+            me = patients.find(p => p.id === session.patientId);
+            if (me) {
+                showPortal();
+            }
+        }
+    </script>
+</body>
+</html>
