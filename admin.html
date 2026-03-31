@@ -1,136 +1,831 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ADMIN PANEL - Hospital System</title>
     <style>
-        :root { 
-            --red: #ff4757; --bg: #0b0c0d; --card: #1c1f22; --accent: #00d2d3; --green: #2ecc71;
+        :root {
+            --bg: #0b0c0d;
+            --panel: #14171a;
+            --card: #1b1f24;
+            --line: #2b3138;
+            --text: #e6edf3;
+            --muted: #9da7b3;
+            --accent: #00d2d3;
+            --ok: #2ecc71;
+            --err: #ff4757;
+            --warn: #f1c40f;
         }
-        body { background: var(--bg); color: white; font-family: 'Inter', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; padding: 20px; }
-        
-        /* EKRAN LOGOWANIA */
-        #login-screen { text-align: center; background: var(--card); padding: 40px; border-radius: 15px; border: 1px solid var(--red); box-shadow: 0 0 30px rgba(255, 71, 87, 0.2); width: 350px; }
-        
-        /* PANEL ADMINA */
-        #admin-panel { width: 100%; max-width: 600px; display: none; }
-        .card { background: var(--card); padding: 25px; border-radius: 12px; border: 1px solid #333; margin-bottom: 20px; }
-        
-        input { background: #0f1113; border: 1px solid #444; color: white; padding: 12px; border-radius: 6px; width: 100%; margin-bottom: 15px; box-sizing: border-box; outline: none; }
-        input:focus { border-color: var(--accent); }
-        
-        button { width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; transition: 0.3s; margin-bottom: 10px; }
-        
-        .btn-danger { background: var(--red); color: white; }
-        .btn-danger:hover { background: #ff6b81; box-shadow: 0 0 20px rgba(255, 71, 87, 0.4); }
-        
-        .btn-accent { background: var(--accent); color: #000; }
-        .btn-accent:hover { background: #00b8b9; }
 
-        .btn-back { background: #333; color: white; }
-        .btn-back:hover { background: #444; }
+        * {
+            box-sizing: border-box;
+            font-family: Consolas, "Courier New", monospace;
+        }
 
-        .warning-text { color: var(--red); font-weight: bold; margin-bottom: 10px; display: block; }
-        #stats-preview { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .stat-item { background: #0b0c0d; padding: 10px; border-radius: 8px; text-align: center; border: 1px solid #222; }
-        hr { border: 0; border-top: 1px solid #333; margin: 20px 0; }
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .wrap {
+            max-width: 1500px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .hidden { display: none !important; }
+
+        /* LOGIN */
+        #login-screen {
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 20px;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-top: 3px solid var(--err);
+            padding: 24px;
+            border-radius: 10px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+        }
+
+        .title {
+            margin: 0 0 8px 0;
+            font-size: 22px;
+            color: var(--err);
+            letter-spacing: 1px;
+        }
+
+        .muted {
+            color: var(--muted);
+            font-size: 13px;
+            margin-bottom: 14px;
+        }
+
+        input, select, button {
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid var(--line);
+            background: #101317;
+            color: var(--text);
+            padding: 11px 12px;
+            margin-bottom: 10px;
+            outline: none;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--accent);
+        }
+
+        button {
+            cursor: pointer;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #041316;
+            border-color: #00babc;
+        }
+
+        .btn-danger {
+            background: #2a1013;
+            border-color: #4a1f23;
+            color: #ff9098;
+        }
+
+        .btn-back {
+            background: #1a2027;
+        }
+
+        /* ADMIN LAYOUT */
+        #admin-panel {
+            display: none;
+        }
+
+        .topbar {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-left: 4px solid var(--accent);
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin-bottom: 14px;
+        }
+
+        .topbar h1 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .topbar .actions {
+            display: flex;
+            gap: 8px;
+            min-width: 280px;
+        }
+
+        .topbar .actions button {
+            margin: 0;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1.6fr 1fr;
+            gap: 14px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 14px;
+        }
+
+        .card h2, .card h3 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+            color: var(--accent);
+        }
+
+        .sub {
+            color: var(--muted);
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        /* MATRIX */
+        .matrix-wrap {
+            overflow: auto;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
+        }
+
+        th, td {
+            border-bottom: 1px solid var(--line);
+            border-right: 1px solid var(--line);
+            padding: 8px;
+            font-size: 12px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background: #11161b;
+            color: #9fdfe0;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        th:first-child, td:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 1;
+            background: #10151a;
+            text-align: left;
+            min-width: 220px;
+        }
+
+        .doc-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .doc-name { font-weight: 700; color: #ffffff; }
+        .doc-role { color: #8fb4ff; font-size: 11px; }
+
+        .toggle {
+            width: 56px;
+            height: 26px;
+            border-radius: 999px;
+            border: 1px solid #3c4652;
+            display: inline-flex;
+            align-items: center;
+            padding: 2px;
+            transition: 0.2s;
+            background: #1a2027;
+            margin: 0;
+        }
+
+        .toggle .dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #6f7b88;
+            transition: 0.2s;
+        }
+
+        .toggle.on {
+            background: #143125;
+            border-color: #25593f;
+        }
+
+        .toggle.on .dot {
+            transform: translateX(29px);
+            background: var(--ok);
+        }
+
+        /* AUDIT LOG */
+        .toolbar {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 8px;
+        }
+
+        .log-console {
+            margin-top: 10px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #0a0e12;
+            height: 350px;
+            overflow: auto;
+            padding: 8px;
+        }
+
+        .log-line {
+            font-size: 12px;
+            border-bottom: 1px dashed #1f2730;
+            padding: 6px 4px;
+            line-height: 1.45;
+        }
+
+        .line-ok { color: #9ff2c0; }
+        .line-err { color: #ff9098; }
+        .line-warn { color: #ffe08a; }
+
+        .tag {
+            border: 1px solid #2f3a46;
+            border-radius: 6px;
+            padding: 1px 6px;
+            margin-right: 6px;
+            font-size: 11px;
+            color: #9bb4cc;
+        }
+
+        /* ROLE MANAGER */
+        .role-list {
+            max-height: 280px;
+            overflow: auto;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+        }
+
+        .role-item {
+            border-bottom: 1px solid var(--line);
+            padding: 10px;
+        }
+
+        .role-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .role-name {
+            font-weight: 700;
+            color: #ffd580;
+        }
+
+        .perm-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(150px, 1fr));
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .check {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .check input { margin: 0; width: auto; }
+
+        .mini {
+            padding: 8px 10px;
+            margin: 0;
+            width: auto;
+        }
+
+        .danger-zone {
+            border-color: #4a1f23;
+            border-left: 4px solid var(--err);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .stat {
+            border: 1px solid var(--line);
+            background: #10151a;
+            border-radius: 8px;
+            text-align: center;
+            padding: 8px;
+        }
+
+        .stat b {
+            display: block;
+            font-size: 18px;
+            margin-top: 3px;
+        }
+
+        @media (max-width: 1100px) {
+            .grid { grid-template-columns: 1fr; }
+            .toolbar { grid-template-columns: 1fr; }
+            .topbar { flex-direction: column; align-items: flex-start; }
+            .topbar .actions { min-width: 100%; width: 100%; }
+        }
     </style>
 </head>
 <body>
-
     <div id="login-screen">
-        <h1 style="color: var(--red); margin-top: 0;">🔒 DYREKCJA</h1>
-        <p>Wprowadź kod autoryzacji</p>
-        <input type="password" id="pass_input" placeholder="HASŁO...">
-        <button class="btn-danger" onclick="checkPass()">AUTORYZUJ</button>
-        <button class="btn-back" onclick="window.location.href='index.html'">POWRÓT</button>
+        <div class="login-card">
+            <h1 class="title">ADMIN // DYREKCJA</h1>
+            <div class="muted">Autoryzacja wymagana do dostępu do panelu.</div>
+            <input type="password" id="pass_input" placeholder="HASŁO ADMINA" />
+            <button class="btn-primary" onclick="checkPass()">AUTORYZUJ</button>
+            <button class="btn-back" onclick="window.location.href='index.html'">POWRÓT DO SYSTEMU</button>
+        </div>
     </div>
 
-    <div id="admin-panel">
-        <h2 style="border-left: 5px solid var(--accent); padding-left: 15px; color: var(--accent);">PANEL ZARZĄDZANIA</h2>
-        
-        <div class="card">
-            <h3>🎟️ GENERATOR LOGINÓW</h3>
-            <p style="font-size: 13px; color: #aaa;">Dodaj kod, który dasz pracownikowi do rejestracji:</p>
-            <input type="text" id="new_code" placeholder="np. LEKARZ-77">
-            <button class="btn-accent" onclick="addCode()">DODAJ KOD DO BAZY</button>
-        </div>
-
-        <div class="card">
-            <h3>📊 STATUS BAZY DANYCH</h3>
-            <div id="stats-preview">
-                <div class="stat-item"><small>WSZYSCY</small><br><b id="st_total" style="color: var(--accent);">0</b></div>
-                <div class="stat-item"><small>AKTYWNI</small><br><b id="st_active" style="color: var(--green);">0</b></div>
-                <div class="stat-item"><small>ARCHIWUM</small><br><b id="st_arch" style="color: #777;">0</b></div>
+    <div id="admin-panel" class="wrap">
+        <div class="topbar">
+            <h1>ADMIN CONTROL CENTER // HOSPITAL</h1>
+            <div class="actions">
+                <button class="btn-back" onclick="window.location.href='index.html'">POWRÓT</button>
+                <button class="btn-danger" onclick="logoutAdmin()">WYLOGUJ</button>
             </div>
         </div>
 
-        <div class="card" style="border-color: var(--red);">
-            <span class="warning-text">⚠️ STREFA KRYTYCZNA</span>
-            <button class="btn-danger" onclick="clearDatabase()">Wyczyść wszystkich pacjentów</button>
-        </div>
+        <div class="grid">
+            <div>
+                <div class="card">
+                    <h2>Visual Permissions Matrix</h2>
+                    <div class="sub">Wiersze = lekarze, kolumny = uprawnienia. Kliknij toggle, aby zmienić uprawnienie.</div>
 
-        <button class="btn-back" onclick="window.location.href='index.html'">WYJDŹ Z PANELU</button>
+                    <div style="display:grid;grid-template-columns:1.2fr 1fr 1fr auto;gap:8px;margin-bottom:10px;">
+                        <input id="doc_name" type="text" placeholder="Imię i nazwisko lekarza" />
+                        <select id="doc_role"></select>
+                        <input id="doc_spec" type="text" placeholder="Specjalizacja (np. Chirurg)" />
+                        <button class="btn-primary mini" onclick="addDoctor()">DODAJ</button>
+                    </div>
+
+                    <div class="matrix-wrap">
+                        <table id="matrix-table"></table>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>Security Audit Log</h2>
+                    <div class="sub">Log akcji w czasie rzeczywistym z filtrowaniem po specjalizacji.</div>
+                    <div class="toolbar">
+                        <select id="filter_spec" onchange="renderLogs()"></select>
+                        <select id="filter_level" onchange="renderLogs()">
+                            <option value="ALL">Poziom: Wszystkie</option>
+                            <option value="SUCCESS">Poziom: SUCCESS</option>
+                            <option value="WARN">Poziom: WARN</option>
+                            <option value="ERROR">Poziom: ERROR</option>
+                        </select>
+                        <button class="btn-back mini" onclick="clearAuditView()">WYCZYŚĆ WIDOK</button>
+                    </div>
+                    <div id="audit_console" class="log-console"></div>
+                </div>
+            </div>
+
+            <div>
+                <div class="card">
+                    <h3>Role Manager</h3>
+                    <div class="sub">Tworzenie specjalizacji i domyślnych pakietów uprawnień.</div>
+
+                    <input type="text" id="new_role_name" placeholder="Nowa specjalizacja / rola" />
+                    <div id="new-role-perms" class="perm-grid"></div>
+                    <button class="btn-primary" onclick="createRole()">DODAJ ROLĘ</button>
+
+                    <hr style="border:0;border-top:1px solid var(--line);margin:12px 0;" />
+
+                    <div id="role_list" class="role-list"></div>
+                </div>
+
+                <div class="card">
+                    <h3>Status Systemu</h3>
+                    <div class="stats">
+                        <div class="stat"><small>LEKARZE</small><b id="st_docs">0</b></div>
+                        <div class="stat"><small>ROLE</small><b id="st_roles">0</b></div>
+                        <div class="stat"><small>LOGI</small><b id="st_logs">0</b></div>
+                    </div>
+                </div>
+
+                <div class="card danger-zone">
+                    <h3 style="color:var(--err);">Strefa Krytyczna</h3>
+                    <div class="sub">Usunięcie wszystkich lekarzy i uprawnień (logi zostają).</div>
+                    <button class="btn-danger" onclick="wipeStaff()">WYCZYŚĆ PERSONEL I MACIERZ</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-
     <script>
-        // TWOJA KONFIGURACJA FIREBASE
+        // ===== FIREBASE CONFIG =====
         const firebaseConfig = {
             apiKey: "AIzaSyC5MioZo7CMVGopaZANfglS12Gy_TMPzEw",
+            authDomain: "baza-danych-cd445.firebaseapp.com",
             databaseURL: "https://baza-danych-cd445-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "baza-danych-cd445",
+            storageBucket: "baza-danych-cd445.firebasestorage.app",
+            messagingSenderId: "234044597162",
+            appId: "1:234044597162:web:f46e383b858a363aea01d3"
         };
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // 1. Logowanie do panelu
+        // ===== SECURITY =====
+        const ADMIN_PASSWORD = "Dyrektor2024";
+
+        // ===== DATA MODEL =====
+        const PERMISSIONS = [
+            { key: "readPatients", label: "Podgląd kart" },
+            { key: "writeNotes", label: "Wpisy medyczne" },
+            { key: "orderLabs", label: "Zlecenia lab" },
+            { key: "orderImaging", label: "Zlecenia obrazowe" },
+            { key: "issueDocs", label: "Dokumenty" },
+            { key: "discharge", label: "Wypisy" },
+            { key: "adminAccess", label: "Dostęp admin" }
+        ];
+
+        let roles = {};
+        let doctors = {};
+        let logs = [];
+
+        // ===== LOGIN =====
         function checkPass() {
-            const p = document.getElementById('pass_input').value;
-            if(p === "Dyrektor2024") {
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('admin-panel').style.display = 'block';
-                loadStats();
+            const p = document.getElementById("pass_input").value;
+            if (p === ADMIN_PASSWORD) {
+                document.getElementById("login-screen").classList.add("hidden");
+                document.getElementById("admin-panel").style.display = "block";
+                bootstrap();
+                logAction("SYSTEM", "AUTH_SUCCESS", "ADMIN_LOGIN", "SUCCESS", "ADMIN");
             } else {
-                alert("BŁĄD AUTORYZACJI!");
+                alert("BŁĄD AUTORYZACJI");
+                logAction("SYSTEM", "AUTH_FAIL", "ADMIN_LOGIN", "ERROR", "ADMIN");
             }
         }
 
-        // 2. Ładowanie statystyk pacjentów
-        function loadStats() {
-            db.ref('pacjenci').on('value', (snapshot) => {
-                const data = snapshot.val() || [];
-                const pacjenci = Array.isArray(data) ? data : Object.values(data);
-                
-                document.getElementById('st_total').innerText = pacjenci.length;
-                document.getElementById('st_active').innerText = pacjenci.filter(p => p && !p.arch).length;
-                document.getElementById('st_arch').innerText = pacjenci.filter(p => p && p.arch).length;
+        function logoutAdmin() {
+            logAction("SYSTEM", "ADMIN_LOGOUT", "-", "WARN", "ADMIN");
+            location.reload();
+        }
+
+        // ===== INIT =====
+        function bootstrap() {
+            prepareNewRolePerms();
+            ensureDefaultRoles();
+            listenRoles();
+            listenDoctors();
+            listenLogs();
+        }
+
+        function ensureDefaultRoles() {
+            db.ref("adminRoles").once("value", (snap) => {
+                if (snap.exists()) return;
+                const seed = {
+                    "Chirurg": {
+                        readPatients: true, writeNotes: true, orderLabs: true, orderImaging: true, issueDocs: true, discharge: true, adminAccess: false
+                    },
+                    "Psycholog": {
+                        readPatients: true, writeNotes: true, orderLabs: false, orderImaging: false, issueDocs: true, discharge: false, adminAccess: false
+                    },
+                    "Lekarz Dyżurny": {
+                        readPatients: true, writeNotes: true, orderLabs: true, orderImaging: true, issueDocs: true, discharge: true, adminAccess: false
+                    },
+                    "Dyrekcja": {
+                        readPatients: true, writeNotes: true, orderLabs: true, orderImaging: true, issueDocs: true, discharge: true, adminAccess: true
+                    }
+                };
+                db.ref("adminRoles").set(seed);
             });
         }
 
-        // 3. Dodawanie kodów dla pracowników
-        function addCode() {
-            const code = document.getElementById('new_code').value.trim();
-            if(!code) return alert("Wpisz jakiś kod!");
-            
-            db.ref('kody/' + code).set({ used: false }).then(() => {
-                alert("Kod " + code + " został aktywowany!");
-                document.getElementById('new_code').value = "";
+        // ===== LISTENERS =====
+        function listenRoles() {
+            db.ref("adminRoles").on("value", (snapshot) => {
+                roles = snapshot.val() || {};
+                renderRoleManager();
+                renderRoleSelects();
+                renderMatrix();
+                renderSpecFilters();
+                updateStats();
             });
         }
 
-        // 4. Kasowanie pacjentów
-        function clearDatabase() {
-            if(confirm("CZY NA PEWNO CHCESZ USUNĄĆ WSZYSTKICH PACJENTÓW?")) {
-                const confirmText = prompt("Wpisz 'USUŃ', aby potwierdzić:");
-                if(confirmText === "USUŃ") {
-                    db.ref('pacjenci').set(null).then(() => {
-                        alert("Baza pacjentów została wyczyszczona.");
+        function listenDoctors() {
+            db.ref("adminDoctors").on("value", (snapshot) => {
+                doctors = snapshot.val() || {};
+                renderMatrix();
+                renderSpecFilters();
+                updateStats();
+            });
+        }
+
+        function listenLogs() {
+            db.ref("adminAuditLogs").limitToLast(300).on("value", (snapshot) => {
+                const raw = snapshot.val() || {};
+                logs = Object.values(raw).sort((a, b) => (a.ts || 0) - (b.ts || 0));
+                renderLogs();
+                updateStats();
+            });
+        }
+
+        // ===== UI RENDER =====
+        function renderRoleSelects() {
+            const sel = document.getElementById("doc_role");
+            sel.innerHTML = "";
+            Object.keys(roles).forEach((r) => {
+                const o = document.createElement("option");
+                o.value = r;
+                o.textContent = r;
+                sel.appendChild(o);
+            });
+        }
+
+        function renderMatrix() {
+            const table = document.getElementById("matrix-table");
+            const headers = ["Lekarz / specjalizacja", ...PERMISSIONS.map(p => p.label), "Akcja"];
+
+            let html = "<thead><tr>";
+            headers.forEach(h => html += `<th>${h}</th>`);
+            html += "</tr></thead><tbody>";
+
+            const docEntries = Object.entries(doctors);
+            if (!docEntries.length) {
+                html += `<tr><td colspan="${headers.length}" style="text-align:center;color:var(--muted);">Brak lekarzy w panelu.</td></tr>`;
+            } else {
+                docEntries.forEach(([id, d]) => {
+                    html += `<tr><td><div class="doc-meta"><span class="doc-name">${escapeHtml(d.name || "Brak nazwy")}</span><span class="doc-role">${escapeHtml(d.role || "-")} | ${escapeHtml(d.specialization || "-")}</span></div></td>`;
+                    PERMISSIONS.forEach((p) => {
+                        const enabled = !!(d.permissions && d.permissions[p.key]);
+                        html += `<td>
+                            <button class="toggle ${enabled ? "on" : ""}" onclick="togglePermission('${id}','${p.key}')">
+                                <span class="dot"></span>
+                            </button>
+                        </td>`;
                     });
-                }
+                    html += `<td><button class="btn-danger mini" onclick="removeDoctor('${id}')">USUŃ</button></td></tr>`;
+                });
             }
+
+            html += "</tbody>";
+            table.innerHTML = html;
+        }
+
+        function renderRoleManager() {
+            const box = document.getElementById("role_list");
+            const roleNames = Object.keys(roles);
+
+            if (!roleNames.length) {
+                box.innerHTML = `<div class="role-item" style="color:var(--muted);">Brak ról.</div>`;
+                return;
+            }
+
+            let html = "";
+            roleNames.forEach((name) => {
+                html += `<div class="role-item">
+                    <div class="role-head">
+                        <span class="role-name">${escapeHtml(name)}</span>
+                        <button class="btn-danger mini" onclick="deleteRole('${name}')">USUŃ</button>
+                    </div>
+                    <div class="perm-grid">`;
+
+                PERMISSIONS.forEach((p) => {
+                    const checked = roles[name][p.key] ? "checked" : "";
+                    html += `<label class="check">
+                        <input type="checkbox" ${checked} onchange="setRolePerm('${name}','${p.key}', this.checked)" />
+                        ${escapeHtml(p.label)}
+                    </label>`;
+                });
+
+                html += `</div></div>`;
+            });
+
+            box.innerHTML = html;
+        }
+
+        function renderSpecFilters() {
+            const specs = new Set(["ALL"]);
+            Object.values(doctors).forEach(d => specs.add(d.specialization || "Brak"));
+
+            const sel = document.getElementById("filter_spec");
+            const prev = sel.value || "ALL";
+            sel.innerHTML = "";
+            [...specs].forEach((s) => {
+                const o = document.createElement("option");
+                o.value = s;
+                o.textContent = s === "ALL" ? "Specjalizacja: Wszystkie" : "Specjalizacja: " + s;
+                sel.appendChild(o);
+            });
+            sel.value = [...specs].includes(prev) ? prev : "ALL";
+        }
+
+        function renderLogs() {
+            const box = document.getElementById("audit_console");
+            const spec = document.getElementById("filter_spec").value || "ALL";
+            const lvl = document.getElementById("filter_level").value || "ALL";
+
+            const filtered = logs.filter((l) => {
+                const specOk = (spec === "ALL") || ((l.specialization || "Brak") === spec);
+                const lvlOk = (lvl === "ALL") || (l.level === lvl);
+                return specOk && lvlOk;
+            });
+
+            if (!filtered.length) {
+                box.innerHTML = `<div class="log-line" style="color:var(--muted)">Brak wpisów dla wybranych filtrów.</div>`;
+                return;
+            }
+
+            box.innerHTML = filtered.map((l) => {
+                const cls = l.level === "ERROR" ? "line-err" : (l.level === "WARN" ? "line-warn" : "line-ok");
+                const time = new Date(l.ts || Date.now()).toLocaleString();
+                return `<div class="log-line ${cls}">
+                    <span class="tag">${time}</span>
+                    <span class="tag">${escapeHtml(l.level || "-")}</span>
+                    <b>${escapeHtml(l.actor || "SYSTEM")}</b>
+                    -> ${escapeHtml(l.action || "-")}
+                    <span style="color:#8fb4ff">[${escapeHtml(l.target || "-")}]</span>
+                    <span style="color:#9da7b3">#${escapeHtml(l.specialization || "Brak")}</span>
+                </div>`;
+            }).join("");
+
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function updateStats() {
+            document.getElementById("st_docs").innerText = Object.keys(doctors).length;
+            document.getElementById("st_roles").innerText = Object.keys(roles).length;
+            document.getElementById("st_logs").innerText = logs.length;
+        }
+
+        // ===== ACTIONS =====
+        function addDoctor() {
+            const name = document.getElementById("doc_name").value.trim();
+            const role = document.getElementById("doc_role").value;
+            const specialization = document.getElementById("doc_spec").value.trim() || role;
+
+            if (!name) return alert("Podaj imię i nazwisko lekarza.");
+            if (!role || !roles[role]) return alert("Wybierz prawidłową rolę.");
+
+            const id = "doc_" + Date.now();
+            const defaultPerms = { ...roles[role] };
+
+            db.ref("adminDoctors/" + id).set({
+                name,
+                role,
+                specialization,
+                permissions: defaultPerms
+            }).then(() => {
+                document.getElementById("doc_name").value = "";
+                document.getElementById("doc_spec").value = "";
+                logAction("ADMIN", "ADD_DOCTOR", name, "SUCCESS", specialization);
+            }).catch(() => {
+                logAction("ADMIN", "ADD_DOCTOR", name, "ERROR", specialization);
+            });
+        }
+
+        function removeDoctor(id) {
+            if (!doctors[id]) return;
+            const name = doctors[id].name || id;
+            if (!confirm("Usunąć lekarza z macierzy uprawnień?\n" + name)) return;
+
+            db.ref("adminDoctors/" + id).remove()
+                .then(() => logAction("ADMIN", "REMOVE_DOCTOR", name, "WARN", doctors[id]?.specialization || "Brak"))
+                .catch(() => logAction("ADMIN", "REMOVE_DOCTOR", name, "ERROR", doctors[id]?.specialization || "Brak"));
+        }
+
+        function togglePermission(docId, permKey) {
+            const d = doctors[docId];
+            if (!d) return;
+            const current = !!(d.permissions && d.permissions[permKey]);
+            const next = !current;
+
+            db.ref(`adminDoctors/${docId}/permissions/${permKey}`).set(next)
+                .then(() => {
+                    const action = `TOGGLE_${permKey}_${next ? "ON" : "OFF"}`;
+                    logAction("ADMIN", action, d.name || docId, "SUCCESS", d.specialization || "Brak");
+                })
+                .catch(() => {
+                    logAction("ADMIN", "TOGGLE_PERMISSION_FAIL", d.name || docId, "ERROR", d.specialization || "Brak");
+                });
+        }
+
+        function prepareNewRolePerms() {
+            const box = document.getElementById("new-role-perms");
+            box.innerHTML = PERMISSIONS.map((p) => `
+                <label class="check">
+                    <input type="checkbox" data-perm="${p.key}" />
+                    ${escapeHtml(p.label)}
+                </label>
+            `).join("");
+        }
+
+        function createRole() {
+            const name = document.getElementById("new_role_name").value.trim();
+            if (!name) return alert("Podaj nazwę roli/specjalizacji.");
+
+            const perms = {};
+            PERMISSIONS.forEach((p) => {
+                const cb = document.querySelector(`#new-role-perms input[data-perm="${p.key}"]`);
+                perms[p.key] = !!(cb && cb.checked);
+            });
+
+            db.ref("adminRoles/" + name).set(perms)
+                .then(() => {
+                    document.getElementById("new_role_name").value = "";
+                    document.querySelectorAll("#new-role-perms input[type='checkbox']").forEach(c => c.checked = false);
+                    logAction("ADMIN", "CREATE_ROLE", name, "SUCCESS", name);
+                })
+                .catch(() => {
+                    logAction("ADMIN", "CREATE_ROLE", name, "ERROR", name);
+                });
+        }
+
+        function setRolePerm(roleName, permKey, isOn) {
+            db.ref(`adminRoles/${roleName}/${permKey}`).set(isOn)
+                .then(() => logAction("ADMIN", `ROLE_PERM_${permKey}_${isOn ? "ON" : "OFF"}`, roleName, "SUCCESS", roleName))
+                .catch(() => logAction("ADMIN", "ROLE_PERM_CHANGE_FAIL", roleName, "ERROR", roleName));
+        }
+
+        function deleteRole(roleName) {
+            if (!confirm("Usunąć rolę: " + roleName + "?")) return;
+
+            db.ref("adminRoles/" + roleName).remove()
+                .then(() => logAction("ADMIN", "DELETE_ROLE", roleName, "WARN", roleName))
+                .catch(() => logAction("ADMIN", "DELETE_ROLE", roleName, "ERROR", roleName));
+        }
+
+        function wipeStaff() {
+            if (!confirm("To usunie wszystkich lekarzy z macierzy. Kontynuować?")) return;
+            const guard = prompt("Wpisz: USUN_PERSONEL");
+            if (guard !== "USUN_PERSONEL") return alert("Przerwano.");
+
+            db.ref("adminDoctors").set(null)
+                .then(() => logAction("ADMIN", "WIPE_STAFF", "ALL", "WARN", "ALL"))
+                .catch(() => logAction("ADMIN", "WIPE_STAFF", "ALL", "ERROR", "ALL"));
+        }
+
+        function clearAuditView() {
+            document.getElementById("audit_console").innerHTML = "";
+        }
+
+        function logAction(actor, action, target, level, specialization) {
+            const entry = {
+                ts: Date.now(),
+                actor: actor || "SYSTEM",
+                action: action || "-",
+                target: target || "-",
+                level: level || "SUCCESS",
+                specialization: specialization || "Brak"
+            };
+            db.ref("adminAuditLogs").push(entry);
+        }
+
+        // ===== HELPERS =====
+        function escapeHtml(s) {
+            return String(s ?? "")
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#39;");
         }
     </script>
 </body>
