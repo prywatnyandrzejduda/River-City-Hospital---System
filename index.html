@@ -2,13 +2,13 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Hospital System v5.35 - Admin Edition (Fixed)</title>
+    <title>Hospital System v5.35 - Admin Edition</title>
     <style>
-        :root {
-            --accent: #00d2d3; --psych: #a29bfe; --bg: #0b0c0d; --card: #1c1f22;
+        :root { 
+            --accent: #00d2d3; --psych: #a29bfe; --bg: #0b0c0d; --card: #1c1f22; 
             --gold: #f1c40f; --red: #ff4757; --green: #2ecc71; --blue: #3498db; --cert: #ff9f43; --docs: #54a0ff; --discharge: #ee5253;
         }
-        * { box-sizing: border-box; font-family: "Inter", "Segoe UI", sans-serif; }
+        * { box-sizing: border-box; font-family: 'Inter', 'Segoe UI', sans-serif; }
         body { background: var(--bg); color: #e0e0e0; margin: 0; display: flex; height: 100vh; overflow: hidden; }
 
         #sidebar { width: 320px; background: #141619; border-right: 2px solid #333; padding: 20px; display: flex; flex-direction: column; height: 100vh; flex-shrink: 0; }
@@ -50,7 +50,24 @@
         .del-entry-btn { position: absolute; top: 10px; right: 10px; background: var(--red); color: white; padding: 5px 10px; font-size: 9px; }
         .del-patient-btn { background: var(--red); color: white; width: 40px; height: 45px; margin-left: 5px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
 
-        .tab-content { min-height: 1px; }
+        .header-right { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
+        .admin-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 180px;
+            background: #2d3136;
+            border: 1px solid #555;
+            color: #fff;
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: .3px;
+            text-transform: uppercase;
+            padding: 10px 14px;
+            border-radius: 8px;
+        }
+        .admin-link:hover { background: var(--accent); color: #000; border-color: var(--accent); }
     </style>
 </head>
 <body>
@@ -81,9 +98,12 @@
 <div id="main">
     <div id="interface" class="hidden" style="display: flex; flex-direction: column; height: 100%;">
         <div id="header-fixed">
-            <div style="padding: 15px 25px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="padding: 15px 25px; display: flex; justify-content: space-between; align-items: flex-start;">
                 <h1 id="disp_name" style="margin: 0; color: white; font-size: 24px; font-weight: 900;"></h1>
-                <div id="cert-status-header" class="cert-box" style="margin:0; font-size:11px; min-width: 180px;">BRAK BADAŃ</div>
+                <div class="header-right">
+                    <div id="cert-status-header" class="cert-box" style="margin:0; font-size:11px; min-width: 180px;">BRAK BADAŃ</div>
+                    <a class="admin-link" href="admin.html">Administracja</a>
+                </div>
             </div>
             <div class="tabs-nav">
                 <div class="tab-btn active" onclick="switchTab('tab-ogolne', this)">DASHBOARD</div>
@@ -249,35 +269,9 @@
 
     let pacjenci = [];
     let aktywIdx = -1;
-    let currentView = "active";
+    let currentView = 'active';
 
-    function getCurrentRank() {
-        return document.getElementById("inp_rank")?.value || "";
-    }
-
-    function requireActivePatient() {
-        if (aktywIdx === -1 || !pacjenci[aktywIdx]) {
-            alert("Najpierw wybierz pacjenta z listy.");
-            return false;
-        }
-        return true;
-    }
-
-    function saveCurrentPatientFields() {
-        if (!requireActivePatient()) return false;
-        const p = pacjenci[aktywIdx];
-        p.adr = document.getElementById("inp_adr").value;
-        p.job = document.getElementById("inp_job").value;
-        p.ins = document.getElementById("inp_ins").value;
-        p.blood = document.getElementById("inp_blood").value || "Nieznana";
-        p.alergie = document.getElementById("inp_alergie").value;
-        p.reason = document.getElementById("inp_reason").value;
-        p.status = document.getElementById("inp_status").value;
-        p.triage = document.getElementById("inp_triage").value;
-        return true;
-    }
-
-    db.ref("pacjenci").on("value", (snapshot) => {
+    db.ref('pacjenci').on('value', (snapshot) => {
         const data = snapshot.val();
         pacjenci = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
         updateStats();
@@ -285,64 +279,90 @@
         if (aktywIdx !== -1 && pacjenci[aktywIdx]) odswiezDanePacjenta();
     });
 
-    document.getElementById("inp_rank").addEventListener("change", () => {
+    document.getElementById('inp_rank').addEventListener('change', () => {
         renderLista();
         if (aktywIdx !== -1) pokazHistorie();
     });
 
+    function hasActivePatient() {
+        return aktywIdx !== -1 && pacjenci[aktywIdx];
+    }
+
+    function requireActivePatient() {
+        if (!hasActivePatient()) {
+            alert("Najpierw wybierz pacjenta z listy.");
+            return false;
+        }
+        return true;
+    }
+
     function synchronizuj() {
         const cleanData = pacjenci.filter(p => p !== null);
-        db.ref("pacjenci").set(cleanData);
+        db.ref('pacjenci').set(cleanData);
     }
 
     function updateStats() {
         const active = pacjenci.filter(p => p && !p.arch).length;
         const critical = pacjenci.filter(p => p && !p.arch && (p.status === "Krytyczny" || p.triage === "t-red")).length;
-        document.getElementById("count_active").innerText = active;
-        document.getElementById("count_critical").innerText = critical;
+        document.getElementById('count_active').innerText = active;
+        document.getElementById('count_critical').innerText = critical;
     }
 
     function nowyPacjent() {
-        const n = document.getElementById("add_name").value.trim();
+        const n = document.getElementById('add_name').value.trim();
         if (!n) return alert("Podaj nazwisko!");
-
         pacjenci.push({
-            name: n, adr: "", job: "", ins: "", blood: "Nieznana", alergie: "",
-            reason: "", status: "Stabilny", triage: "none", cert: "BRAK",
+            name: n,
+            adr: "",
+            job: "",
+            ins: "",
+            blood: "Nieznana",
+            alergie: "",
+            reason: "",
+            status: "Stabilny",
+            triage: "none",
+            cert: "BRAK",
             arch: false,
-            history: [{ id: Date.now(), txt: "Zarejestrowano pacjenta", doc: "SYSTEM", rank: "Automatyczny", time: new Date().toLocaleString() }]
+            history: [{
+                id: Date.now(),
+                txt: "Zarejestrowano pacjenta",
+                doc: "SYSTEM",
+                rank: "Automatyczny",
+                time: new Date().toLocaleString()
+            }]
         });
-        document.getElementById("add_name").value = "";
+        document.getElementById('add_name').value = "";
         synchronizuj();
     }
 
     function renderLista() {
-        const l = document.getElementById("lista_pacjentow");
+        const l = document.getElementById('lista_pacjentow');
         l.innerHTML = "";
-        const currentRank = getCurrentRank();
+        const currentRank = document.getElementById('inp_rank').value;
         const isAdmin = (currentRank === "Dyrektor Szpitala" || currentRank === "Zarząd Szpitala");
 
         pacjenci.forEach((p, i) => {
             if (!p) return;
-            if ((currentView === "active" && !p.arch) || (currentView === "archive" && p.arch)) {
-                const wrap = document.createElement("div");
+            if ((currentView === 'active' && !p.arch) || (currentView === 'archive' && p.arch)) {
+                const wrap = document.createElement('div');
                 wrap.style.display = "flex";
                 wrap.style.marginBottom = "5px";
 
-                const d = document.createElement("div");
-                d.className = `p-item ${aktywIdx === i ? "active" : ""} ${p.arch ? "archived" : ""}`;
+                const d = document.createElement('div');
+                d.className = `p-item ${aktywIdx === i ? 'active' : ''} ${p.arch ? 'archived' : ''}`;
                 d.style.flex = "1";
                 d.innerHTML = `<b>${p.name}</b><br><small>${p.status}</small>`;
                 d.onclick = () => otworz(i);
                 wrap.appendChild(d);
 
                 if (isAdmin) {
-                    const del = document.createElement("button");
+                    const del = document.createElement('button');
                     del.className = "del-patient-btn";
                     del.innerHTML = "🗑️";
                     del.onclick = (e) => { e.stopPropagation(); usunPacjenta(i); };
                     wrap.appendChild(del);
                 }
+
                 l.appendChild(wrap);
             }
         });
@@ -353,50 +373,55 @@
         if (confirm("Czy trwale USUNĄĆ kartotekę pacjenta: " + pacjenci[i].name + "?")) {
             pacjenci.splice(i, 1);
             aktywIdx = -1;
-            document.getElementById("interface").classList.add("hidden");
+            document.getElementById('interface').classList.add('hidden');
             synchronizuj();
         }
     }
 
     function otworz(i) {
-        if (!pacjenci[i]) return;
         aktywIdx = i;
         odswiezDanePacjenta();
-        document.getElementById("interface").classList.remove("hidden");
+        document.getElementById('interface').classList.remove('hidden');
         renderLista();
     }
 
     function odswiezDanePacjenta() {
         const p = pacjenci[aktywIdx];
         if (!p) return;
-
-        document.getElementById("disp_name").innerText = p.name;
-        document.getElementById("inp_adr").value = p.adr || "";
-        document.getElementById("inp_job").value = p.job || "";
-        document.getElementById("inp_ins").value = p.ins || "";
-        document.getElementById("inp_blood").value = p.blood || "Nieznana";
-        document.getElementById("inp_alergie").value = p.alergie || "";
-        document.getElementById("inp_reason").value = p.reason || "";
-        document.getElementById("inp_status").value = p.status || "Stabilny";
-        document.getElementById("inp_triage").value = p.triage || "none";
-
+        document.getElementById('disp_name').innerText = p.name;
+        document.getElementById('inp_adr').value = p.adr || "";
+        document.getElementById('inp_job').value = p.job || "";
+        document.getElementById('inp_ins').value = p.ins || "";
+        document.getElementById('inp_blood').value = p.blood || "Nieznana";
+        document.getElementById('inp_alergie').value = p.alergie || "";
+        document.getElementById('inp_reason').value = p.reason || "";
+        document.getElementById('inp_status').value = p.status || "Stabilny";
+        document.getElementById('inp_triage').value = p.triage || "none";
         updateTriageVisuals();
         updateCertVisuals(p.cert || "BRAK");
         pokazHistorie();
     }
 
     function zapiszWpis() {
-        if (!saveCurrentPatientFields()) return;
-
+        if (!requireActivePatient()) return;
         const p = pacjenci[aktywIdx];
-        const txt = document.getElementById("inp_note").value.trim();
-        const doc = document.getElementById("inp_doc").value.trim();
-        const r = document.getElementById("inp_rank").value;
+        const txt = document.getElementById('inp_note').value.trim();
+        const doc = document.getElementById('inp_doc').value.trim();
+        const r = document.getElementById('inp_rank').value;
 
         if (!doc) return alert("Podpisz się!");
-        if (!p.history) p.history = [];
+
+        p.adr = document.getElementById('inp_adr').value;
+        p.job = document.getElementById('inp_job').value;
+        p.ins = document.getElementById('inp_ins').value;
+        p.blood = document.getElementById('inp_blood').value || "Nieznana";
+        p.alergie = document.getElementById('inp_alergie').value;
+        p.reason = document.getElementById('inp_reason').value;
+        p.status = document.getElementById('inp_status').value;
+        p.triage = document.getElementById('inp_triage').value;
 
         if (txt) {
+            if (!p.history) p.history = [];
             p.history.push({
                 id: Date.now(),
                 txt: txt,
@@ -405,156 +430,135 @@
                 time: new Date().toLocaleString(),
                 auth: (r.includes("Dyrektor") || r.includes("Zarząd") || r.includes("Ordynator"))
             });
-            document.getElementById("inp_note").value = "";
+            document.getElementById('inp_note').value = "";
         }
 
         synchronizuj();
-        pokazHistorie();
     }
 
     function usunWpis(idx) {
         if (!requireActivePatient()) return;
-        const p = pacjenci[aktywIdx];
-        if (!p.history || !p.history[idx]) return;
-
         if (confirm("Usunąć ten wpis z historii?")) {
-            p.history.splice(idx, 1);
+            pacjenci[aktywIdx].history.splice(idx, 1);
             synchronizuj();
             pokazHistorie();
         }
     }
 
     function pokazHistorie() {
-        const c = document.getElementById("historia_kontener");
-        c.innerHTML = "<h3>HISTORIA MEDYCZNA</h3>";
-
-        if (!requireActivePatient()) return;
+        const c = document.getElementById('historia_kontener');
         const p = pacjenci[aktywIdx];
-        if (!p.history || !Array.isArray(p.history)) return;
+        c.innerHTML = "<h3>HISTORIA MEDYCZNA</h3>";
+        if (!p || !p.history) return;
 
-        const r = getCurrentRank();
+        const r = document.getElementById('inp_rank').value;
         const canDelete = ["Dyrektor Szpitala", "Zastępca Ordynatora", "Zarząd Szpitala", "Ordynator"].includes(r);
 
         p.history.slice().reverse().forEach((h, revIdx) => {
             const realIdx = p.history.length - 1 - revIdx;
-            const div = document.createElement("div");
-            div.className = `history-item ${h.auth ? "history-auth" : ""}`;
+            const div = document.createElement('div');
+            div.className = `history-item ${h.auth ? 'history-auth' : ''}`;
+
             const delBtn = canDelete ? `<button class="del-entry-btn" onclick="usunWpis(${realIdx})">USUŃ</button>` : "";
-            div.innerHTML = `${delBtn}<small>${h.time || ""}</small><p style="white-space:pre-wrap;">${h.txt || ""}</p><b>${h.doc || "Brak"}</b> (${h.rank || "Brak"})`;
+            div.innerHTML = `${delBtn}<small>${h.time || ""}</small><p style="white-space:pre-wrap;">${h.txt || ""}</p><b>${h.doc || "BRAK PODPISU"}</b> (${h.rank || "BRAK RANGI"})`;
             c.appendChild(div);
         });
     }
 
     function setView(v) {
         currentView = v;
-        document.getElementById("btn_view_active").style.background = v === "active" ? "var(--accent)" : "#333";
-        document.getElementById("btn_view_active").style.color = v === "active" ? "black" : "white";
-        document.getElementById("btn_view_arch").style.background = v === "archive" ? "var(--accent)" : "#333";
-        document.getElementById("btn_view_arch").style.color = v === "archive" ? "black" : "white";
         renderLista();
     }
 
     function addNote(t) {
-        if (!requireActivePatient()) return;
-        const note = document.getElementById("inp_note");
-        note.value += (note.value ? "\n" : "") + t;
+        document.getElementById('inp_note').value += (document.getElementById('inp_note').value ? "\n" : "") + t;
     }
 
     function calcGCS() {
-        const e = parseInt(document.getElementById("gcs_e").value, 10);
-        const v = parseInt(document.getElementById("gcs_v").value, 10);
-        const m = parseInt(document.getElementById("gcs_m").value, 10);
-        document.getElementById("gcs_res").innerText = `SUMA: ${e + v + m} GCS`;
+        const e = parseInt(document.getElementById('gcs_e').value, 10);
+        const v = parseInt(document.getElementById('gcs_v').value, 10);
+        const m = parseInt(document.getElementById('gcs_m').value, 10);
+        document.getElementById('gcs_res').innerText = `SUMA: ${e + v + m} GCS`;
     }
 
     function calcDrug() {
-        const w = parseFloat(document.getElementById("calc_weight").value) || 0;
-        const mk = parseFloat(document.getElementById("calc_mgkg").value) || 0;
-        document.getElementById("calc_drug_res").innerText = `WYNIK: ${(w * mk).toFixed(2)} mg`;
+        const w = parseFloat(document.getElementById('calc_weight').value) || 0;
+        const mk = parseFloat(document.getElementById('calc_mgkg').value) || 0;
+        document.getElementById('calc_drug_res').innerText = `WYNIK: ${(w * mk).toFixed(2)} mg`;
     }
 
     function updateTriageVisuals() {
-        const map = { none: "#333", "t-green": "var(--green)", "t-yellow": "var(--gold)", "t-red": "var(--red)" };
-        document.getElementById("main-data-card").style.borderTopColor = map[document.getElementById("inp_triage").value] || "var(--accent)";
+        const map = { 'none': '#333', 't-green': 'var(--green)', 't-yellow': 'var(--gold)', 't-red': 'var(--red)' };
+        document.getElementById('main-data-card').style.borderTopColor = map[document.getElementById('inp_triage').value];
     }
 
     function updateCertVisuals(s) {
-        const h = document.getElementById("cert-status-header");
-        h.innerText = s === "OK" ? "DOPUSZCZONY" : (s === "NO" ? "NIEZDOLNY" : "BRAK BADAŃ");
-        h.className = "cert-box " + (s === "OK" ? "status-ok" : (s === "NO" ? "status-no" : ""));
+        const h = document.getElementById('cert-status-header');
+        h.innerText = s === 'OK' ? 'DOPUSZCZONY' : (s === 'NO' ? 'NIEZDOLNY' : 'BRAK BADAŃ');
+        h.className = 'cert-box ' + (s === 'OK' ? 'status-ok' : (s === 'NO' ? 'status-no' : ''));
     }
 
     function switchTab(id, b) {
-        document.querySelectorAll(".tab-content").forEach(t => t.classList.add("hidden"));
-        document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
-        document.getElementById(id).classList.remove("hidden");
-        b.classList.add("active");
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(id).classList.remove('hidden');
+        b.classList.add('active');
     }
 
     function podajLek() {
         if (!requireActivePatient()) return;
-        const lek = document.getElementById("sel_lek").value || "Nie wybrano leku";
-        const dose = document.getElementById("med_dose").value || "0";
-        const unit = document.getElementById("med_unit").value;
-        const route = document.getElementById("med_route").value;
+        const lek = document.getElementById('sel_lek').value;
+        const dose = document.getElementById('med_dose').value;
+        const unit = document.getElementById('med_unit').value;
+        const route = document.getElementById('med_route').value;
         addNote(`PODANO: ${lek} | DAWKA: ${dose}${unit} | DROGA: ${route}`);
     }
 
     function logVitals() {
         if (!requireActivePatient()) return;
-        const bp = document.getElementById("vit_bp").value || "-";
-        const hr = document.getElementById("vit_hr").value || "-";
-        const spo2 = document.getElementById("vit_spo2").value || "-";
-        const temp = document.getElementById("vit_temp").value || "-";
-        addNote(`VITALS: BP ${bp} | HR ${hr} | SpO2 ${spo2}% | TEMP ${temp}°C`);
+        const bp = document.getElementById('vit_bp').value;
+        const hr = document.getElementById('vit_hr').value;
+        const spo2 = document.getElementById('vit_spo2').value;
+        const temp = document.getElementById('vit_temp').value;
+        addNote(`VITALS: BP ${bp} | HR ${hr} | SpO2 ${spo2}% | Temp ${temp}°C`);
     }
 
     function logPsych() {
         if (!requireActivePatient()) return;
-        const motor = document.getElementById("psy_motor").value;
-        const thought = document.getElementById("psy_thought").value;
-        const mood = document.getElementById("sel_mood").value;
-        const eye = document.getElementById("psy_eye").value;
-        const notes = document.getElementById("psy_notes").value.trim();
-        addNote(`MSE: Napęd=${motor}; Tok=${thought}; Nastrój=${mood}; Kontakt wzrokowy=${eye}; Uwagi=${notes || "Brak"}`);
+        const motor = document.getElementById('psy_motor').value;
+        const thought = document.getElementById('psy_thought').value;
+        const mood = document.getElementById('sel_mood').value;
+        const eye = document.getElementById('psy_eye').value;
+        const notes = document.getElementById('psy_notes').value.trim();
+        addNote(`MSE: Napęd=${motor}, Tok=${thought}, Nastrój=${mood}, Kontakt=${eye}${notes ? " | Notatka: " + notes : ""}`);
     }
 
     function generujOrzeczenie() {
         if (!requireActivePatient()) return;
-        const f = document.getElementById("cert_final").value;
-        if (f === "BRAK") return alert("Wybierz werdykt.");
+        const f = document.getElementById('cert_final').value;
+        if (f === 'BRAK') return alert("Wybierz werdykt.");
         pacjenci[aktywIdx].cert = f;
-
-        const target = document.getElementById("cert_target").value || "Nie określono";
-        const phys = document.getElementById("cert_phys").value;
-        const psych = document.getElementById("cert_psych").value;
-        const tox = document.getElementById("cert_tox").value;
-
-        addNote(`ORZECZENIE: ${f} | CEL: ${target} | FIZ: ${phys} | PSY: ${psych} | TOX: ${tox}`);
+        addNote(`ORZECZENIE: ${f}`);
         updateCertVisuals(f);
         synchronizuj();
     }
 
     function wystawDokument() {
         if (!requireActivePatient()) return;
-        const type = document.getElementById("doc_type").value;
-        const details = document.getElementById("doc_details").value.trim() || "Brak opisu";
-        const days = document.getElementById("doc_days").value.trim() || "Brak terminu";
-        addNote(`DOKUMENT: ${type} | TREŚĆ: ${details} | TERMIN: ${days}`);
+        const type = document.getElementById('doc_type').value;
+        const details = document.getElementById('doc_details').value.trim();
+        const days = document.getElementById('doc_days').value.trim();
+        addNote(`DOKUMENT: ${type}${days ? " | Termin: " + days : ""}${details ? " | Treść: " + details : ""}`);
     }
 
     function finalizujWypis() {
-        if (!saveCurrentPatientFields()) return;
-        const p = pacjenci[aktywIdx];
-        const epi = document.getElementById("exit_epikryza").value.trim();
-        if (epi) addNote(`*** WYPIS KOŃCOWY ***\n${epi}`);
-        p.arch = true;
+        if (!requireActivePatient()) return;
+        const epi = document.getElementById('exit_epikryza').value.trim();
+        if (epi) addNote(`WYPIS - EPIKRYZA: ${epi}`);
+        pacjenci[aktywIdx].arch = true;
         synchronizuj();
-        setView("active");
+        setView('active');
     }
-
-    updateStats();
-    setView("active");
 </script>
 </body>
 </html>
