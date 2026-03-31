@@ -83,4 +83,118 @@
     </div>
     <div class="main-view">
         <h1 id="selected_name" style="color: #444;">Wybierz pacjenta z listy...</h1>
-        <div id
+        <div id="historia_kontener"></div>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+<script>
+    // 1. LOGOWANIE
+    function checkPass() {
+        const p = document.getElementById('pass_input').value;
+        const correct = "Dyrektor2024"; // Zmień hasło tutaj jeśli chcesz
+
+        if(p === correct) {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('admin-content').style.display = 'flex';
+            startSystem();
+        } else {
+            document.getElementById('error').innerText = "BŁĘDNE HASŁO!";
+        }
+    }
+
+    // Pozwala zalogować się klikając Enter
+    document.getElementById('pass_input').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') checkPass();
+    });
+
+    // 2. FIREBASE I LOGIKA
+    let pacjenci = [];
+    let aktyw = -1;
+
+    function startSystem() {
+        const config = {
+            apiKey: "AIzaSyC5MioZo7CMVGopaZANfglS12Gy_TMPzEw",
+            authDomain: "baza-danych-cd445.firebaseapp.com",
+            databaseURL: "https://baza-danych-cd445-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "baza-danych-cd445",
+            storageBucket: "baza-danych-cd445.firebasestorage.app",
+            messagingSenderId: "234044597162",
+            appId: "1:234044597162:web:f46e383b858a363aea01d3"
+        };
+
+        if (!firebase.apps.length) firebase.initializeApp(config);
+        const db = firebase.database();
+
+        db.ref('pacjenci').on('value', (snap) => {
+            const d = snap.val();
+            pacjenci = d ? (Array.isArray(d) ? d : Object.values(d)) : [];
+            renderujListe();
+            if(aktyw !== -1) pokazHistorie();
+        });
+    }
+
+    function renderujListe() {
+        const kontener = document.getElementById('lista_pacjentow');
+        kontener.innerHTML = "";
+        pacjenci.forEach((p, i) => {
+            if(!p) return;
+            const div = document.createElement('div');
+            div.className = 'p-item';
+            div.innerHTML = `<span>${p.name}</span> <button class="btn-red" onclick="usunPacjenta(${i})">USUŃ</button>`;
+            div.onclick = (e) => {
+                if(e.target.tagName !== 'BUTTON') {
+                    aktyw = i;
+                    pokazHistorie();
+                }
+            };
+            kontener.appendChild(div);
+        });
+    }
+
+    function pokazHistorie() {
+        const p = pacjenci[aktyw];
+        if(!p) return;
+        document.getElementById('selected_name').innerText = p.name;
+        document.getElementById('selected_name').style.color = "white";
+        const hDiv = document.getElementById('historia_kontener');
+        hDiv.innerHTML = "<h3>HISTORIA WPISÓW:</h3>";
+
+        if(!p.history) return hDiv.innerHTML += "Brak wpisów.";
+
+        p.history.forEach((h, idx) => {
+            const item = document.createElement('div');
+            item.className = 'history-item';
+            item.innerHTML = `
+                <button class="btn-del-entry" onclick="usunWpis(${idx})">USUŃ WPIS</button>
+                <small>${h.time} | ${h.rank}</small>
+                <p style="white-space:pre-wrap; margin:10px 0;">${h.txt}</p>
+                <b>Autor: ${h.doc}</b>
+            `;
+            hDiv.appendChild(item);
+        });
+    }
+
+    function usunPacjenta(idx) {
+        if(confirm("UWAGA: Usunąć całkowicie pacjenta " + pacjenci[idx].name + "?")) {
+            pacjenci.splice(idx, 1);
+            firebase.database().ref('pacjenci').set(pacjenci);
+            aktyw = -1;
+            document.getElementById('historia_kontener').innerHTML = "";
+            document.getElementById('selected_name').innerText = "Wybierz pacjenta...";
+        }
+    }
+
+    function usunWpis(idx) {
+        if(confirm("Usunąć ten wpis z historii?")) {
+            pacjenci[aktyw].history.splice(idx, 1);
+            firebase.database().ref('pacjenci').set(pacjenci);
+        }
+    }
+    <a href="index.html">Powrót do Kartoteki</a>
+</script>
+
+</body>
+</html>
