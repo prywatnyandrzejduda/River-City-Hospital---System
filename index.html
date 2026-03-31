@@ -426,7 +426,6 @@
     function logVitals() { addNote(`VITALS: BP ${document.getElementById('vit_bp').value} | HR ${document.getElementById('vit_hr').value}`); }
     function generujOrzeczenie() { let f = document.getElementById('cert_final').value; if(f==='BRAK') return; pacjenci[aktywIdx].cert = f; addNote(`ORZECZENIE: ${f}`); synchronizuj(); }
     function finalizujWypis() { pacjenci[aktywIdx].arch = true; synchronizuj(); }
-    <a href="admin.html">Panel Admina</a>
 </script>
 </body>
 </html>
