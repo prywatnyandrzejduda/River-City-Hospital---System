@@ -6,37 +6,41 @@
     <title>Patient Portal - Hospital System</title>
     <style>
         :root {
-            --bg: #070c12; --glass: rgba(255,255,255,.05); --line: rgba(255,255,255,.11);
-            --text: #e9eef7; --muted: #94a0af; --accent: #37ff94; --doc: #33c7ff; --err: #ff5c73;
+            --bg: #06080d; --panel: rgba(255,255,255,0.05); --card: rgba(255,255,255,0.05); --line: rgba(255,255,255,0.12);
+            --text: #e9eef7; --muted: #94a0af; --accent: #2dff8d; --ok: #2ecc71; --err: #ff4757;
         }
         * { box-sizing: border-box; font-family: Consolas, "Courier New", monospace; }
-        body { margin: 0; color: var(--text); background: radial-gradient(circle at 80% 10%, #0f1e2b, transparent 40%), linear-gradient(120deg,#030507,#0a131d); }
+        body {
+            margin: 0;
+            background: radial-gradient(circle at 10% 10%, #102319 0%, #06080d 55%),
+                        radial-gradient(circle at 90% 90%, #12273a 0%, #06080d 60%);
+            color: var(--text);
+        }
         .hidden { display: none !important; }
         .wrap { max-width: 1400px; margin: 0 auto; padding: 16px; }
         .auth-wrap { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
         .auth-grid { width: 100%; max-width: 1100px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .card { background: var(--glass); backdrop-filter: blur(15px); border: 1px solid var(--line); border-radius: 10px; padding: 14px; margin-bottom: 12px; }
+        .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px; margin-bottom: 12px; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); box-shadow: 0 10px 28px rgba(0,0,0,0.35); }
         h1, h2 { margin: 0 0 10px 0; } h2 { color: var(--accent); font-size: 16px; }
         .muted { color: var(--muted); font-size: 12px; margin-bottom: 10px; }
-        input, select, textarea, button { width: 100%; border: 1px solid var(--line); background: rgba(12, 21, 33, .75); color: var(--text); border-radius: 8px; padding: 10px; margin-bottom: 8px; }
-        button { cursor: pointer; font-weight: 700; text-transform: uppercase; transition: .2s ease; }
-        .btn { border-color: rgba(55,255,148,.55); color: #dbffe9; }
-        .btn:hover { box-shadow: 0 0 16px rgba(55,255,148,.45); }
-        .btn2 { border-color: rgba(51,199,255,.45); color: #d8f6ff; }
-        .btn2:hover { box-shadow: 0 0 16px rgba(51,199,255,.35); }
-        .btn-danger { border-color: rgba(255,92,115,.45); color: #ffc2cb; }
-        .btn-danger:hover { box-shadow: 0 0 16px rgba(255,92,115,.35); }
-        .msg { font-size: 12px; min-height: 16px; color: var(--muted); } .ok { color: var(--accent); } .err { color: var(--err); }
-        .topbar { display: flex; justify-content: space-between; gap: 8px; align-items: center; background: var(--glass); backdrop-filter: blur(15px); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+        input, select, textarea, button { width: 100%; border: 1px solid var(--line); background: rgba(11,16,24,0.8); color: var(--text); border-radius: 8px; padding: 10px; margin-bottom: 8px; }
+        button { cursor: pointer; font-weight: 700; text-transform: uppercase; transition: 0.2s ease; }
+        .btn { background: var(--accent); color: #032022; border-color: #00b8b9; }
+        .btn2 { background: #202c3d; }
+        .btn-danger { background: #34171e; border-color: #4c1f29; color: #ff9aa5; }
+        .msg { font-size: 12px; min-height: 16px; color: var(--muted); }
+        .ok { color: var(--ok); } .err { color: var(--err); }
+        .topbar { display: flex; justify-content: space-between; gap: 8px; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
         .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
-        .tab-btn { border: 1px solid var(--line); background: rgba(13,22,34,.8); color: var(--text); border-radius: 8px; padding: 9px 12px; cursor: pointer; font-weight: 700; }
+        .tab-btn { border: 1px solid var(--line); background: #162132; color: var(--text); border-radius: 8px; padding: 9px 12px; cursor: pointer; font-weight: 700; }
         .tab-btn.active { border-color: var(--accent); color: var(--accent); }
         .tab { display: none; } .tab.active { display: block; }
         .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .history-item { border: 1px solid var(--line); border-radius: 8px; background: rgba(10, 18, 29, .8); padding: 10px; margin-bottom: 8px; font-size: 12px; }
-        .chat-box { border: 1px solid var(--line); border-radius: 8px; background: rgba(9, 15, 24, .9); max-height: 330px; overflow: auto; padding: 8px; }
+        .history-item { border: 1px solid var(--line); border-radius: 8px; background: #0f1622; padding: 10px; margin-bottom: 8px; font-size: 12px; }
+        .chat-box { border: 1px solid var(--line); border-radius: 8px; background: #0d141f; max-height: 330px; overflow: auto; padding: 8px; }
         .chat-line { border-bottom: 1px dashed #243247; padding: 6px 4px; font-size: 12px; }
-        .me { color: #afffd0; } .other { color: #bfd0ea; }
+        .me { color: #a9f3c7; } .other { color: #b5c6dd; }
+        button:hover { box-shadow: 0 0 18px rgba(45, 255, 141, 0.35); transform: translateY(-1px); }
         @media (max-width: 950px) { .auth-grid, .grid2 { grid-template-columns: 1fr; } }
     </style>
 </head>
@@ -71,6 +75,7 @@
             </div>
         </div>
     </div>
+
     <div id="portalScreen" class="wrap hidden">
         <div class="topbar">
             <h1>PATIENT PORTAL</h1>
@@ -80,262 +85,6 @@
             </div>
         </div>
         <div class="tabs">
-            <button class="tab-btn active" onclick="setTab('p1', this)">Profil</button>
-            <button class="tab-btn" onclick="setTab('p2', this)">Karta</button>
-            <button class="tab-btn" onclick="setTab('p3', this)">Zapisy</button>
-            <button class="tab-btn" onclick="setTab('p4', this)">Konsultacje</button>
-        </div>
-        <div id="p1" class="tab active"><div class="card">
-            <h2>Informacje o sobie</h2>
-            <div class="muted">Edycja wieku, zawodu, adresu, ubezpieczenia i danych podstawowych.</div>
-            <div class="grid2">
-                <div>
-                    <input id="f_id" disabled />
-                    <input id="f_login" disabled />
-                    <input id="f_name" placeholder="Imię i nazwisko" />
-                    <div class="grid2"><input id="f_age" type="number" placeholder="Wiek" /><select id="f_gender"><option value="K">K</option><option value="M">M</option></select></div>
-                    <input id="f_address" placeholder="Miejsce zamieszkania" />
-                    <input id="f_job" placeholder="Zawód" />
-                </div>
-                <div>
-                    <select id="f_insured"><option value="TAK">Ubezpieczenie: TAK</option><option value="NIE">Ubezpieczenie: NIE</option></select>
-                    <input id="f_insNum" placeholder="Nr ubezpieczenia" />
-                    <input id="f_blood" placeholder="Grupa krwi (opcjonalnie)" />
-                    <input id="f_pass" type="password" placeholder="Nowe hasło (opcjonalnie)" />
-                    <button class="btn" onclick="saveProfile()">ZAPISZ DANE</button>
-                    <div id="save_msg" class="msg"></div>
-                    <input id="boss_code" type="password" placeholder="Kod admina do edycji ID/Loginu" />
-                    <button class="btn-danger" onclick="unlockIdentity()">ODBLOKUJ EDYCJĘ ID/LOGIN</button>
-                </div>
-            </div>
-        </div></div>
-        <div id="p2" class="tab"><div class="card"><h2>Moja Karta</h2><div id="medical_history"></div></div></div>
-        <div id="p3" class="tab"><div class="card">
-            <h2>Zapisy na badania</h2>
-            <div class="grid2">
-                <div>
-                    <select id="ap_type"><option>Psychologia</option><option>Chirurgia</option><option>Kardiologia</option><option>Radiologia</option><option>Medycyna ogólna</option></select>
-                    <input id="ap_date" type="datetime-local" />
-                    <textarea id="ap_note" rows="4" placeholder="Notatka..."></textarea>
-                    <button class="btn" onclick="addAppointment()">ZAPISZ TERMIN</button>
-                    <div id="ap_msg" class="msg"></div>
-                </div>
-                <div><div id="appointments_list"></div></div>
-            </div>
-        </div></div>
-        <div id="p4" class="tab"><div class="card">
-            <h2>Konsultacje</h2>
-            <div class="grid2">
-                <div><select id="consult_doctor"></select><div id="consult_meta" class="muted"></div><div id="chat_box" class="chat-box"></div></div>
-                <div><textarea id="chat_text" rows="8" placeholder="Wiadomość do lekarza..."></textarea><button class="btn" onclick="sendMessage()">WYŚLIJ</button><button class="btn2" onclick="refreshChat()">ODŚWIEŻ</button></div>
-            </div>
-        </div></div>
-    </div>
-    <script>
-        function readLS(key, fallback) { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } }
-        function writeLS(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
-        function uid(prefix) { return prefix + "-" + Date.now().toString(36).toUpperCase() + "-" + Math.floor(Math.random() * 9999).toString().padStart(4, "0"); }
-        function esc(s) { return String(s ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;"); }
-        function ensureSeeds() {
-            if (!Array.isArray(readLS("pending_codes", null))) writeLS("pending_codes", []);
-            if (!Array.isArray(readLS("registered_patients", null))) writeLS("registered_patients", []);
-            if (!Array.isArray(readLS("hospital_staff", null))) writeLS("hospital_staff", []);
-            if (!Array.isArray(readLS("consultations", null))) writeLS("consultations", []);
-            if (!Array.isArray(readLS("hosp_v545", null))) writeLS("hosp_v545", []);
-        }
-        function consumePendingCode(rawCode, type) {
-            const code = String(rawCode || "").trim().toUpperCase();
-            const pending = readLS("pending_codes", []);
-            const idx = pending.findIndex(p => p.code === code && p.type === type);
-            if (idx < 0) return null;
-            pending.splice(idx, 1);
-            writeLS("pending_codes", pending);
-            return code;
-        }
-        function upsertHospRecord(patient, reason) {
-            const db = readLS("hosp_v545", []);
-            const idx = db.findIndex(x => x.patientId === patient.id);
-            const base = idx >= 0 ? db[idx] : {
-                id: uid("MED"),
-                patientId: patient.id,
-                arch: false,
-                history: [{ id: Date.now(), time: new Date().toLocaleString(), doc: "SYSTEM", rank: "Automatyczny", txt: "Auto-utworzono kartę medyczną pacjenta." }]
-            };
-            base.name = patient.name || "";
-            base.adr = patient.address || "";
-            base.job = patient.job || "";
-            base.ins = patient.insured || "";
-            base.insNumber = patient.insNumber || "";
-            base.blood = patient.blood || "Nieznana";
-            base.age = patient.age || 0;
-            base.gender = patient.gender || "K";
-            base.reason = base.reason || "";
-            base.status = base.status || "Stabilny";
-            base.triage = base.triage || "none";
-            base.cert = base.cert || "BRAK";
-            base.linkedAt = Date.now();
-            if (reason) base.lastSyncReason = reason;
-            if (idx >= 0) db[idx] = base; else db.push(base);
-            writeLS("hosp_v545", db);
-        }
-        ensureSeeds();
-        let me = null;
-        let identityUnlocked = false;
-        function toggleInsurance() {
-            const has = document.getElementById("r_insured").value === "TAK";
-            const i = document.getElementById("r_ins_num");
-            i.disabled = !has;
-            if (!has) i.value = "";
-        }
-        function authRegister() {
-            const code = document.getElementById("r_code").value.trim().toUpperCase();
-            const name = document.getElementById("r_name").value.trim();
-            const age = Number(document.getElementById("r_age").value || 0);
-            const gender = document.getElementById("r_gender").value;
-            const address = document.getElementById("r_address").value.trim();
-            const job = document.getElementById("r_job").value.trim();
-            const insured = document.getElementById("r_insured").value;
-            const insNumber = document.getElementById("r_ins_num").value.trim();
-            const blood = document.getElementById("r_blood").value.trim();
-            const password = document.getElementById("r_pass").value;
-            const msg = document.getElementById("reg_msg");
-            if (!code || !name || !address || !job || !password || age < 1) { msg.className = "msg err"; msg.textContent = "Uzupełnij wymagane pola."; return; }
-            if (insured === "TAK" && !insNumber) { msg.className = "msg err"; msg.textContent = "Podaj numer ubezpieczenia."; return; }
-            const login = consumePendingCode(code, "patient");
-            if (!login) { msg.className = "msg err"; msg.textContent = "Błędny lub wykorzystany kod admina."; return; }
-            const patients = readLS("registered_patients", []);
-            const item = { id: uid("PAT"), login, password, name, age, gender, address, job, insured, insNumber: insured === "TAK" ? insNumber : "", blood, appointments: [], createdAt: Date.now() };
-            patients.push(item);
-            writeLS("registered_patients", patients);
-            upsertHospRecord(item, "REGISTER");
-            writeLS("current_patient_session", { patientId: item.id, login: item.login, ts: Date.now() });
-            initPortal();
-        }
-        function authLogin() {
-            const login = document.getElementById("auth_login").value.trim().toUpperCase();
-            const pass = document.getElementById("auth_pass").value;
-            const p = readLS("registered_patients", []).find(x => String(x.login).toUpperCase() === login && x.password === pass);
-            const msg = document.getElementById("auth_msg");
-            if (!p) { msg.className = "msg err"; msg.textContent = "Błędny login lub hasło."; return; }
-            writeLS("current_patient_session", { patientId: p.id, login: p.login, ts: Date.now() });
-            initPortal();
-        }
-        function initPortal() {
-            const session = readLS("current_patient_session", null);
-            const patients = readLS("registered_patients", []);
-            me = session ? patients.find(p => p.id === session.patientId) : null;
-            if (!me) return;
-            upsertHospRecord(me, "LOGIN_SYNC");
-            document.getElementById("authScreen").classList.add("hidden");
-            document.getElementById("portalScreen").classList.remove("hidden");
-            bindProfile(); renderHistory(); renderAppointments(); loadDoctorSelect();
-        }
-        function setTab(id, btn) { document.querySelectorAll(".tab").forEach(t => t.classList.remove("active")); document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active")); document.getElementById(id).classList.add("active"); btn.classList.add("active"); }
-        function bindProfile() {
-            document.getElementById("f_id").value = "ID: " + me.id;
-            document.getElementById("f_login").value = "Login: " + me.login;
-            document.getElementById("f_name").value = me.name || "";
-            document.getElementById("f_age").value = me.age || "";
-            document.getElementById("f_gender").value = me.gender || "K";
-            document.getElementById("f_address").value = me.address || "";
-            document.getElementById("f_job").value = me.job || "";
-            document.getElementById("f_insured").value = me.insured || "TAK";
-            document.getElementById("f_insNum").value = me.insNumber || "";
-            document.getElementById("f_blood").value = me.blood || "";
-        }
-        function saveProfile() {
-            const pats = readLS("registered_patients", []);
-            const idx = pats.findIndex(p => p.id === me.id);
-            if (idx < 0) return;
-            pats[idx].name = document.getElementById("f_name").value.trim();
-            pats[idx].age = Number(document.getElementById("f_age").value || 0);
-            pats[idx].gender = document.getElementById("f_gender").value;
-            pats[idx].address = document.getElementById("f_address").value.trim();
-            pats[idx].job = document.getElementById("f_job").value.trim();
-            pats[idx].insured = document.getElementById("f_insured").value;
-            pats[idx].insNumber = document.getElementById("f_insNum").value.trim();
-            pats[idx].blood = document.getElementById("f_blood").value.trim();
-            const np = document.getElementById("f_pass").value; if (np) pats[idx].password = np;
-            if (identityUnlocked) {
-                const idRaw = document.getElementById("f_id").value.replace("ID: ", "").trim();
-                const loginRaw = document.getElementById("f_login").value.replace("Login: ", "").trim().toUpperCase();
-                if (idRaw && loginRaw) { pats[idx].id = idRaw; pats[idx].login = loginRaw; writeLS("current_patient_session", { patientId: idRaw, login: loginRaw, ts: Date.now() }); }
-            }
-            writeLS("registered_patients", pats);
-            me = pats[idx];
-            upsertHospRecord(me, "PROFILE_UPDATE");
-            document.getElementById("save_msg").className = "msg ok";
-            document.getElementById("save_msg").textContent = "Dane zapisane i zsynchronizowane z kartą medyczną.";
-            bindProfile(); renderHistory(); renderAppointments(); loadDoctorSelect();
-        }
-        function unlockIdentity() {
-            const code = document.getElementById("boss_code").value.trim();
-            if (code !== "BOSS123") { document.getElementById("save_msg").className = "msg err"; document.getElementById("save_msg").textContent = "Brak uprawnień."; return; }
-            identityUnlocked = true;
-            document.getElementById("f_id").disabled = false;
-            document.getElementById("f_login").disabled = false;
-            document.getElementById("f_id").value = me.id;
-            document.getElementById("f_login").value = me.login;
-            document.getElementById("save_msg").className = "msg ok";
-            document.getElementById("save_msg").textContent = "Edycja ID/Loginu odblokowana.";
-        }
-        function renderHistory() {
-            const box = document.getElementById("medical_history");
-            const rec = readLS("hosp_v545", []).find(r => r.patientId === me.id);
-            if (!rec || !Array.isArray(rec.history) || !rec.history.length) { box.innerHTML = `<div class="muted">Brak historii choroby.</div>`; return; }
-            box.innerHTML = rec.history.slice().reverse().map(h => `<div class="history-item"><small>${esc(h.time || "")}</small><br><b>${esc(h.doc || "Lekarz")}</b> (${esc(h.rank || "-")})<br>${esc(h.txt || "")}</div>`).join("");
-        }
-        function addAppointment() {
-            const type = document.getElementById("ap_type").value;
-            const date = document.getElementById("ap_date").value;
-            const note = document.getElementById("ap_note").value.trim();
-            if (!date) return;
-            const pats = readLS("registered_patients", []);
-            const idx = pats.findIndex(p => p.id === me.id);
-            if (idx < 0) return;
-            if (!Array.isArray(pats[idx].appointments)) pats[idx].appointments = [];
-            pats[idx].appointments.push({ id: uid("AP"), type, date, note, createdAt: Date.now() });
-            writeLS("registered_patients", pats);
-            me = pats[idx];
-            document.getElementById("ap_msg").className = "msg ok";
-            document.getElementById("ap_msg").textContent = "Termin zapisany.";
-            document.getElementById("ap_note").value = "";
-            renderAppointments();
-        }
-        function renderAppointments() {
-            const box = document.getElementById("appointments_list");
-            const arr = (me.appointments || []).slice().sort((a, b) => String(a.date).localeCompare(String(b.date)));
-            box.innerHTML = arr.length ? arr.map(a => `<div class="history-item"><b>${esc(a.type)}</b><br>${esc(a.date)}<br><small>${esc(a.note || "")}</small></div>`).join("") : `<div class="muted">Brak zapisów.</div>`;
-        }
-        function loadDoctorSelect() {
-            const docs = readLS("hospital_staff", []);
-            const sel = document.getElementById("consult_doctor");
-            sel.innerHTML = docs.length ? docs.map(d => `<option value="${esc(d.id)}">${esc(d.name || d.code)} (${esc(d.specialization || "Ogólna")})</option>`).join("") : `<option value="">Brak lekarzy</option>`;
-            sel.onchange = refreshChat; refreshChat();
-        }
-        function refreshChat() {
-            const doctorId = document.getElementById("consult_doctor").value;
-            const docs = readLS("hospital_staff", []);
-            const d = docs.find(x => x.id === doctorId);
-            document.getElementById("consult_meta").textContent = d ? ("Lekarz: " + (d.name || d.code)) : "Brak lekarza";
-            const thread = readLS("consultations", []).filter(m => m.patientId === me.id && m.doctorId === doctorId).sort((a, b) => a.ts - b.ts);
-            const box = document.getElementById("chat_box");
-            box.innerHTML = thread.length ? thread.map(m => `<div class="chat-line ${m.senderType === "patient" ? "me" : "other"}"><small>${new Date(m.ts).toLocaleString()}</small><br>${esc(m.text)}</div>`).join("") : `<div class="muted">Brak wiadomości.</div>`;
-            box.scrollTop = box.scrollHeight;
-        }
-        function sendMessage() {
-            const doctorId = document.getElementById("consult_doctor").value;
-            const text = document.getElementById("chat_text").value.trim();
-            if (!doctorId || !text) return;
-            const data = readLS("consultations", []);
-            data.push({ id: uid("MSG"), doctorId, patientId: me.id, senderType: "patient", senderId: me.id, text, ts: Date.now() });
-            writeLS("consultations", data);
-            document.getElementById("chat_text").value = "";
-            refreshChat();
-        }
-        function logoutPatient() { localStorage.removeItem("current_patient_session"); location.href = "start.html"; }
-        toggleInsurance();
-        initPortal();
-    </script>
-</body>
-</html>
+            <button class="tab-btn active" onclick="setTab('p1', this)">Informacje o sobie</button>
+            <button class="tab-btn" onclick="setTab('p2', this)">Moja Karta</button>
+            <button class="tab-btn" onclick="setTab('p3
