@@ -534,8 +534,12 @@
         if (txt) {
             if (!p.history) p.history = [];
             p.history.push({
-                id: Date.now(), txt: txt, doc: doc, rank: r,
-                time: new Date().toLocaleString(),
+                id: Date.now(), 
+                note: txt, 
+                doctor: doc, 
+                rank: r,
+                ts: Date.now(),
+                time: new Date().toLocaleString('pl-PL'),
                 auth: (r.includes("Dyrektor") || r.includes("Zarząd") || r.includes("Ordynator"))
             });
             document.getElementById('inp_note').value = "";
@@ -557,21 +561,83 @@
     function pokazHistorie() {
         let c = document.getElementById('historia_kontener'), p = pacjenci[aktywIdx];
         c.innerHTML = "<h3>HISTORIA MEDYCZNA</h3>";
-        if (!p || !p.history) return;
+        if (!p || !p.history || !p.history.length) {
+            c.innerHTML += '<div style="color: var(--muted); text-align: center; padding: 20px;">Brak historii medycznej</div>';
+            return;
+        }
 
         let r = document.getElementById('inp_rank').value;
         let canDelete = ["Dyrektor Szpitala", "Zastępca Ordynatora", "Zarząd Szpitala", "Ordynator"].includes(r);
 
+        // Timeline - Glassmorphism
+        const timelineContainer = document.createElement('div');
+        timelineContainer.style.cssText = 'position: relative; padding-left: 30px;';
+
         p.history.slice().reverse().forEach((h, revIdx) => {
             let realIdx = p.history.length - 1 - revIdx;
-            let div = document.createElement('div');
-            div.className = `history-item ${h.auth ? 'history-auth' : ''}`;
-
-            let delBtn = canDelete ? `<button class="del-entry-btn" onclick="usunWpis(${realIdx})">USUŃ</button>` : "";
-
-            div.innerHTML = `${delBtn}<small>${h.time}</small><p style="white-space:pre-wrap;">${h.txt}</p><b>${h.doc}</b> (${h.rank})`;
-            c.appendChild(div);
+            
+            // Sprawdź czy wpis ma treść
+            if (!h.note && !h.txt) return;
+            
+            const entryDate = h.time || new Date(h.ts).toLocaleString('pl-PL');
+            const isValidDate = entryDate && entryDate !== 'Invalid Date';
+            
+            const timelineItem = document.createElement('div');
+            timelineItem.className = 'timeline-item';
+            timelineItem.style.cssText = `
+                position: relative;
+                margin-bottom: 20px;
+                padding-left: 20px;
+            `;
+            
+            // Zielona kropka na osi czasu
+            const dot = document.createElement('div');
+            dot.style.cssText = `
+                position: absolute;
+                left: -25px;
+                top: 8px;
+                width: 12px;
+                height: 12px;
+                background: var(--accent);
+                border-radius: 50%;
+                box-shadow: 0 0 10px rgba(0, 210, 211, 0.5);
+            `;
+            
+            // Szklana karta
+            const card = document.createElement('div');
+            card.className = 'glass-card';
+            card.style.cssText = `
+                background: rgba(255, 255, 255, 0.03);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border: 1px solid rgba(0, 210, 211, 0.2);
+                border-radius: 12px;
+                padding: 16px;
+                position: relative;
+                overflow: hidden;
+            `;
+            
+            const delBtn = canDelete ? `<button class="del-entry-btn" onclick="usunWpis(${realIdx})" style="position: absolute; top: 10px; right: 10px; background: var(--red); color: white; padding: 4px 8px; font-size: 10px; border: none; border-radius: 4px; cursor: pointer;">USUŃ</button>` : "";
+            
+            card.innerHTML = `
+                ${delBtn}
+                <div style="color: var(--accent); font-size: 11px; margin-bottom: 8px;">
+                    ${isValidDate ? entryDate : 'Data nieznana'}
+                </div>
+                <div style="color: var(--text); font-size: 14px; line-height: 1.5; margin-bottom: 12px; white-space: pre-wrap;">
+                    ${h.note || h.txt || 'Brak opisu'}
+                </div>
+                <div style="color: var(--muted); font-size: 12px;">
+                    <strong>${h.doctor || h.doc}</strong> (${h.rank || h.r})
+                </div>
+            `;
+            
+            timelineItem.appendChild(dot);
+            timelineItem.appendChild(card);
+            timelineContainer.appendChild(timelineItem);
         });
+        
+        c.appendChild(timelineContainer);
     }
 
     function updateExamOptions() {
