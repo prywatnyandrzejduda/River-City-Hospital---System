@@ -60,7 +60,7 @@
         <div class="topbar">
             <h1>DOCTOR PANEL</h1>
             <div>
-                <button class="btn2" onclick="location.href='start.html'">START</button>
+                <button class="btn2" onclick="location.href='hospital_system.html'">START</button>
                 <button class="btn2" onclick="logoutDoctor()">WYLOGUJ</button>
             </div>
         </div>
@@ -139,8 +139,8 @@
         const staff = readLS("hospital_staff", []);
         const doctor = session ? staff.find(s => s.id === session.doctorId) : null;
         if (!doctor) {
-            alert("Brak sesji lekarza. Zaloguj się w start.html");
-            location.href = "start.html";
+            alert("Brak sesji lekarza. Zaloguj się w hospital_system.html");
+            location.href = "hospital_system.html";
         }
         function setTab(id, btn) {
             document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
@@ -162,25 +162,77 @@
             const patients = readLS("registered_patients", []);
             const all = [];
             patients.forEach(p => (p.appointments || []).forEach(a => {
-                all.push({
-                    apId: a.id, date: a.date, type: a.type, note: a.note || "",
-                    patientName: p.name, patientId: p.id
-                });
+                // Pokaż tylko wizyty do tego lekarza
+                if (a.doctorId === doctor.id) {
+                    all.push({
+                        apId: a.id, 
+                        date: a.date, 
+                        type: a.type, 
+                        note: a.note || "",
+                        patientName: p.name, 
+                        patientId: p.id,
+                        time: new Date(a.date).toLocaleString('pl-PL')
+                    });
+                }
             }));
-            all.sort((a, b) => String(a.date).localeCompare(String(b.date)));
+            all.sort((a, b) => b.date - a.date);
             const box = document.getElementById("schedule_wrap");
             if (!all.length) {
                 box.innerHTML = `<div class="muted">Brak zapisanych badań.</div>`;
                 return;
             }
-            box.innerHTML = `
-                <table>
-                    <thead><tr><th>Data</th><th>Badanie</th><th>Pacjent</th><th>Notatka</th></tr></thead>
-                    <tbody>
-                        ${all.map(a => `<tr><td>${esc(a.date)}</td><td>${esc(a.type)}</td><td>${esc(a.patientName)}</td><td>${esc(a.note)}</td></tr>`).join("")}
-                    </tbody>
-                </table>
+            
+            // Timeline z Glassmorphism
+            const timelineHTML = `
+                <div style="position: relative; padding-left: 30px;">
+                    ${all.map(a => `
+                        <div style="position: relative; margin-bottom: 20px; padding-left: 20px;">
+                            <div style="
+                                position: absolute;
+                                left: -25px;
+                                top: 8px;
+                                width: 12px;
+                                height: 12px;
+                                background: var(--accent);
+                                border-radius: 50%;
+                                box-shadow: 0 0 10px rgba(0, 210, 211, 0.5);
+                            "></div>
+                            <div style="
+                                background: rgba(255, 255, 255, 0.03);
+                                backdrop-filter: blur(20px);
+                                -webkit-backdrop-filter: blur(20px);
+                                border: 1px solid rgba(0, 210, 211, 0.2);
+                                border-radius: 12px;
+                                padding: 16px;
+                                position: relative;
+                                overflow: hidden;
+                            ">
+                                <div style="
+                                    position: absolute;
+                                    top: 10px;
+                                    right: 10px;
+                                    font-size: 14px;
+                                    color: var(--accent);
+                                ">📅</div>
+                                <div style="color: var(--accent); font-size: 11px; margin-bottom: 8px;">
+                                    ${a.time || 'Data nieznana'}
+                                </div>
+                                <div style="color: var(--text); font-size: 14px; margin-bottom: 8px;">
+                                    <strong>${esc(a.type)}</strong>
+                                </div>
+                                <div style="color: var(--text); font-size: 13px; margin-bottom: 8px;">
+                                    🏥 ${esc(a.patientName)}
+                                </div>
+                                ${a.note ? `<div style="color: var(--muted); font-size: 12px;">
+                                    📝 ${esc(a.note)}
+                                </div>` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
             `;
+            
+            box.innerHTML = timelineHTML;
         }
         function loadPatientSelect() {
             const sel = document.getElementById("consult_patient");
@@ -225,7 +277,7 @@
         function logoutDoctor() {
             logSystem("doctor", "LOGOUT", { doctorId: doctor.id });
             localStorage.removeItem("current_doctor_session");
-            location.href = "start.html";
+            location.href = "hospital_system.html";
         }
         renderProfile();
         renderSchedule();
