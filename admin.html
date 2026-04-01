@@ -43,7 +43,7 @@
             <div class="sub">Dostęp tylko dla kodu bezpieczeństwa.</div>
             <input id="bossPass" type="password" placeholder="Kod bezpieczeństwa" />
             <button class="btn" onclick="adminLogin()">AUTORYZUJ</button>
-            <button class="btn2" onclick="location.href='start.html'">POWRÓT</button>
+            <button class="btn2" onclick="location.href='hospital_system.html'">POWRÓT</button>
             <div id="loginMsg" class="msg"></div>
         </div>
     </div>
@@ -51,7 +51,7 @@
         <div class="card">
             <h1>Hospital Administration</h1>
             <div class="row3">
-                <button class="btn2" onclick="location.href='start.html'">START</button>
+                <button class="btn2" onclick="location.href='hospital_system.html'">START</button>
                 <button class="btn2" onclick="location.href='index.html'">ODDZIAŁ</button>
                 <button class="btn-danger" onclick="logout()">WYLOGUJ</button>
             </div>
@@ -69,6 +69,17 @@
                     </div>
                     <div id="genMsg" class="msg"></div>
                     <table id="pendingTable"></table>
+                </div>
+                <div class="card">
+                    <h2>Zarządzanie Grafikiem</h2>
+                    <div class="sub">Przypisywanie dyżurów lekarzom.</div>
+                    <div class="row3">
+                        <select id="schedule_doctor"><option value="">Wybierz lekarza...</option></select>
+                        <input id="schedule_date" type="datetime-local" />
+                        <button class="btn" onclick="addSchedule()">DODAJ DYŻUR</button>
+                    </div>
+                    <div id="scheduleMsg" class="msg"></div>
+                    <div id="scheduleTable" style="margin-top: 16px;"></div>
                 </div>
                 <div class="card">
                     <h2>Baza Lekarzy</h2>
@@ -91,13 +102,14 @@
         function writeLS(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
         function uid(p) { return p + "-" + Date.now().toString(36).toUpperCase() + "-" + Math.floor(Math.random() * 9999).toString().padStart(4, "0"); }
         function esc(s) { return String(s ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;"); }
-        function seed() {
+        function ensureSeeds() {
             if (!Array.isArray(readLS("pending_codes", null))) writeLS("pending_codes", []);
             if (!Array.isArray(readLS("hospital_staff", null))) writeLS("hospital_staff", []);
             if (!Array.isArray(readLS("registered_patients", null))) writeLS("registered_patients", []);
             if (!Array.isArray(readLS("hosp_v545", null))) writeLS("hosp_v545", []);
+            if (!Array.isArray(readLS("hospital_schedule", null))) writeLS("hospital_schedule", []);
         }
-        seed();
+        ensureSeeds();
         function adminLogin() {
             const v = document.getElementById("bossPass").value.trim();
             if (v !== BOSS) { const m = document.getElementById("loginMsg"); m.className = "msg err"; m.textContent = "Błędny kod."; return; }
@@ -154,14 +166,122 @@
             const docs = readLS("hospital_staff", []);
             const ranks = ["Rezydent", "Młodszy Lekarz", "Lekarz", "Starszy Lekarz", "Ordynator", "Konsultant"];
             const table = document.getElementById("doctorsTable");
-            table.innerHTML = `<thead><tr><th>Kod</th><th>Imię i nazwisko</th><th>Ranga</th><th>Specjalizacja</th><th>Akcja</th></tr></thead><tbody>${docs.length ? docs.map(d => `<tr><td>${esc(d.code)}</td><td>${esc(d.name || ((d.firstName || "") + " " + (d.lastName || "")).trim())}</td><td><select onchange="updateDoctor('${esc(d.id)}','rank',this.value)">${ranks.map(r => `<option value="${esc(r)}" ${d.rank === r ? "selected" : ""}>${esc(r)}</option>`).join("")}</select></td><td><input value="${esc(d.specialization || "Ogólna")}" onchange="updateDoctor('${esc(d.id)}','specialization',this.value)" /></td><td><button class="btn-danger" onclick="deleteDoctor('${esc(d.id)}')">USUŃ</button></td></tr>`).join("") : `<tr><td colspan="5">Brak lekarzy.</td></tr>`}</tbody>`;
+            table.innerHTML = `<thead><tr><th>Kod</th><th>Imię i nazwisko</th><th>Ranga</th><th>Specjalizacja</th><th>Akcja</th></tr></thead><tbody>${docs.length ? docs.map(d => `
+                <tr><td>${esc(d.code)}</td><td>${esc(d.name || ((d.firstName || "") + " " + (d.lastName || "")).trim())}</td><td><select onchange="updateDoctor('${esc(d.id)}','rank',this.value)">${ranks.map(r => `<option value="${esc(r)}" ${d.rank === r ? "selected" : ""}>${esc(r)}</option>`).join("")}</select></td><td><input value="${esc(d.specialization || "Ogólna")}" onchange="updateDoctor('${esc(d.id)}','specialization',this.value)" /></td><td><button class="btn-danger" onclick="deleteDoctor('${esc(d.id)}')">USUŃ</button></td></tr>
+            `).join("") : `<tr><td colspan="5">Brak lekarzy.</td></tr>`}</tbody>`;
+            
+            // Załaduj lekarzy do selecta harmonogramu
+            const scheduleSelect = document.getElementById("schedule_doctor");
+            if (scheduleSelect) {
+                scheduleSelect.innerHTML = "<option value=''>Wybierz lekarza...</option>";
+                docs.forEach(doctor => {
+                    scheduleSelect.innerHTML += `<option value='${doctor.id}'>${doctor.name} - ${doctor.specialization}</option>`;
+                });
+            }
         }
         function renderPatients() {
             const pats = readLS("registered_patients", []);
             const table = document.getElementById("patientsTable");
             table.innerHTML = `<thead><tr><th>Login</th><th>Imię i nazwisko</th><th>Dane</th><th>Akcja</th></tr></thead><tbody>${pats.length ? pats.map(p => `<tr><td>${esc(p.login)}</td><td>${esc(p.name)}</td><td>Wiek: ${esc(p.age)} | Płeć: ${esc(p.gender)}<br>Ubezp.: ${esc(p.insured)} ${p.insNumber ? "(" + esc(p.insNumber) + ")" : ""}<br>Adres: ${esc(p.address)}<br>Zawód: ${esc(p.job)}<br>Krew: ${esc(p.blood || "-")}</td><td><button class="btn-danger" onclick="deletePatient('${esc(p.id)}')">USUŃ</button></td></tr>`).join("") : `<tr><td colspan="4">Brak pacjentów.</td></tr>`}</tbody>`;
         }
-        function renderAll() { renderPending(); renderDoctors(); renderPatients(); }
+        function renderAll() { 
+            renderPending(); 
+            renderDoctors(); 
+            renderPatients(); 
+            renderSchedule(); 
+        }
+        
+        function addSchedule() {
+            const doctorId = document.getElementById("schedule_doctor").value;
+            const date = document.getElementById("schedule_date").value;
+            const msg = document.getElementById("scheduleMsg");
+            
+            if (!doctorId) {
+                msg.className = "msg err";
+                msg.textContent = "Wybierz lekarza.";
+                return;
+            }
+            
+            if (!date) {
+                msg.className = "msg err";
+                msg.textContent = "Wybierz datę dyżuru.";
+                return;
+            }
+            
+            const schedule = readLS("hospital_schedule", []);
+            const staff = readLS("hospital_staff", []);
+            const doctor = staff.find(d => d.id === doctorId);
+            
+            const shift = {
+                id: uid("SHIFT"),
+                doctorId,
+                doctorName: doctor ? doctor.name : "Nieznany",
+                date: new Date(date).getTime(),
+                dateStr: new Date(date).toLocaleString('pl-PL'),
+                rank: doctor ? doctor.rank : "Nieznana",
+                createdAt: Date.now()
+            };
+            
+            schedule.push(shift);
+            writeLS("hospital_schedule", schedule);
+            
+            msg.className = "msg ok";
+            msg.textContent = `Dyżur dodany: ${doctor.name} - ${new Date(date).toLocaleString('pl-PL')}`;
+            
+            document.getElementById("schedule_doctor").value = "";
+            document.getElementById("schedule_date").value = "";
+            renderSchedule();
+        }
+        
+        function renderSchedule() {
+            const schedule = readLS("hospital_schedule", []);
+            const table = document.getElementById("scheduleTable");
+            
+            if (!schedule.length) {
+                table.innerHTML = '<div style="color: var(--muted); text-align: center; padding: 20px;">Brak dyżurów</div>';
+                return;
+            }
+            
+            // Sortuj po dacie
+            schedule.sort((a, b) => a.date - b.date);
+            
+            table.innerHTML = `
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead><tr>
+                        <th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Lekarz</th>
+                        <th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Ranga</th>
+                        <th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Data dyżuru</th>
+                        <th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Akcja</th>
+                    </tr></thead>
+                    <tbody>
+                        ${schedule.map(shift => {
+                            const rankColor = shift.rank === 'Ordynator' ? '#f1c40f' : shift.rank === 'Konsultant' ? '#f1c40f' : '#39a8ff';
+                            return `
+                                <tr style="border-bottom: 1px solid var(--line);">
+                                    <td style="padding: 8px; color: var(--text);">${esc(shift.doctorName)}</td>
+                                    <td style="padding: 8px;">
+                                        <span style="background: ${rankColor}20; color: ${rankColor}; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">
+                                            ${esc(shift.rank)}
+                                        </span>
+                                    </td>
+                                    <td style="padding: 8px; color: var(--text);">${shift.dateStr}</td>
+                                    <td style="padding: 8px;">
+                                        <button class="btn-danger" onclick="removeSchedule('${shift.id}')" style="font-size: 10px; padding: 4px 8px;">USUŃ</button>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+        
+        function removeSchedule(id) {
+            if (!confirm("Usunąć ten dyżur?")) return;
+            const schedule = readLS("hospital_schedule", []).filter(s => s.id !== id);
+            writeLS("hospital_schedule", schedule);
+            renderSchedule();
+        }
     </script>
 </body>
 </html>
