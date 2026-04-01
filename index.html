@@ -115,6 +115,7 @@
                 <div class="tab-btn" onclick="switchTab('tab-psych', this)" style="color:var(--psych);">🧠 ZDR. BEHAWIORALNE</div>
                 <div class="tab-btn" onclick="switchTab('tab-cert', this)" style="color:var(--cert);">📋 ORZECZNICTWO</div>
                 <div class="tab-btn" onclick="switchTab('tab-docs', this)" style="color:var(--docs);">📁 DOKUMENTACJA</div>
+                <div class="tab-btn" onclick="switchTab('tab-schedule', this)" style="color:var(--accent);">📅 MÓJ GRAFIK</div>
                 <div class="tab-btn" onclick="switchTab('tab-exit', this)" style="color:var(--discharge);">🚪 WYPIS</div>
             </div>
         </div>
@@ -239,6 +240,11 @@
                 </div>
             </div>
 
+            <div id="tab-schedule" class="tab-content hidden">
+                <div class="card">
+                    <div id="schedule-content"></div>
+                </div>
+            </div>
             <div id="tab-exit" class="tab-content hidden">
                 <div class="card" style="border-top: 5px solid var(--discharge);">
                     <h2 style="color:var(--discharge); margin:0 0 15px 0;">KARTA WYPISOWA</h2>
@@ -696,11 +702,94 @@
         h.className = 'cert-box ' + (s === 'OK' ? 'status-ok' : (s === 'NO' ? 'status-no' : ''));
     }
 
+    function renderSchedule() {
+        const schedule = readLS("hospital_schedule", []);
+        const container = document.getElementById('schedule-content');
+        
+        if (!container) return;
+        
+        if (!schedule.length) {
+            container.innerHTML = '<div style="color: var(--muted); text-align: center; padding: 40px;">Brak dyżurów</div>';
+            return;
+        }
+        
+        // Filtrowanie po lekarzu (aktualnie zalogowany)
+        const session = readLS("current_doctor_session", null);
+        const mySchedule = session ? schedule.filter(s => s.doctorId === session.doctorId) : schedule;
+        
+        container.innerHTML = `
+            <div style="margin-bottom: 20px;">
+                <h3 style="color: var(--accent); margin: 0 0 16px 0;">📅 Mój Grafik Dyżurów</h3>
+            </div>
+            <div style="position: relative; padding-left: 30px;">
+                ${mySchedule.sort((a, b) => a.date - b.date).map(shift => {
+                    const date = new Date(shift.date);
+                    const dateStr = date.toLocaleString('pl-PL');
+                    const isToday = new Date().toDateString() === date.toDateString();
+                    const isPast = date < new Date();
+                    
+                    return `
+                        <div style="position: relative; margin-bottom: 20px; padding-left: 20px;">
+                            <div style="
+                                position: absolute;
+                                left: -25px;
+                                top: 8px;
+                                width: 12px;
+                                height: 12px;
+                                background: ${isPast ? 'var(--muted)' : 'var(--accent)'};
+                                border-radius: 50%;
+                                box-shadow: 0 0 10px ${isPast ? 'rgba(149, 160, 175, 0.5)' : 'rgba(0, 210, 211, 0.5)'};
+                            "></div>
+                            <div style="
+                                background: rgba(255, 255, 255, 0.03);
+                                backdrop-filter: blur(20px);
+                                -webkit-backdrop-filter: blur(20px);
+                                border: 1px solid rgba(0, 210, 211, 0.2);
+                                border-radius: 12px;
+                                padding: 16px;
+                                position: relative;
+                                overflow: hidden;
+                            ">
+                                <div style="
+                                    position: absolute;
+                                    top: 10px;
+                                    right: 10px;
+                                    font-size: 14px;
+                                    color: var(--accent);
+                                ">📅</div>
+                                <div style="color: var(--accent); font-size: 11px; margin-bottom: 8px; font-weight: bold;">
+                                    ${isToday ? 'DZISIAJ' : ''} ${dateStr}
+                                </div>
+                                <div style="color: var(--text); font-size: 14px; margin-bottom: 8px;">
+                                    <strong>Dyżur</strong> - ${shift.rank || 'Lekarz'}
+                                </div>
+                                ${isPast ? `
+                                    <div style="color: var(--muted); font-size: 12px; font-style: italic;">
+                                        Zakończony
+                                    </div>
+                                ` : `
+                                    <div style="color: var(--ok); font-size: 12px; font-weight: bold;">
+                                        Nadchodzący
+                                    </div>
+                                `}
+                            </div>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+    }
+
     function switchTab(id, b) {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         document.getElementById(id).classList.remove('hidden');
         b.classList.add('active');
+        
+        // Renderuj harmonogram gdy zakładka jest aktywna
+        if (id === 'tab-schedule') {
+            renderSchedule();
+        }
     }
 
     function podajLek() {
