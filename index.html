@@ -184,7 +184,7 @@
                         <div class="calc-box">
                             <select id="gcs_e" onchange="calcGCS()"><option value="4">Oczy: 4 (Spontanicznie)</option><option value="3">3 (Na polecenie)</option><option value="2">2 (Na ból)</option><option value="1">1 (Brak)</option></select>
                             <select id="gcs_v" onchange="calcGCS()"><option value="5">Mowa: 5 (Zorientowana)</option><option value="4">4 (Splątana)</option><option value="3">3 (Niewłaściwa)</option><option value="2">2 (Dźwięki)</option><option value="1">1 (Brak)</option></select>
-                            <select id="gcs_m" onchange="calcGCS()"><option value="6">Ruch: 6 (Polecenia)</option><option value="5">5 (Lokalizuje ból)</option><option value="4">4 (Ucieczka od bólu)</option><option value="3">3 (Zgięcie patol.)</option><option value="2">2 (Wyprost patol.)</option><option value="1">1 (Brak)</option></select>
+                            <select id="gcs_m" onchange="calcGCS()"><option value="6">Ruch: 6 (Polecenia)</option><option value="5">5 (Lokalizuje ból)</option><option value="4">4 (Ucieczka od bólu)</option><option value="3">3 (Zgięcie patol.)</option><option value="2">2">Wyprost patol.)</option><option value="1">1 (Brak)</option></select>
                             <div id="gcs_res" style="text-align:center; font-size:18px; color:var(--gold); font-weight:bold; margin-top:5px;">SUMA: 15 GCS</div>
                         </div>
                         <div class="grid"><input type="text" id="vit_bp" placeholder="BP (np. 120/80)"><input type="text" id="vit_hr" placeholder="HR"></div>
@@ -270,6 +270,16 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
 <script>
+    function readLS(key, fallback) { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } }
+    function writeLS(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
+    function uid(prefix) { return prefix + "-" + Date.now().toString(36).toUpperCase() + "-" + Math.floor(Math.random() * 9999).toString().padStart(4, "0"); }
+    function esc(s) { return String(s ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;"); }
+    function logSystem(type, action, details) {
+        const logs = readLS("system_logs", []);
+        logs.push({ id: uid("LOG"), ts: Date.now(), type, action, details: details || {} });
+        writeLS("system_logs", logs.slice(-900));
+    }
+
     const firebaseConfig = {
         apiKey: "AIzaSyC5MioZo7CMVGopaZANfglS12Gy_TMPzEw",
         authDomain: "baza-danych-cd445.firebaseapp.com",
@@ -284,6 +294,7 @@
     const db = firebase.database();
 
     let pacjenci = [];
+    let lokalnePacjenci = [];
     let aktywIdx = -1;
     let currentView = 'active';
 
@@ -319,10 +330,99 @@
         return true;
     }
 
-    function synchronizuj() {
+    // Synchronizacja Firebase z localStorage
+    function synchronizujZFirebase() {
         const cleanData = pacjenci.filter(p => p !== null);
         db.ref('pacjenci').set(cleanData);
+        
+        // Synchronizuj też z localStorage dla patient_portal
+        const hospData = cleanData.map(p => ({
+            patientLinkId: p.id || p.patientLinkId,
+            name: (p.firstName && p.lastName) ? `${p.firstName} ${p.lastName}` : (p.name || ""),
+            adr: p.address || p.adr || "",
+            job: p.job || "",
+            ins: p.insured === "TAK" ? (p.insNumber || "TAK") : (p.ins || "NIE"),
+            blood: p.blood || "Nieznana",
+            alergie: p.alergie || "",
+            reason: p.reason || "",
+            status: p.status || "Stabilny",
+            triage: p.triage || "none",
+            cert: p.cert || "BRAK",
+            arch: p.arch || false,
+            history: p.history || []
+        }));
+        
+        writeLS("hosp_v545", hospData);
     }
+
+    function synchronizuj() {
+        synchronizujZFirebase();
+    }
+
+    // Live Refresh - nasłuchuj zmian w localStorage
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'hosp_v545') {
+            const noweDane = JSON.parse(e.newValue || '[]');
+            // Konwertuj dane z localStorage do formatu Firebase
+            pacjenci = noweDane.map(p => ({
+                id: p.patientLinkId,
+                name: p.name,
+                firstName: p.name ? p.name.split(' ')[0] : "",
+                lastName: p.name ? p.name.split(' ').slice(1).join(' ') : "",
+                address: p.adr,
+                job: p.job,
+                insured: p.ins === "TAK" ? "TAK" : "NIE",
+                insNumber: p.ins === "TAK" ? p.ins : "",
+                blood: p.blood,
+                alergie: p.alergie,
+                reason: p.reason,
+                status: p.status,
+                triage: p.triage,
+                cert: p.cert,
+                arch: p.arch,
+                history: p.history
+            }));
+            
+            updateStats();
+            renderList();
+            if (aktywIdx >= 0 && pacjenci[aktywIdx]) {
+                loadPatient(aktywIdx);
+            }
+        }
+    });
+
+    // Sprawdzaj zmiany co 2 sekundy (fallback)
+    setInterval(() => {
+        const currentHosp = readLS("hosp_v545", []);
+        if (JSON.stringify(currentHosp) !== JSON.stringify(lokalnePacjenci)) {
+            lokalnePacjenci = [...currentHosp];
+            // Konwertuj i odśwież
+            pacjenci = currentHosp.map(p => ({
+                id: p.patientLinkId,
+                name: p.name,
+                firstName: p.name ? p.name.split(' ')[0] : "",
+                lastName: p.name ? p.name.split(' ').slice(1).join(' ') : "",
+                address: p.adr,
+                job: p.job,
+                insured: p.ins === "TAK" ? "TAK" : "NIE",
+                insNumber: p.ins === "TAK" ? p.ins : "",
+                blood: p.blood,
+                alergie: p.alergie,
+                reason: p.reason,
+                status: p.status,
+                triage: p.triage,
+                cert: p.cert,
+                arch: p.arch,
+                history: p.history
+            }));
+            
+            updateStats();
+            renderList();
+            if (aktywIdx >= 0 && pacjenci[aktywIdx]) {
+                loadPatient(aktywIdx);
+            }
+        }
+    }, 2000);
 
     function updateStats() {
         let active = pacjenci.filter(p => p && !p.arch).length;
