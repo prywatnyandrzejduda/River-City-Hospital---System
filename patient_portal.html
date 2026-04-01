@@ -271,8 +271,17 @@
         function syncPatientToHosp(patient) {
             const hosp = readLS("hosp_v545", []);
             if (!Array.isArray(hosp)) return;
-            const byLink = hosp.findIndex(r => String(r.patientLinkId || "") === String(patient.id));
-            const byName = hosp.findIndex(r => String(r.name || "").trim().toLowerCase() === String(patient.name || "").trim().toLowerCase());
+            
+            // Normalizacja nazwisk dla porównań
+            const patientId = String(patient.id || "").trim().toLowerCase();
+            const patientName = String(patient.name || "").trim().toLowerCase();
+            
+            const byLink = hosp.findIndex(r => String(r.patientLinkId || "").trim().toLowerCase() === patientId);
+            const byName = hosp.findIndex(r => {
+                const recordName = String(r.name || "").trim().toLowerCase();
+                return recordName === patientName;
+            });
+            
             const idx = byLink >= 0 ? byLink : byName;
 
             if (idx >= 0) {
@@ -467,11 +476,15 @@
 
         function loadMedicalHistory() {
             const hosp = readLS("hosp_v545", []);
-            let record = hosp.find(r => r.patientLinkId === me.id);
+            let record = hosp.find(r => String(r.patientLinkId || "").trim().toLowerCase() === String(me.id || "").trim().toLowerCase());
             
-            // Jeśli nie znaleziono po ID, szukaj po nazwisku
+            // Jeśli nie znaleziono po ID, szukaj po nazwisku z normalizacją
             if (!record) {
-                record = hosp.find(r => String(r.name || "").trim().toLowerCase() === String(me.name || "").trim().toLowerCase());
+                const patientName = String(me.name || "").trim().toLowerCase();
+                record = hosp.find(r => {
+                    const recordName = String(r.name || "").trim().toLowerCase();
+                    return recordName === patientName;
+                });
             }
             
             // Jeśli nadal nie ma rekordu, stwórz go automatycznie
@@ -569,6 +582,29 @@
                 </div>
             `;
         }
+
+        // Live Refresh dla pacjenta
+        let ostatniaWersjaDanych = '';
+        
+        function sprawdzZmianyDanych() {
+            const hosp = readLS("hosp_v545", []);
+            const aktualnaWersja = JSON.stringify(hosp);
+            
+            if (aktualnaWersja !== ostatniaWersjaDanych) {
+                ostatniaWersjaDanych = aktualnaWersja;
+                loadMedicalHistory();
+            }
+        }
+        
+        // Sprawdzaj zmiany co 1.5 sekundy
+        setInterval(sprawdzZmianyDanych, 1500);
+        
+        // Nasłuchuj zmian w localStorage (gdy inne zakładki modyfikują dane)
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'hosp_v545') {
+                loadMedicalHistory();
+            }
+        });
 
         function addAppointment() {
             const type = document.getElementById("ap_type").value;
@@ -737,6 +773,8 @@
             me = patients.find(p => p.id === session.patientId);
             if (me) {
                 showPortal();
+                // Inicjalizuj Live Refresh
+                ostatniaWersjaDanych = JSON.stringify(readLS("hosp_v545", []));
             }
         }
     </script>
