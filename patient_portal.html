@@ -635,7 +635,7 @@
                 type,
                 date: new Date(date).getTime(),
                 note,
-                status: "Zaplanowany",
+                status: "ZAREZERWOWANE",
                 createdAt: Date.now()
             };
             
@@ -655,7 +655,7 @@
             logSystem("patient", "APPOINTMENT_CREATE", { appointmentId: appointment.id, type, doctorId });
             
             msg.className = "msg ok";
-            msg.textContent = "Termin zapisany.";
+            msg.textContent = "Termin zarezerwowany.";
             document.getElementById("ap_doctor").value = "";
             document.getElementById("ap_date").value = "";
             document.getElementById("ap_note").value = "";
