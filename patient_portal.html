@@ -210,6 +210,7 @@
             <h2>Zapisy na badania</h2>
             <div class="grid2">
                 <div>
+                    <select id="ap_doctor"><option value="">Wybierz lekarza...</option></select>
                     <select id="ap_type"><option>Psychologia</option><option>Chirurgia</option><option>Kardiologia</option><option>Radiologia</option><option>Medycyna ogólna</option></select>
                     <input id="ap_date" type="datetime-local" />
                     <textarea id="ap_note" rows="4" placeholder="Notatka..."></textarea>
@@ -607,10 +608,17 @@
         });
 
         function addAppointment() {
+            const doctorId = document.getElementById("ap_doctor").value;
             const type = document.getElementById("ap_type").value;
             const date = document.getElementById("ap_date").value;
             const note = document.getElementById("ap_note").value.trim();
             const msg = document.getElementById("ap_msg");
+            
+            if (!doctorId) {
+                msg.className = "msg err";
+                msg.textContent = "Wybierz lekarza.";
+                return;
+            }
             
             if (!date) {
                 msg.className = "msg err";
@@ -623,6 +631,7 @@
                 id: uid("AP"),
                 patientId: me.id,
                 patientName: me.name,
+                doctorId,
                 type,
                 date: new Date(date).getTime(),
                 note,
@@ -632,10 +641,22 @@
             
             appointments.push(appointment);
             writeLS("appointments", appointments);
-            logSystem("patient", "APPOINTMENT_CREATE", { appointmentId: appointment.id, type });
+            
+            // Dodaj do karty pacjenta w hosp_v545
+            const hosp = readLS("hosp_v545", []);
+            const patientRecord = hosp.find(r => String(r.patientLinkId || "").trim().toLowerCase() === String(me.id || "").trim().toLowerCase());
+            
+            if (patientRecord) {
+                if (!patientRecord.appointments) patientRecord.appointments = [];
+                patientRecord.appointments.push(appointment);
+                writeLS("hosp_v545", hosp);
+            }
+            
+            logSystem("patient", "APPOINTMENT_CREATE", { appointmentId: appointment.id, type, doctorId });
             
             msg.className = "msg ok";
             msg.textContent = "Termin zapisany.";
+            document.getElementById("ap_doctor").value = "";
             document.getElementById("ap_date").value = "";
             document.getElementById("ap_note").value = "";
             loadAppointments();
@@ -664,10 +685,22 @@
         function loadDoctors() {
             const staff = readLS("hospital_staff", []);
             const select = document.getElementById("consult_doctor");
+            const appointmentDoctorSelect = document.getElementById("ap_doctor");
+            
+            // Dla konsultacji
             select.innerHTML = "<option value=''>Wybierz lekarza...</option>";
             
+            // Dla zapisów na badania
+            if (appointmentDoctorSelect) {
+                appointmentDoctorSelect.innerHTML = "<option value=''>Wybierz lekarza...</option>";
+            }
+            
             staff.forEach(doctor => {
-                select.innerHTML += `<option value='${doctor.id}'>${doctor.name} - ${doctor.specialization}</option>`;
+                const option = `<option value='${doctor.id}'>${doctor.name} - ${doctor.specialization}</option>`;
+                select.innerHTML += option;
+                if (appointmentDoctorSelect) {
+                    appointmentDoctorSelect.innerHTML += option;
+                }
             });
             
             select.addEventListener("change", loadConsultation);
