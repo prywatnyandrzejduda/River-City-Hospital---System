@@ -164,7 +164,7 @@
         }
         function renderDoctors() {
             const docs = readLS("hospital_staff", []);
-            const ranks = ["Rezydent", "Młodszy Lekarz", "Lekarz", "Starszy Lekarz", "Ordynator", "Konsultant"];
+            const ranks = ["Student Medycyny", "Młodszy Ratownik", "Ratownik Medyczny", "Lekarz Rezydent", "Lekarz Specjalista", "Zastępca Ordynatora", "Ordynator", "Zarząd Szpitala", "Dyrektor Szpitala"];
             const table = document.getElementById("doctorsTable");
             table.innerHTML = `<thead><tr><th>Kod</th><th>Imię i nazwisko</th><th>Ranga</th><th>Specjalizacja</th><th>Akcja</th></tr></thead><tbody>${docs.length ? docs.map(d => `
                 <tr><td>${esc(d.code)}</td><td>${esc(d.name || ((d.firstName || "") + " " + (d.lastName || "")).trim())}</td><td><select onchange="updateDoctor('${esc(d.id)}','rank',this.value)">${ranks.map(r => `<option value="${esc(r)}" ${d.rank === r ? "selected" : ""}>${esc(r)}</option>`).join("")}</select></td><td><input value="${esc(d.specialization || "Ogólna")}" onchange="updateDoctor('${esc(d.id)}','specialization',this.value)" /></td><td><button class="btn-danger" onclick="deleteDoctor('${esc(d.id)}')">USUŃ</button></td></tr>
@@ -255,7 +255,7 @@
                     </tr></thead>
                     <tbody>
                         ${schedule.map(shift => {
-                            const rankColor = shift.rank === 'Ordynator' ? '#f1c40f' : shift.rank === 'Konsultant' ? '#f1c40f' : '#39a8ff';
+                            const rankColor = shift.rank === 'Ordynator' || shift.rank === 'Dyrektor Szpitala' || shift.rank === 'Zarząd Szpitala' ? '#f1c40f' : '#39a8ff';
                             return `
                                 <tr style="border-bottom: 1px solid var(--line);">
                                     <td style="padding: 8px; color: var(--text);">${esc(shift.doctorName)}</td>
