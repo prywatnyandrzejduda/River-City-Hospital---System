@@ -5,10 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Hospital System v5.35 - Admin Edition</title>
     <script>
-    // Inicjalizacja danych na samym początku - FIX dla błędu "Cannot access 'pacjenci' before initialization"
-    let pacjenci = readLS("hosp_v545", []);
+    // Inicjalizacja danych na samym początku - UPORZĄDKOWANA STRUKTURA
+    let pacjenci = JSON.parse(localStorage.getItem('hosp_v545')) || [];
+    let currentUser = JSON.parse(localStorage.getItem('currentUser')) || JSON.parse(localStorage.getItem('hospital_auth')) || null;
     let aktywIdx = -1;
     let currentView = 'active';
+    
+    console.log("🔧 DEBUG: Zmienne globalne zainicjalizowane");
+    console.log("🔧 DEBUG: pacjenci count:", pacjenci.length);
+    console.log("🔧 DEBUG: currentUser:", currentUser);
     
     // Sprawdzenie currentUser - DEBUG MODE NA ŻYWO z opóźnieniem
     window.onload = function() {
@@ -337,16 +342,16 @@
         writeLS("system_logs", logs.slice(-900));
     }
 
-    // Weryfikacja hospital_auth z nowego systemu - DEBUG MODE
+    // Weryfikacja currentUser z nowego systemu - DEBUG MODE
     try {
-        const hospitalAuth = JSON.parse(localStorage.getItem('hospital_auth') || 'null');
-        console.log("🔍 DEBUG: hospital_auth:", hospitalAuth);
+        const currentUserData = JSON.parse(localStorage.getItem('currentUser') || 'null');
+        console.log("🔍 DEBUG: currentUser (druga weryfikacja):", currentUserData);
         
-        if (!hospitalAuth || (hospitalAuth.type !== 'doctor' && hospitalAuth.type !== 'admin')) {
-            console.log("❌ DEBUG: Odmowa dostępu dla roli (druga weryfikacja):", hospitalAuth?.type || 'brak sesji');
+        if (!currentUserData || (currentUserData.role !== 'doctor' && currentUserData.role !== 'admin')) {
+            console.log("❌ DEBUG: Odmowa dostępu dla roli (druga weryfikacja):", currentUserData?.role || 'brak sesji');
             // window.location.href = 'portal.html'; // WYŁĄCZONE DO DEBUGOWANIA
         } else {
-            console.log("✅ DEBUG: Druga weryfikacja sesji potwierdzona:", hospitalAuth.name, "typ:", hospitalAuth.type);
+            console.log("✅ DEBUG: Druga weryfikacja sesji potwierdzona:", currentUserData.name, "rola:", currentUserData.role);
         }
     } catch(e) {
         console.error("❌ DEBUG: Błąd parsowania sesji (druga weryfikacja):", e);
@@ -355,27 +360,27 @@
 
     // Pobierz dane z sesji
     const sessionUser = {
-        name: hospitalAuth.name,
-        rank: hospitalAuth.ranga,
-        imie: hospitalAuth.imie,
-        nazwisko: hospitalAuth.nazwisko,
-        id: hospitalAuth.id
+        name: currentUserData.name,
+        rank: currentUserData.ranga,
+        imie: currentUserData.imie,
+        nazwisko: currentUserData.nazwisko,
+        id: currentUserData.id
     };
 
     // Inicjalizuj pola z danymi sesji - DEBUG MODE
     function initializeSessionFields() {
         // Sprawdź czy użytkownik jest zalogowany
         try {
-            const autor = JSON.parse(localStorage.getItem('hospital_auth'));
+            const autor = JSON.parse(localStorage.getItem('currentUser'));
             console.log("🔍 DEBUG: initializeSessionFields autor:", autor);
             
-            if (!autor || (autor.type !== 'doctor' && autor.type !== 'admin')) {
-                console.log("❌ DEBUG: Odmowa dostępu dla roli w initializeSessionFields:", autor?.type || 'brak sesji');
+            if (!autor || (autor.role !== 'doctor' && autor.role !== 'admin')) {
+                console.log("❌ DEBUG: Odmowa dostępu dla roli w initializeSessionFields:", autor?.role || 'brak sesji');
                 // window.location.href = 'portal.html'; // WYŁĄCZONE DO DEBUGOWANIA
                 return;
             }
             
-            console.log("✅ DEBUG: Sesja potwierdzona w initializeSessionFields:", autor.name, "typ:", autor.type);
+            console.log("✅ DEBUG: Sesja potwierdzona w initializeSessionFields:", autor.name, "rola:", autor.role);
             
             // Inicjalizuj pola formularza danymi z sesji
             const pacjenci = readLS("hosp_v545", []);
@@ -388,9 +393,10 @@
             console.error("❌ DEBUG: Błąd parsowania sesji w initializeSessionFields:", e);
             // window.location.href = 'portal.html'; // WYŁĄCZONE DO DEBUGOWANIA
         }
-    // Ukryte pola formularza
-    document.getElementById('inp_doc').value = `${autor.imie} ${autor.nazwisko}`;
-    document.getElementById('inp_rank').value = autor.ranga;
+        
+        // Ukryte pola formularza - przeniesione do wewnątrz try
+        document.getElementById('inp_doc').value = `${autor.imie} ${autor.nazwisko}`;
+        document.getElementById('inp_rank').value = autor.ranga;
     }
 
     const firebaseConfig = {
@@ -536,16 +542,38 @@
     }
 
     function nowyPacjent() {
+        // Pobierz aktualną listę na wypadek zmian w innej karcie
+        pacjenci = JSON.parse(localStorage.getItem('hosp_v545')) || [];
+        
         let n = document.getElementById('add_name').value.trim();
         if (!n) return alert("Podaj nazwisko!");
-        pacjenci.push({
-            name: n, adr: "", job: "", ins: "", blood: "Nieznana", alergie: "",
-            reason: "", status: "Stabilny", triage: "none", cert: "BRAK",
+        
+        const nowy = {
+            id: "PAT-" + Math.random().toString(36).substr(2, 9).toUpperCase(),
+            name: n,
+            adr: "",
+            job: "",
+            ins: "",
+            blood: "Nieznana",
+            alergie: "",
+            reason: "",
+            status: "Stabilny",
+            triage: "none",
+            cert: "BRAK",
             role: 'user', // Dodaj rolę 'user' dla pacjentów dodawanych ręcznie
-            arch: false, history: [{ id: Date.now(), txt: "Zarejestrowano pacjenta", doc: "SYSTEM", rank: "Automatyczny", time: new Date().toLocaleString() }]
-        });
+            arch: false,
+            history: [{ id: Date.now(), txt: "Zarejestrowano pacjenta", doc: "SYSTEM", rank: "Automatyczny", time: new Date().toLocaleString() }]
+        };
+
+        pacjenci.push(nowy);
+        localStorage.setItem('hosp_v545', JSON.stringify(pacjenci));
         document.getElementById('add_name').value = "";
-        synchronizuj();
+        
+        console.log("✅ DEBUG: Dodano pacjenta:", nowy.name, "ID:", nowy.id);
+        alert('Pacjent dodany!');
+        
+        // Odśwież żeby zobaczyć zmiany
+        location.reload();
     }
 
     function renderLista() {
