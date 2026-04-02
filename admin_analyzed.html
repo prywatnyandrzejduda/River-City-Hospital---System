@@ -120,7 +120,6 @@
         function ensureSeeds() {
             if (!Array.isArray(readLS("pending_codes", null))) writeLS("pending_codes", []);
             if (!Array.isArray(readLS("hospital_staff", null))) writeLS("hospital_staff", []);
-            if (!Array.isArray(readLS("registered_patients", null))) writeLS("registered_patients", []);
             if (!Array.isArray(readLS("hosp_v545", null))) writeLS("hosp_v545", []);
             if (!Array.isArray(readLS("hospital_schedule", null))) writeLS("hospital_schedule", []);
         }
@@ -226,19 +225,18 @@
             }
         }
         function renderPatients() {
-            const pats = readLS("registered_patients", []);
+            // Pobierz pacjentów z hosp_v545 (jedyna baza!)
+            const pats = JSON.parse(localStorage.getItem('hosp_v545')) || [];
             const table = document.getElementById("patientsTable");
-            table.innerHTML = `<thead><tr><th>Login</th><th>Imię i nazwisko</th><th>SSN</th><th>Ubezpieczyciel</th><th>Status</th><th>Akcja</th></tr></thead><tbody>${pats.length ? pats.map(p => `<tr><td>${esc(p.login)}</td><td>${esc(p.name)}</td><td>${esc(p.ssn || '-')}</td><td>${esc(p.insurance || '-')}</td><td>${esc(p.status || 'Aktywny')}</td><td><button class="btn-danger" onclick="removePatient('${esc(p.id)}')" style="font-size: 10px; padding: 4px 8px;">USUŃ</button></td></tr>`).join("") : `<tr><td colspan="6">Brak pacjentów.</td></tr>`}</tbody>`;
+            table.innerHTML = `<thead><tr><th>SSN</th><th>Imię i nazwisko</th><th>Ubezpieczyciel</th><th>Status</th><th>Akcja</th></tr></thead><tbody>${pats.length ? pats.map(p => `<tr><td>${esc(p.ssn || '-')}</td><td>${esc(p.name)}</td><td>${esc(p.insurance || '-')}</td><td>${esc(p.status || 'Aktywny')}</td><td><button class="btn-danger" onclick="removePatient('${esc(p.id)}')" style="font-size: 10px; padding: 4px 8px;">USUŃ</button></td></tr>`).join("") : `<tr><td colspan="5">Brak pacjentów.</td></tr>`}</tbody>`;
         }
         
         function removePatient(id) {
             if (!confirm("Usunąć tego pacjenta?")) return;
-            // Usuń z registered_patients
-            const registeredPatients = readLS("registered_patients", []).filter(p => p.id !== id);
-            writeLS("registered_patients", registeredPatients);
-            // Usuń również z hosp_v545
-            const allPatients = readLS("hosp_v545", []).filter(p => p.id !== id);
-            writeLS("hosp_v545", allPatients);
+            // Usuń z hosp_v545 (jedyna baza!)
+            const allPatients = JSON.parse(localStorage.getItem('hosp_v545')) || [];
+            const filteredPatients = allPatients.filter(p => p.id !== id);
+            localStorage.setItem('hosp_v545', JSON.stringify(filteredPatients));
             renderPatients();
         }
         function renderAll() { 
