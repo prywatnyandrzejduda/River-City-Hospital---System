@@ -5,19 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Hospital System v5.35 - Admin Edition</title>
     <script>
-        // Sprawdzenie hospital_auth - bez alertów, tylko przekierowanie
+        // Sprawdzenie currentUser - bez alertów, tylko przekierowanie
         (function() {
             try {
-                const hospitalAuth = JSON.parse(localStorage.getItem('hospital_auth'));
-                if (!hospitalAuth || hospitalAuth.type !== 'doctor') {
-                    console.log("Brak sesji lekarza lub zły typ:", hospitalAuth?.type);
-                    window.location.href = 'portal.html';
+                const user = JSON.parse(localStorage.getItem('currentUser'));
+                if (!user || (user.role !== 'admin' && user.role !== 'doctor')) {
+                    console.log('Brak uprawnień, przekierowuję do portalu...', user?.role || 'brak sesji');
+                    window.location.replace('portal.html');
                 } else {
-                    console.log("Sesja lekarza potwierdzona:", hospitalAuth.name);
+                    console.log('Sesja potwierdzona:', user.name, 'rola:', user.role);
                 }
             } catch(e) {
                 console.error("Błąd parsowania sesji:", e);
-                window.location.href = 'portal.html';
+                window.location.replace('portal.html');
             }
         })();
     </script>
@@ -311,11 +311,11 @@
     // Weryfikacja hospital_auth z nowego systemu
     try {
         const hospitalAuth = JSON.parse(localStorage.getItem('hospital_auth') || 'null');
-        if (!hospitalAuth || hospitalAuth.type !== 'doctor') {
-            console.log("Brak sesji lekarza lub zły typ (druga weryfikacja):", hospitalAuth?.type);
+        if (!hospitalAuth || (hospitalAuth.type !== 'doctor' && hospitalAuth.type !== 'admin')) {
+            console.log("Odmowa dostępu dla roli (druga weryfikacja):", hospitalAuth?.type || 'brak sesji');
             window.location.href = 'portal.html';
         } else {
-            console.log("Druga weryfikacja sesji lekarza potwierdzona:", hospitalAuth.name);
+            console.log("Druga weryfikacja sesji potwierdzona:", hospitalAuth.name, "typ:", hospitalAuth.type);
         }
     } catch(e) {
         console.error("Błąd parsowania sesji (druga weryfikacja):", e);
@@ -337,13 +337,13 @@
         try {
             const autor = JSON.parse(localStorage.getItem('hospital_auth'));
             
-            if (!autor || autor.type !== 'doctor') {
-                console.log("Brak sesji lekarza w initializeSessionFields:", autor?.type);
+            if (!autor || (autor.type !== 'doctor' && autor.type !== 'admin')) {
+                console.log("Odmowa dostępu dla roli w initializeSessionFields:", autor?.type || 'brak sesji');
                 window.location.href = 'portal.html';
                 return;
             }
             
-            console.log("Sesja lekarza potwierdzona w initializeSessionFields:", autor.name);
+            console.log("Sesja potwierdzona w initializeSessionFields:", autor.name, "typ:", autor.type);
             
             // Inicjalizuj pola formularza danymi z sesji
             const pacjenci = readLS("hosp_v545", []);
@@ -356,6 +356,7 @@
             console.error("Błąd parsowania sesji w initializeSessionFields:", e);
             window.location.href = 'portal.html';
         }
+    } {
         // Ukryte pola formularza
         document.getElementById('inp_doc').value = `${autor.imie} ${autor.nazwisko}`;
         document.getElementById('inp_rank').value = autor.ranga;
@@ -597,12 +598,12 @@
         // Sprawdź czy użytkownik jest zalogowany
         try {
             const autor = JSON.parse(localStorage.getItem('hospital_auth'));
-            if (!autor || autor.type !== 'doctor') {
-                console.log("Brak sesji lekarza w zapiszWpis:", autor?.type);
+            if (!autor || (autor.type !== 'doctor' && autor.type !== 'admin')) {
+                console.log("Odmowa dostępu dla roli w zapiszWpis:", autor?.type || 'brak sesji');
                 window.location.href = "portal.html";
                 return;
             }
-            console.log("Sesja lekarza potwierdzona w zapiszWpis:", autor.name);
+            console.log("Sesja potwierdzona w zapiszWpis:", autor.name, "typ:", autor.type);
             
             if (!savePatientFields()) return;
             let p = pacjenci[aktywIdx];
