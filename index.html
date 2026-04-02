@@ -416,64 +416,54 @@
     window.addEventListener('storage', (e) => {
         if (e.key === 'hosp_v545') {
             const noweDane = JSON.parse(e.newValue || '[]');
-            // Konwertuj dane z localStorage do formatu Firebase
+            // Konwertuj dane z hosp_v545 do formatu Firebase
             pacjenci = noweDane.map(p => ({
-                id: p.patientLinkId,
+                id: p.id,
                 name: p.name,
-                firstName: p.name ? p.name.split(' ')[0] : "",
-                lastName: p.name ? p.name.split(' ').slice(1).join(' ') : "",
-                address: p.adr,
-                job: p.job,
-                insured: p.ins === "TAK" ? "TAK" : "NIE",
-                insNumber: p.ins === "TAK" ? p.ins : "",
+                firstName: p.imie || p.name?.split(' ')[0] || "",
+                lastName: p.nazwisko || p.name?.split(' ')[1] || "",
+                age: p.age,
+                gender: p.gender,
                 blood: p.blood,
                 alergie: p.alergie,
-                reason: p.reason,
                 status: p.status,
                 triage: p.triage,
-                cert: p.cert,
-                arch: p.arch,
-                history: p.history
+                reason: p.reason,
+                history: p.history || [],
+                arch: p.arch || false,
+                createdAt: p.createdAt
             }));
-            
             updateStats();
-            renderList();
-            if (aktywIdx >= 0 && pacjenci[aktywIdx]) {
-                loadPatient(aktywIdx);
-            }
+            renderLista();
+            if (aktywIdx !== -1 && pacjenci[aktywIdx]) odswiezDanePacjenta();
         }
     });
 
     // Sprawdzaj zmiany co 2 sekundy (fallback)
     setInterval(() => {
-        const currentHosp = readLS("hosp_v545", []);
+        const currentHosp = JSON.parse(localStorage.getItem('hosp_v545') || '[]');
         if (JSON.stringify(currentHosp) !== JSON.stringify(lokalnePacjenci)) {
             lokalnePacjenci = [...currentHosp];
             // Konwertuj i odśwież
             pacjenci = currentHosp.map(p => ({
-                id: p.patientLinkId,
+                id: p.id,
                 name: p.name,
-                firstName: p.name ? p.name.split(' ')[0] : "",
-                lastName: p.name ? p.name.split(' ').slice(1).join(' ') : "",
-                address: p.adr,
-                job: p.job,
-                insured: p.ins === "TAK" ? "TAK" : "NIE",
-                insNumber: p.ins === "TAK" ? p.ins : "",
+                firstName: p.imie || p.name?.split(' ')[0] || "",
+                lastName: p.nazwisko || p.name?.split(' ')[1] || "",
+                age: p.age,
+                gender: p.gender,
                 blood: p.blood,
                 alergie: p.alergie,
-                reason: p.reason,
                 status: p.status,
                 triage: p.triage,
-                cert: p.cert,
+                reason: p.reason,
+                history: p.history,
                 arch: p.arch,
-                history: p.history
+                createdAt: p.createdAt
             }));
-            
             updateStats();
-            renderList();
-            if (aktywIdx >= 0 && pacjenci[aktywIdx]) {
-                loadPatient(aktywIdx);
-            }
+            renderLista();
+            if (aktywIdx !== -1 && pacjenci[aktywIdx]) odswiezDanePacjenta();
         }
     }, 2000);
 
