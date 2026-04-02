@@ -5,19 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin Center - Hospital</title>
     <script>
-        // Sprawdzenie hospital_auth - bez alertów, tylko przekierowanie
-        (function() {
-            const hospitalAuth = JSON.parse(localStorage.getItem('hospital_auth'));
-            if (!hospitalAuth || hospitalAuth.type !== 'admin') {
-                window.location.href = 'portal.html';
-                return;
+        // "Pancerny" skrypt weryfikacji sesji - opóźniony do załadowania DOM
+        document.addEventListener('DOMContentLoaded', function() {
+            let auth = localStorage.getItem('hospital_auth');
+            if (auth) {
+                try {
+                    auth = JSON.parse(auth);
+                    if (typeof auth === 'string') auth = JSON.parse(auth);
+                } catch(e) {
+                    console.error("Błąd parsowania sesji:", e);
+                    window.location.href = 'portal.html';
+                    return;
+                }
             }
-            
-            // Auto-login: pokaż panel jeśli admin jest zalogowany
-            document.getElementById("loginScreen").classList.add("hidden");
-            document.getElementById("panel").classList.remove("hidden");
-            renderAll();
-        })();
+
+            // Sprawdzenie typu/roli (akceptujemy 'type' lub 'role' lub 'ranga')
+            const isAdmin = auth.type === 'admin' || auth.role === 'admin' || auth.ranga === 'Administrator';
+
+            if (isAdmin) {
+                console.log("Witaj Adminie, dostęp przyznany!");
+                // Auto-login: pokaż panel jeśli admin jest zalogowany
+                document.getElementById("loginScreen").classList.add("hidden");
+                document.getElementById("panel").classList.remove("hidden");
+                renderAll();
+            } else {
+                console.log("Brak autoryzacji admina - przekierowanie do portalu");
+                window.location.href = 'portal.html';
+            }
+        });
     </script>
     <style>
         :root {
@@ -125,48 +140,6 @@
         }
         ensureSeeds();
         
-        function adminLogin() {
-            const v = document.getElementById("bossPass").value.trim();
-            if (v !== BOSS) { 
-                const m = document.getElementById("loginMsg"); 
-                m.className = "msg err"; 
-                m.textContent = "Błędny kod."; 
-                return; 
-            }
-            
-            // Zapisz sesję admina zgodną z nowym systemem
-            const userObject = {
-                imie: "System",
-                nazwisko: "Administrator",
-                ranga: "Administrator",
-                id: "ADMIN",
-                name: "System Administrator",
-                rank: "Administrator",
-                code: v,
-                login: v,
-                loginTime: Date.now(),
-                type: 'admin'
-            };
-            
-            localStorage.setItem('hospital_auth', JSON.stringify(userObject));
-            writeLS("hospital_auth", JSON.stringify(userObject));
-            logSystem("admin", "LOGIN_SUCCESS", { code: v });
-            
-            // Opóźnienie dla zapisu danych
-            setTimeout(() => {
-                document.getElementById("loginScreen").classList.add("hidden");
-                document.getElementById("panel").classList.remove("hidden");
-                renderAll();
-            }, 100);
-        }
-        function logout() {
-            localStorage.removeItem('hospital_auth');
-            window.location.href = "portal.html";
-        }
-        function buildCode(type, customPrefix) {
-            const prefix = customPrefix ? customPrefix.toUpperCase() : (type === "doctor" ? "DR" : "PT");
-            return prefix + "-" + Math.random().toString(36).slice(2, 6).toUpperCase();
-        }
         function generateCodes() {
             const type = document.getElementById("genType").value;
             const count = Math.max(1, Math.min(20, Number(document.getElementById("genCount").value || 1)));
