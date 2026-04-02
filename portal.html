@@ -507,7 +507,12 @@
                 
                 localStorage.setItem('hospital_auth', JSON.stringify(userData));
                 writeLS("hospital_auth", JSON.stringify(userData));
-                localStorage.setItem('currentUser', JSON.stringify(userData));  // Dodaj currentUser
+                
+                // Opóźnij zapis currentUser aby index.html zdążył odczytać
+                setTimeout(() => {
+                    localStorage.setItem('currentUser', JSON.stringify(userData));  // Dodaj currentUser z opóźnieniem
+                }, 50);
+                
                 writeLS("current_doctor_session", { doctorId: doctor.id, code: doctor.code, ts: Date.now() });
                 logSystem("doctor", "LOGIN_SUCCESS", { doctorId: doctor.id, name: doctor.name, code: doctor.code });
                 msg.className = "msg ok";
@@ -542,7 +547,7 @@
                         };
                         
                         localStorage.setItem('hospital_auth', JSON.stringify(userData));
-                        localStorage.setItem('currentUser', JSON.stringify(userData));  // Dodaj currentUser
+                        localStorage.setItem('currentUser', JSON.stringify(userData));  // Dodaj currentUser z opóźnieniem
                         msg.className = "msg ok";
                         msg.textContent = "Autoryzacja OK. Przekierowanie...";
                         
@@ -591,7 +596,7 @@
                 };
                 
                 localStorage.setItem('hospital_auth', JSON.stringify(userData));
-                localStorage.setItem('currentUser', JSON.stringify(userData));  // Dodaj currentUser
+                localStorage.setItem('currentUser', JSON.stringify(userData));  // Dodaj currentUser z opóźnieniem
                 logSystem("patient", "LOGIN_SUCCESS", { patientId: patient.id, login: patient.ssn });
                 msg.className = "msg ok";
                 msg.textContent = "Autoryzacja OK. Przekierowanie...";
