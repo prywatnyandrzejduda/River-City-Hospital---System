@@ -568,7 +568,9 @@
                                     <div class="glass-history-date">
                                         ${new Date(item.ts).toLocaleString('pl-PL')}
                                     </div>
-                                    <div>${esc(item.note || "Brak opisu")}</div>
+                                    <div style="color: var(--text); font-size: 14px; line-height: 1.5; margin-bottom: 12px; white-space: pre-wrap;">
+                                    ${esc(item.note || "Brak opisu")}
+                                </div>
                                 </div>
                             `).join('')}
                         </div>
