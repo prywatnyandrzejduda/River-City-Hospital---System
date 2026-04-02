@@ -122,7 +122,31 @@
         ensureSeeds();
         function adminLogin() {
             const v = document.getElementById("bossPass").value.trim();
-            if (v !== BOSS) { const m = document.getElementById("loginMsg"); m.className = "msg err"; m.textContent = "Błędny kod."; return; }
+            if (v !== BOSS) { 
+                const m = document.getElementById("loginMsg"); 
+                m.className = "msg err"; 
+                m.textContent = "Błędny kod."; 
+                return; 
+            }
+            
+            // Zapisz sesję admina zgodną z nowym systemem
+            const userObject = {
+                imie: "System",
+                nazwisko: "Administrator",
+                ranga: "Administrator",
+                id: "ADMIN",
+                name: "System Administrator",
+                rank: "Administrator",
+                code: v,
+                login: v,
+                loginTime: Date.now(),
+                type: 'admin'
+            };
+            
+            localStorage.setItem('activeSession', JSON.stringify(userObject));
+            writeLS("activeSession", JSON.stringify(userObject));
+            logSystem("admin", "LOGIN_SUCCESS", { code: v });
+            
             document.getElementById("loginScreen").classList.add("hidden");
             document.getElementById("panel").classList.remove("hidden");
             renderAll();
