@@ -52,7 +52,7 @@
             <div class="sub">Dostęp tylko dla kodu bezpieczeństwa.</div>
             <input id="bossPass" type="password" placeholder="Kod bezpieczeństwa" />
             <button class="btn" onclick="adminLogin()">AUTORYZUJ</button>
-            <button class="btn2" onclick="location.href='hospital_system.html'">POWRÓT</button>
+            <button class="btn2" onclick="location.href='portal.html'">POWRÓT</button>
             <div id="loginMsg" class="msg"></div>
         </div>
     </div>
@@ -119,6 +119,17 @@
             if (!Array.isArray(readLS("hospital_schedule", null))) writeLS("hospital_schedule", []);
         }
         ensureSeeds();
+        
+        // Auto-login: sprawdź sesję i pokaż panel jeśli admin jest zalogowany
+        (function() {
+            const hospitalAuth = JSON.parse(localStorage.getItem('hospital_auth'));
+            if (hospitalAuth && hospitalAuth.type === 'admin') {
+                document.getElementById("loginScreen").classList.add("hidden");
+                document.getElementById("panel").classList.remove("hidden");
+                renderAll();
+            }
+        })();
+        
         function adminLogin() {
             const v = document.getElementById("bossPass").value.trim();
             if (v !== BOSS) { 
