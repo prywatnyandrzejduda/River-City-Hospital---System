@@ -38,13 +38,354 @@
         :root {
             --bg: #070a10; --glass: rgba(255, 255, 255, 0.05); --line: rgba(255,255,255,.12);
             --text: #e8eef9; --muted: #95a4ba; --gold: #f1c40f; --doc: #33c7ff; --pat: #37ff94; --err: #ff5c73;
+            --crt-green: #00ff41; --crt-amber: #ffb000; --crt-red: #ff0040;
+            --terminal-green: #00ff7f; --terminal-amber: #ffff00;
+            --critical-red: #ff0000; --warning-orange: #ff6600;
+            --battery-green: #00ff00; --temp-blue: #00ccff;
         }
-        * { box-sizing: border-box; font-family: Consolas, "Courier New", monospace; }
-        body { margin: 0; color: var(--text); background: linear-gradient(135deg, #05070b, #0d1320); }
+        
+        /* CRT Monitor Effect */
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.98; }
+        }
+        
+        @keyframes scanline {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(100vh); }
+        }
+        
+        body { 
+            margin: 0; 
+            color: var(--text); 
+            background: linear-gradient(135deg, #05070b, #0d1320);
+            font-family: 'Share Tech Mono', 'JetBrains Mono', 'Courier New', monospace;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: rgba(0, 255, 65, 0.1);
+            animation: scanline 8s linear infinite;
+            z-index: 1000;
+            pointer-events: none;
+        }
+        
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 255, 65, 0.03) 2px
+            );
+            pointer-events: none;
+            z-index: 999;
+        }
+        
         .hidden { display: none !important; }
         .wrap { max-width: 1450px; margin: 0 auto; padding: 16px; }
-        .card { background: var(--glass); backdrop-filter: blur(15px); border: 1px solid var(--line); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
-        h1, h2 { margin: 0 0 10px 0; } h2 { color: var(--gold); font-size: 16px; }
+        .card { 
+            background: var(--glass); 
+            backdrop-filter: blur(15px); 
+            border: 1px solid var(--line); 
+            border-radius: 12px; 
+            padding: 14px; 
+            margin-bottom: 12px;
+            position: relative;
+            animation: flicker 0.15s infinite;
+        }
+        
+        /* Bento Grid Layout */
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+        
+        .patient-card {
+            background: var(--glass);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 16px;
+            position: relative;
+            transition: all 0.3s ease;
+            border-left: 3px solid var(--pat);
+        }
+        
+        .patient-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(55, 255, 148, 0.15);
+            border-left-color: var(--terminal-green);
+        }
+        
+        .patient-card.critical {
+            border-left-color: var(--critical-red);
+            animation: critical-pulse 2s infinite;
+        }
+        
+        @keyframes critical-pulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(255, 0, 0, 0.3); }
+            50% { box-shadow: 0 0 30px rgba(255, 0, 0, 0.6); }
+        }
+        
+        .patient-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .patient-name {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--terminal-green);
+            text-shadow: 0 0 8px rgba(0, 255, 127, 0.5);
+        }
+        
+        .patient-ssn {
+            font-size: 11px;
+            color: var(--muted);
+            font-family: 'Share Tech Mono', monospace;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        
+        .patient-status {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--pat);
+        }
+        
+        .patient-status.critical {
+            background: var(--critical-red);
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
+        .patient-insurance {
+            font-size: 12px;
+            color: var(--muted);
+            margin: 8px 0;
+        }
+        
+        .patient-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        
+        /* Tactile Buttons */
+        .btn-tactile {
+            background: var(--glass);
+            border: 2px solid var(--line);
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-tactile:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 0 rgba(0, 0, 0, 0.4);
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .btn-tactile:active {
+            transform: translateY(1px);
+            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn-tactile::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .btn-tactile:hover::before {
+            left: 100%;
+        }
+        
+        .btn-danger-tactile {
+            border-color: var(--critical-red);
+            color: var(--critical-red);
+        }
+        
+        .btn-danger-tactile:hover {
+            background: rgba(255, 0, 0, 0.1);
+            box-shadow: 0 6px 0 rgba(255, 0, 0, 0.4);
+        }
+        
+        /* Hardware Status Bar */
+        .hardware-status {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            background: var(--glass);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 10px;
+            font-family: 'Share Tech Mono', monospace;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+        
+        .hardware-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 4px 0;
+        }
+        
+        .hardware-label {
+            color: var(--muted);
+            min-width: 60px;
+        }
+        
+        .hardware-value {
+            color: var(--terminal-green);
+            font-weight: bold;
+        }
+        
+        .hardware-value.warning {
+            color: var(--warning-orange);
+        }
+        
+        .hardware-value.critical {
+            color: var(--critical-red);
+        }
+        
+        /* Terminal Window */
+        .terminal-window {
+            position: fixed;
+            bottom: 16px;
+            left: 16px;
+            width: 320px;
+            height: 120px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid var(--terminal-green);
+            border-radius: 4px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 10px;
+            color: var(--terminal-green);
+            padding: 8px;
+            z-index: 1000;
+            overflow-y: auto;
+            backdrop-filter: blur(10px);
+        }
+        
+        .terminal-line {
+            margin: 2px 0;
+            opacity: 0;
+            animation: typewriter 0.5s forwards;
+        }
+        
+        @keyframes typewriter {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .terminal-prompt {
+            color: var(--terminal-amber);
+        }
+        
+        /* Vitals Monitor */
+        .vitals-monitor {
+            background: var(--glass);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 12px;
+            margin: 16px 0;
+        }
+        
+        .vitals-title {
+            font-size: 12px;
+            color: var(--muted);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+        
+        .vitals-chart {
+            height: 40px;
+            background: linear-gradient(90deg, 
+                var(--temp-blue) 0%, 
+                var(--temp-blue) 25%, 
+                var(--warning-orange) 50%, 
+                var(--critical-red) 75%, 
+                var(--temp-blue) 100%);
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .vitals-chart::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--terminal-green);
+            animation: pulse-line 2s infinite;
+        }
+        
+        @keyframes pulse-line {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Vignette Effect */
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 998;
+            background: radial-gradient(
+                ellipse at center,
+                transparent 0%,
+                transparent 40%,
+                rgba(0, 0, 0, 0.4) 100%
+            );
+        }
+        
+        h1, h2 { margin: 0 0 10px 0; } 
+        h2 { color: var(--gold); font-size: 16px; text-shadow: 0 0 8px rgba(241, 196, 15, 0.5); }
         .sub { color: var(--muted); font-size: 12px; margin-bottom: 8px; }
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .row4 { display: grid; grid-template-columns: 1fr 120px 140px 160px; gap: 8px; }
@@ -67,6 +408,25 @@
     </style>
 </head>
 <body>
+    <!-- Hardware Status Bar -->
+    <div class="hardware-status">
+        <div class="hardware-item">
+            <span class="hardware-label">BATT:</span>
+            <span class="hardware-value">100%</span>
+        </div>
+        <div class="hardware-item">
+            <span class="hardware-label">TEMP:</span>
+            <span class="hardware-value">36.6°C</span>
+        </div>
+        <div class="hardware-item">
+            <span class="hardware-label">NET:</span>
+            <span class="hardware-value">STABLE</span>
+        </div>
+    </div>
+
+    <!-- Vignette Effect -->
+    <div class="vignette"></div>
+
     <div id="loginScreen" class="login-wrap">
         <div class="login-card">
             <h1>ADMIN CENTER</h1>
@@ -81,24 +441,37 @@
         <div class="card">
             <h1>Hospital Administration</h1>
             <div class="row3">
-                <button class="btn2" onclick="location.href='hospital_system.html'">START</button>
-                <button class="btn2" onclick="location.href='index.html'">ODDZIAŁ</button>
-                <button class="btn-danger" onclick="logout()">WYLOGUJ</button>
+                <button class="btn-tactile" onclick="location.href='hospital_system.html'">START</button>
+                <button class="btn-tactile" onclick="location.href='index.html'">ODDZIAŁ</button>
+                <button class="btn-tactile btn-danger-tactile" onclick="logout()">WYLOGUJ</button>
             </div>
+        </div>
+        
+        <!-- Vitals Monitor -->
+        <div class="vitals-monitor">
+            <div class="vitals-title">VITAL SIGNS</div>
+            <div class="vitals-chart"></div>
+        </div>
+        
+        <!-- Terminal Window -->
+        <div class="terminal-window">
+            <div class="terminal-line"><span class="terminal-prompt">></span> [OK] ENCRYPTED_CONN_ESTABLISHED</div>
+            <div class="terminal-line"><span class="terminal-prompt">></span> [INFO] DATABASE_SYNC_SUCCESS</div>
+            <div class="terminal-line"><span class="terminal-prompt">></span> [SCAN] REFRESHING_PATIENT_DATA...</div>
         </div>
         <div class="grid">
             <div>
                 <div class="card">
-                    <h2>Generator Kodów Dostępu</h2>
-                    <div class="sub">Jednorazowe tokeny trafiają do `pending_codes`.</div>
+                    <h2>Security Token Generator</h2>
+                    <div class="sub">Generowanie jednorazowych tokenów dostępu.</div>
                     <div class="row4">
                         <select id="genType"><option value="doctor">Lekarz</option><option value="patient">Pacjent</option></select>
                         <input id="genCount" type="number" min="1" max="20" value="1" />
                         <input id="genPrefix" type="text" placeholder="Prefix (opcj.)" />
-                        <button class="btn" onclick="generateCodes()">GENERUJ</button>
+                        <button class="btn-tactile" onclick="generateCodes()" id="genBtn">GENERUJ</button>
                     </div>
                     <div id="genMsg" class="msg"></div>
-                    <table id="pendingTable" style="margin-top: 16px;"></table>
+                    <div id="pendingTable" style="margin-top: 16px;"></div>
                 </div>
                 <div class="card">
                     <h2>Zarządzanie Grafikiem</h2>
@@ -121,7 +494,9 @@
                 <div class="card">
                     <h2>Baza Cywili (Pacjentów)</h2>
                     <div class="sub">Usunięcie konta czyści też wpis w `hosp_v545`.</div>
-                    <table id="patientsTable" style="margin-top: 16px;"></table>
+                    <div id="patientsGrid" class="bento-grid">
+                        <!-- Karty pacjentów będą generowane dynamicznie -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -187,68 +562,305 @@
             const prefix = document.getElementById("genPrefix").value.trim();
             const pending = readLS("pending_codes", []);
             const created = [];
-            for (let i = 0; i < count; i += 1) {
-                let code = buildCode(type, prefix);
-                while (pending.some(x => x.code === code)) code = buildCode(type, prefix);
-                const row = { id: uid("PC"), code, type, rank: type === "doctor" ? "Rezydent" : "", specialization: type === "doctor" ? "Ogólna" : "", createdAt: Date.now() };
-                pending.push(row); created.push(code);
-            }
-            writeLS("pending_codes", pending);
-            const msg = document.getElementById("genMsg");
-            msg.className = "msg ok"; msg.textContent = "Wygenerowano: " + created.join(", ");
-            renderPending();
-        }
-        function removePending(id) { writeLS("pending_codes", readLS("pending_codes", []).filter(p => p.id !== id)); renderPending(); }
-        function updateDoctor(id, field, value) {
-            const docs = readLS("hospital_staff", []);
-            const idx = docs.findIndex(d => d.id === id);
-            if (idx < 0) return;
-            docs[idx][field] = value; writeLS("hospital_staff", docs); renderDoctors();
-        }
-        function deleteDoctor(id) {
-            if (!confirm("Usunąć konto lekarza?")) return;
-            writeLS("hospital_staff", readLS("hospital_staff", []).filter(d => d.id !== id));
-            renderDoctors();
-        }
-        function deletePatient(id) {
-            if (!confirm("Usunąć konto pacjenta?")) return;
-            writeLS("registered_patients", readLS("registered_patients", []).filter(p => p.id !== id));
-            writeLS("hosp_v545", readLS("hosp_v545", []).filter(p => p.patientId !== id));
-            renderPatients();
-        }
-        function renderPending() {
-            const rows = readLS("pending_codes", []);
-            const table = document.getElementById("pendingTable");
-            table.innerHTML = `<thead><tr><th>Kod</th><th>Typ</th><th>Parametry</th><th>Akcja</th></tr></thead><tbody>${rows.length ? rows.map(r => `<tr><td>${esc(r.code)}</td><td>${esc(r.type)}</td><td>${esc(r.rank || "-")} ${r.specialization ? "| " + esc(r.specialization) : ""}</td><td><button class="btn-danger" onclick="removePending('${esc(r.id)}')">USUŃ</button></td></tr>`).join("") : `<tr><td colspan="4">Brak aktywnych kodów.</td></tr>`}</tbody>`;
-        }
-        function renderDoctors() {
-            const docs = readLS("hospital_staff", []);
-            const ranks = ["Student Medycyny", "Młodszy Ratownik", "Ratownik Medyczny", "Lekarz Rezydent", "Lekarz Specjalista", "Zastępca Ordynatora", "Ordynator", "Zarząd Szpitala", "Dyrektor Szpitala"];
-            const table = document.getElementById("doctorsTable");
-            table.innerHTML = `<thead><tr><th>Kod</th><th>Imię i nazwisko</th><th>Ranga</th><th>Specjalizacja</th><th>Akcja</th></tr></thead><tbody>${docs.length ? docs.map(d => `
-                <tr><td>${esc(d.code)}</td><td>${esc(d.name || ((d.firstName || "") + " " + (d.lastName || "")).trim())}</td><td><select onchange="updateDoctor('${esc(d.id)}','rank',this.value)">${ranks.map(r => `<option value="${esc(r)}" ${d.rank === r ? "selected" : ""}>${esc(r)}</option>`).join("")}</select></td><td><input value="${esc(d.specialization || "Ogólna")}" onchange="updateDoctor('${esc(d.id)}','specialization',this.value)" /></td><td><button class="btn-danger" onclick="deleteDoctor('${esc(d.id)}')">USUŃ</button></td></tr>
-            `).join("") : `<tr><td colspan="5">Brak lekarzy.</td></tr>`}</tbody>`;
+            const genBtn = document.getElementById("genBtn");
             
-            // Załaduj lekarzy do selecta harmonogramu
-            const scheduleSelect = document.getElementById("schedule_doctor");
-            if (scheduleSelect) {
-                scheduleSelect.innerHTML = "<option value=''>Wybierz lekarza...</option>";
-                docs.forEach(doctor => {
-                    scheduleSelect.innerHTML += `<option value='${doctor.id}'>${doctor.name} - ${doctor.specialization}</option>`;
-                });
-            }
-        }
-        function renderPatients() {
-            // Pobierz pacjentów z hosp_v545 (jedyna baza!)
-            const pats = JSON.parse(localStorage.getItem('hosp_v545')) || [];
-            const table = document.getElementById("patientsTable");
-            table.innerHTML = `<thead><tr><th>SSN</th><th>Imię i nazwisko</th><th>Ubezpieczyciel</th><th>Status</th><th>Akcja</th></tr></thead><tbody>${pats.length ? pats.map(p => `<tr><td>${esc(p.ssn || '-')}</td><td>${esc(p.name)}</td><td>${esc(p.insurance || '-')}</td><td>${esc(p.status || 'Aktywny')}</td><td><button class="btn-danger" onclick="removePatient('${esc(p.id)}')" style="font-size: 10px; padding: 4px 8px;">USUŃ</button></td></tr>`).join("") : `<tr><td colspan="5">Brak pacjentów.</td></tr>`}</tbody>`;
+            // Efekt "pisania na maszynie"
+            genBtn.disabled = true;
+            genBtn.textContent = "GENERUJ...";
+            
+            setTimeout(() => {
+                for (let i = 0; i < count; i += 1) {
+                    let code = buildCode(type, prefix);
+                    while (pending.some(x => x.code === code)) code = buildCode(type, prefix);
+                    const row = { id: uid("PC"), code, type, rank: type === "doctor" ? "Rezydent" : "", specialization: type === "doctor" ? "Ogólna" : "", createdAt: Date.now() };
+                    pending.push(row);
+                    created.push(code);
+                }
+                writeLS("pending_codes", pending);
+                
+                const msg = document.getElementById("genMsg");
+                msg.className = "msg ok";
+                msg.textContent = "Wygenerowano: " + created.join(", ");
+                
+                // Dodaj do terminala
+                addTerminalMessage(`[OK] TOKENS_GENERATED: ${count}x ${type.toUpperCase()}`);
+                
+                renderPending();
+                
+                // Reset przycisku
+                genBtn.disabled = false;
+                genBtn.textContent = "GENERUJ";
+            }, 800);
         }
         
-        function removePatient(id) {
-            if (!confirm("Usunąć tego pacjenta?")) return;
-            // Usuń z hosp_v545 (jedyna baza!)
-            const allPatients = JSON.parse(localStorage.getItem('hosp_v545')) || [];
+                        </div>
+                        <div id="genMsg" class="msg"></div>
+                        <div id="pendingTable" style="margin-top: 16px;"></div>
+                    </div>
+                    <div class="card">
+                        <h2>Zarządzanie Grafikiem</h2>
+                        <div class="sub">Przypisywanie dyżurów lekarzom.</div>
+                        <div class="row3">
+                            <select id="schedule_doctor"><option value="">Wybierz lekarza...</option></select>
+                            <input id="schedule_date" type="datetime-local" />
+                            <button class="btn" onclick="addSchedule()">DODAJ DYŻUR</button>
+                        </div>
+                        <div id="scheduleMsg" class="msg"></div>
+                        <div id="scheduleTable" style="margin-top: 16px;"></div>
+                    </div>
+                    <div class="card">
+                        <h2>Baza Lekarzy</h2>
+                        <div class="sub">Zmiana rangi/specjalizacji i usuwanie kont.</div>
+                        <table id="doctorsTable" style="margin-top: 16px;"></table>
+                    </div>
+                </div>
+                <div>
+                    <div class="card">
+                        <h2>Baza Cywili (Pacjentów)</h2>
+                        <div class="sub">Usunięcie konta czyści też wpis w `hosp_v545`.</div>
+                        <div id="patientsGrid" class="bento-grid">
+                            <!-- Karty pacjentów będą generowane dynamicznie -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            const BOSS = "BOSS123";
+            function readLS(k, f) { try { return JSON.parse(localStorage.getItem(k)) ?? f; } catch { return f; } }
+            function writeLS(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
+            function uid(p) { return p + "-" + Date.now().toString(36).toUpperCase() + "-" + Math.floor(Math.random() * 9999).toString().padStart(4, "0"); }
+            function esc(s) { return String(s ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;"); }
+            function ensureSeeds() {
+                if (!Array.isArray(readLS("pending_codes", null))) writeLS("pending_codes", []);
+                if (!Array.isArray(readLS("hospital_staff", null))) writeLS("hospital_staff", []);
+                if (!Array.isArray(readLS("hosp_v545", null))) writeLS("hosp_v545", []);
+                if (!Array.isArray(readLS("hospital_schedule", null))) writeLS("hospital_schedule", []);
+            }
+            ensureSeeds();
+            
+            function adminLogin() {
+                const v = document.getElementById("bossPass").value.trim();
+                const msg = document.getElementById("loginMsg");
+                
+                if (v !== BOSS) { 
+                    msg.className = "msg err"; 
+                    msg.textContent = "Błędny kod."; 
+                    return; 
+                }
+                
+                // Zapisz sesję admina
+                const userData = {
+                    imie: "System",
+                    nazwisko: "Administrator",
+                    ranga: "Administrator",
+                    id: "ADMIN",
+                    name: "System Administrator",
+                    rank: "Administrator",
+                    code: v,
+                    login: v,
+                    loginTime: Date.now(),
+                    type: 'admin'
+                };
+                
+                localStorage.setItem('hospital_auth', JSON.stringify(userData));
+                msg.className = "msg ok";
+                msg.textContent = "Autoryzacja OK. Przekierowanie...";
+                
+                // Opóźnienie dla zapisu danych
+                setTimeout(() => {
+                    document.getElementById("loginScreen").classList.add("hidden");
+                    document.getElementById("panel").classList.remove("hidden");
+                    renderAll();
+                }, 500);
+            }
+            
+            function logout() {
+                localStorage.removeItem('hospital_auth');
+                window.location.href = "portal.html";
+            }
+            
+            function generateCodes() {
+                const type = document.getElementById("genType").value;
+                const count = Math.max(1, Math.min(20, Number(document.getElementById("genCount").value || 1)));
+                const prefix = document.getElementById("genPrefix").value.trim();
+                const pending = readLS("pending_codes", []);
+                const created = [];
+                const genBtn = document.getElementById("genBtn");
+                
+                // Efekt "pisania na maszynie"
+                genBtn.disabled = true;
+                genBtn.textContent = "GENERUJ...";
+                
+                setTimeout(() => {
+                    for (let i = 0; i < count; i += 1) {
+                        let code = buildCode(type, prefix);
+                        while (pending.some(x => x.code === code)) code = buildCode(type, prefix);
+                        const row = { id: uid("PC"), code, type, rank: type === "doctor" ? "Rezydent" : "", specialization: type === "doctor" ? "Ogólna" : "", createdAt: Date.now() };
+                        pending.push(row);
+                        created.push(code);
+                    }
+                    writeLS("pending_codes", pending);
+                    
+                    const msg = document.getElementById("genMsg");
+                    msg.className = "msg ok";
+                    msg.textContent = "Wygenerowano: " + created.join(", ");
+                    
+                    // Dodaj do terminala
+                    addTerminalMessage(`[OK] TOKENS_GENERATED: ${count}x ${type.toUpperCase()}`);
+                    
+                    renderPending();
+                    
+                    // Reset przycisku
+                    genBtn.disabled = false;
+                    genBtn.textContent = "GENERUJ";
+                }, 800);
+            }
+            
+            function addTerminalMessage(message) {
+                const terminal = document.querySelector('.terminal-window');
+                if (terminal) {
+                    const line = document.createElement('div');
+                    line.className = 'terminal-line';
+                    line.innerHTML = `<span class="terminal-prompt">></span> ${message}`;
+                    terminal.appendChild(line);
+                    terminal.scrollTop = terminal.scrollHeight;
+                }
+            }
+            
+            function renderPatients() {
+                // Pobierz pacjentów z hosp_v545 (jedyna baza!)
+                const pats = JSON.parse(localStorage.getItem('hosp_v545')) || [];
+                const grid = document.getElementById("patientsGrid");
+                
+                if (!pats.length) {
+                    grid.innerHTML = '<div class="patient-card" style="text-align: center; color: var(--muted);">SYSTEM SCANNING... NO DATA FOUND</div>';
+                    return;
+                }
+                
+                grid.innerHTML = pats.map(p => {
+                    const isCritical = p.status === 'Krytyczny' || p.triage === 't-red';
+                    return `
+                        <div class="patient-card ${isCritical ? 'critical' : ''}">
+                            <div class="patient-status ${isCritical ? 'critical' : ''}"></div>
+                            <div class="patient-header">
+                                <div class="patient-name">${esc(p.name)}</div>
+                                <div class="patient-ssn">${esc(p.ssn || 'N/A')}</div>
+                            </div>
+                            <div class="patient-insurance">🏥 ${esc(p.insurance || 'Brak')}</div>
+                            <div class="patient-actions">
+                                <button class="btn-tactile" onclick="viewPatientDetails('${esc(p.id)}')">SZCZEGUJ</button>
+                                <button class="btn-tactile btn-danger-tactile" onclick="removePatient('${esc(p.id)}')">USUŃ</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            function removePatient(id) {
+                if (!confirm("Usunąć tego pacjenta?")) return;
+                // Usuń z hosp_v545 (jedyna baza!)
+                const allPatients = JSON.parse(localStorage.getItem('hosp_v545')) || [];
+                const filteredPatients = allPatients.filter(p => p.id !== id);
+                localStorage.setItem('hosp_v545', JSON.stringify(filteredPatients));
+                renderPatients();
+            }
+            function renderAll() { 
+                renderPending(); 
+                renderDoctors(); 
+                renderPatients(); 
+                renderSchedule(); 
+            }
+            
+            function addSchedule() {
+                const doctorId = document.getElementById("schedule_doctor").value;
+                const date = document.getElementById("schedule_date").value;
+                const msg = document.getElementById("scheduleMsg");
+                
+                if (!doctorId) {
+                    msg.className = "msg err";
+                    msg.textContent = "Wybierz lekarza.";
+                    return;
+                }
+                
+                if (!date) {
+                    msg.className = "msg err";
+                    msg.textContent = "Wybierz datę dyżuru.";
+                    return;
+                }
+                
+                const docs = readLS("hospital_staff", []);
+                const doctor = docs.find(d => d.id === doctorId);
+                if (!doctor) {
+                    msg.className = "msg err";
+                    msg.textContent = "Nie znaleziono lekarza.";
+                    return;
+                }
+                
+                const schedule = readLS("hospital_schedule", []);
+                const newShift = {
+                    id: uid("SHIFT"),
+                    doctorId: doctorId,
+                    doctorName: doctor.name,
+                    rank: doctor.rank,
+                    date: new Date(date).getTime(),
+                    dateStr: new Date(date).toLocaleString('pl-PL'),
+                    createdAt: Date.now()
+                };
+                
+                schedule.push(newShift);
+                writeLS("hospital_schedule", schedule);
+                
+                msg.className = "msg ok";
+                msg.textContent = `Dyżur dodany: ${doctor.name} - ${new Date(date).toLocaleString('pl-PL')}`;
+                
+                document.getElementById("schedule_doctor").value = "";
+                document.getElementById("schedule_date").value = "";
+                renderSchedule();
+            }
+            
+            function renderSchedule() {
+                const schedule = readLS("hospital_schedule", []);
+                const table = document.getElementById("scheduleTable");
+                
+                if (!schedule.length) {
+                    table.innerHTML = '<div style="color: var(--muted); text-align: center; padding: 20px;">Brak dyżurów</div>';
+                    return;
+                }
+                
+                // Sortuj po dacie
+                schedule.sort((a, b) => a.date - b.date);
+                
+                table.innerHTML = `
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead><tr>
+                            <th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Lekarz</th>
+                            <th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Ranga</th>
+                            <th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Data dyżuru</th>
+                            <th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Akcja</th>
+                        </tr></thead>
+                        <tbody>
+                            ${schedule.map(shift => {
+                                const rankColor = shift.rank === 'Ordynator' || shift.rank === 'Dyrektor Szpitala' || shift.rank === 'Zarząd Szpitala' ? '#f1c40f' : '#39a8ff';
+                                const dateStr = new Date(shift.date).toLocaleString('pl-PL');
+                                return `
+                                    <tr style="border-bottom: 1px solid var(--line);">
+                                        <td style="padding: 8px; color: var(--text);">${esc(shift.doctorName)}</td>
+                                        <td style="padding: 8px;">
+                                            <span style="background: ${rankColor}20; color: ${rankColor}; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">
+                                                ${esc(shift.rank)}
+                                            </span>
+                                        </td>
+                                        <td style="padding: 8px; color: var(--text);">${dateStr}</td>
+                                        <td style="padding: 8px;">
+                                            <button class="btn-danger" onclick="removeSchedule('${shift.id}')" style="font-size: 10px; padding: 4px 8px;">USUŃ</button>
+                                        </td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                `;
             const filteredPatients = allPatients.filter(p => p.id !== id);
             localStorage.setItem('hosp_v545', JSON.stringify(filteredPatients));
             renderPatients();
