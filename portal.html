@@ -3,317 +3,806 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin Center - Hospital</title>
-    <script>
-        // "Pancerny" skrypt weryfikacji sesji
-        let auth = localStorage.getItem('hospital_auth');
-        if (auth) {
-            try {
-                auth = JSON.parse(auth);
-                if (typeof auth === 'string') auth = JSON.parse(auth);
-            } catch(e) {
-                console.error("Błąd parsowania sesji:", e);
-                window.location.href = 'portal.html';
-                return;
-            }
-        }
-
-        // Sprawdzenie typu/roli (akceptujemy 'type' lub 'role' lub 'ranga')
-        const isAdmin = auth.type === 'admin' || auth.role === 'admin' || auth.ranga === 'Administrator';
-
-        if (isAdmin) {
-            console.log("Witaj Adminie, dostęp przyznany!");
-            // Auto-login: pokaż panel jeśli admin jest zalogowany
-            document.getElementById("loginScreen").classList.add("hidden");
-            document.getElementById("panel").classList.remove("hidden");
-            renderAll();
-        } else {
-            console.log("Brak autoryzacji admina - przekierowanie do portalu");
-            window.location.href = 'portal.html';
-        }
-    </script>
+    <title>Hospital Portal - Centralny System</title>
     <style>
         :root {
-            --bg: #070a10; --glass: rgba(255, 255, 255, 0.05); --line: rgba(255,255,255,.12);
-            --text: #e8eef9; --muted: #95a4ba; --gold: #f1c40f; --doc: #33c7ff; --pat: #37ff94; --err: #ff5c73;
+            --bg: #06080d;
+            --panel: #141922;
+            --card: rgba(255, 255, 255, 0.05);
+            --line: rgba(255, 255, 255, 0.12);
+            --text: #e8edf5;
+            --muted: #8f9bab;
+            --accent: #00d2d3;
+            --doctor: #39a8ff;
+            --patient: #2dff8d;
+            --ok: #2ecc71;
+            --warn: #f1c40f;
+            --err: #ff4757;
         }
         * { box-sizing: border-box; font-family: Consolas, "Courier New", monospace; }
-        body { margin: 0; color: var(--text); background: linear-gradient(135deg, #05070b, #0d1320); }
-        .hidden { display: none !important; }
-        .wrap { max-width: 1450px; margin: 0 auto; padding: 16px; }
-        .card { background: var(--glass); backdrop-filter: blur(15px); border: 1px solid var(--line); border-radius: 12px; padding: 14px; margin-bottom: 12px; }
-        h1, h2 { margin: 0 0 10px 0; } h2 { color: var(--gold); font-size: 16px; }
-        .sub { color: var(--muted); font-size: 12px; margin-bottom: 8px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .row4 { display: grid; grid-template-columns: 1fr 120px 140px 160px; gap: 8px; }
-        .row3 { display: grid; grid-template-columns: 1fr 1fr 180px; gap: 8px; }
-        input, select, button { width: 100%; border: 1px solid var(--line); background: rgba(10,20,35,.75); color: var(--text); border-radius: 8px; padding: 10px; margin-bottom: 8px; }
-        button { cursor: pointer; font-weight: 700; text-transform: uppercase; transition: .2s ease; }
-        .btn { border-color: rgba(241,196,15,.6); color: #fff3bb; }
-        .btn:hover { box-shadow: 0 0 16px rgba(241,196,15,.45); }
-        .btn2 { border-color: rgba(51,199,255,.5); color: #d8f6ff; }
-        .btn2:hover { box-shadow: 0 0 16px rgba(51,199,255,.4); }
-        .btn-danger { border-color: rgba(255,92,115,.5); color: #ffc2cb; }
-        .btn-danger:hover { box-shadow: 0 0 16px rgba(255,92,115,.4); }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border-bottom: 1px solid var(--line); padding: 8px; font-size: 12px; text-align: left; }
-        th { color: #ffeb9e; font-size: 11px; text-transform: uppercase; }
-        .login-wrap { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
-        .login-card { width: 100%; max-width: 430px; background: var(--glass); backdrop-filter: blur(15px); border: 1px solid var(--line); border-top: 3px solid var(--gold); border-radius: 12px; padding: 18px; }
-        .msg { min-height: 16px; font-size: 12px; color: var(--muted); } .ok { color: var(--pat); } .err { color: var(--err); }
-        @media (max-width: 1100px) { .grid, .row4, .row3 { grid-template-columns: 1fr; } }
+        body {
+            margin: 0;
+            background: radial-gradient(circle at 10% 10%, #101a2a 0%, #06080d 55%),
+                        radial-gradient(circle at 90% 90%, #0f1f17 0%, #06080d 60%);
+            color: var(--text);
+            min-height: 100vh;
+        }
+        .wrap { max-width: 1300px; margin: 0 auto; padding: 20px; }
+        h1 { margin: 0 0 6px 0; }
+        .sub { color: var(--muted); margin-bottom: 16px; font-size: 13px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 16px;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+        }
+        .doctor-card { border-color: rgba(57, 168, 255, 0.35); }
+        .patient-card { border-color: rgba(45, 255, 141, 0.35); }
+        .admin-card { border-color: rgba(241, 196, 15, 0.35); }
+        h2 { margin: 0 0 10px 0; color: var(--accent); font-size: 18px; }
+        h3 { margin: 14px 0 8px 0; color: #9ddfe0; font-size: 14px; }
+        input, select, button {
+            width: 100%;
+            margin-bottom: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text);
+            border-radius: 8px;
+            padding: 12px;
+            font-weight: 600;
+        }
+        button {
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid var(--accent);
+        }
+        button:hover {
+            background: var(--accent);
+            color: #032022;
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(0, 210, 211, 0.3);
+        }
+        .btn-doctor { background: var(--doctor); color: #0a1929; }
+        .btn-patient { background: var(--patient); color: #0a1929; }
+        .btn-admin { background: var(--warn); color: #0a1929; }
+        .msg {
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        .msg.ok { background: rgba(46, 204, 113, 0.15); color: var(--ok); border: 1px solid var(--ok); }
+        .msg.err { background: rgba(255, 71, 87, 0.15); color: var(--err); border: 1px solid var(--err); }
+        
+        /* Overlay System */
+        .auth-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(6, 8, 13, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .auth-container {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+        .auth-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+        .auth-tab {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            border: 1px solid var(--line);
+            color: var(--muted);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .auth-tab.active {
+            background: var(--accent);
+            color: #032022;
+            border-color: var(--accent);
+        }
+        .auth-panel {
+            display: none;
+        }
+        .auth-panel.active {
+            display: block;
+        }
+        .toggle-btn {
+            background: transparent;
+            border: 1px solid var(--line);
+            color: var(--muted);
+            margin-top: 12px;
+            font-size: 12px;
+        }
+        .toggle-btn:hover {
+            background: var(--line);
+            color: var(--text);
+        }
+        
+        /* Main System (ukryty bez logowania) */
+        .main-system {
+            display: none;
+        }
+        .main-system.active {
+            display: block;
+        }
+        
+        .badge {
+            color: var(--muted);
+            font-size: 11px;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        /* Portal Pacjenta */
+        .patient-data {
+            background: rgba(45, 255, 141, 0.1);
+            border: 1px solid rgba(45, 255, 141, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .history-item {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+        .history-date {
+            color: var(--accent);
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+        .history-note {
+            color: var(--text);
+            white-space: pre-wrap;
+            line-height: 1.5;
+        }
+        
+        /* Konsultacje */
+        .chat-container {
+            height: 300px;
+            overflow-y: auto;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+        .chat-message {
+            margin-bottom: 8px;
+            padding: 8px;
+            border-radius: 6px;
+        }
+        .chat-message.doctor {
+            background: rgba(57, 168, 255, 0.1);
+            border-left: 3px solid var(--doctor);
+        }
+        .chat-message.patient {
+            background: rgba(45, 255, 141, 0.1);
+            border-left: 3px solid var(--patient);
+        }
+        .chat-author {
+            font-weight: bold;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+        .chat-text {
+            font-size: 13px;
+            line-height: 1.4;
+        }
+        .chat-time {
+            font-size: 10px;
+            color: var(--muted);
+            margin-top: 4px;
+        }
     </style>
 </head>
 <body>
-    <div id="loginScreen" class="login-wrap">
-        <div class="login-card">
-            <h1>ADMIN CENTER</h1>
-            <div class="sub">Dostęp tylko dla kodu bezpieczeństwa.</div>
-            <input id="bossPass" type="password" placeholder="Kod bezpieczeństwa" />
-            <button class="btn" onclick="adminLogin()">AUTORYZUJ</button>
-            <button class="btn2" onclick="location.href='portal.html'">POWRÓT</button>
-            <div id="loginMsg" class="msg"></div>
+    <!-- Overlay System - Pokaż tylko gdy brak sesji -->
+    <div id="authOverlay" class="auth-overlay">
+        <div class="auth-container">
+            <h1 style="text-align: center; color: var(--accent); margin-bottom: 24px;">🏥 HOSPITAL PORTAL</h1>
+            
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="switchAuthTab('login')">LOGOWANIE</button>
+                <button class="auth-tab" onclick="switchAuthTab('register')">REJESTRACJA</button>
+            </div>
+            
+            <!-- Panel Logowania -->
+            <div id="loginPanel" class="auth-panel active">
+                <div class="grid">
+                    <div class="card doctor-card">
+                        <h2>👨‍⚕️ LEKARZ</h2>
+                        <div class="sub">Panel personelu medycznego</div>
+                        <input type="text" id="doc_code" placeholder="Kod dostępu" maxlength="20" />
+                        <input type="password" id="doc_pass" placeholder="Hasło" />
+                        <button class="btn-doctor" onclick="doctorLogin()">ZALOGUJ SIĘ</button>
+                        <div id="doc_msg" class="msg"></div>
+                    </div>
+                    <div class="card admin-card">
+                        <h2>⚙️ ADMIN</h2>
+                        <div class="sub">Zarządzanie systemem</div>
+                        <input type="text" id="adminLogin" placeholder="Kod admina" maxlength="20" />
+                        <input type="password" id="adminPass" placeholder="Hasło admina" />
+                        <button class="btn-admin" onclick="loginAdmin()">ZALOGUJ SIĘ</button>
+                        <div id="admin_msg" class="msg"></div>
+                    </div>
+                </div>
+                <div class="card patient-card">
+                    <h2>🧑 PACJENT</h2>
+                    <div class="sub">Portal pacjenta</div>
+                    <input type="text" id="pat_login" placeholder="Login" maxlength="20" />
+                    <input type="password" id="pat_pass" placeholder="Hasło" />
+                    <button class="btn-patient" onclick="patientLogin()">ZALOGUJ SIĘ</button>
+                    <div id="pat_msg" class="msg"></div>
+                    <div style="text-align: center; margin-top: 12px;">
+                        <button class="toggle-btn" onclick="switchToPatientRegister()">Nie masz konta? Zarejestruj się jako pacjent</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Panel Rejestracji -->
+            <div id="registerPanel" class="auth-panel">
+                <div class="card doctor-card">
+                    <h2>👨‍⚕️ REJESTRACJA LEKARZA</h2>
+                    <div class="badge">Wymaga kodu jednorazowego od Admina (DR-XXXX)</div>
+                    <input type="text" id="doc_first" placeholder="Imię" />
+                    <input type="text" id="doc_last" placeholder="Nazwisko" />
+                    <input type="password" id="doc_reg_pass" placeholder="Własne hasło" />
+                    <input type="text" id="doc_admin_code" placeholder="Kod od admina (DR-XXXX)" />
+                    <button class="btn-doctor" onclick="doctorRegister()">ZAREJESTRUJ LEKARZA</button>
+                    <div id="doc_reg_msg" class="msg"></div>
+                    <button class="toggle-btn" onclick="switchAuthTab('login')">← POWRÓT DO LOGOWANIA</button>
+                </div>
+            </div>
+            
+            <!-- Panel Rejestracji Pacjentów -->
+            <div id="patientRegisterPanel" class="auth-panel">
+                <div class="card patient-card">
+                    <h2>🧑 REJESTRACJA PACJENTA</h2>
+                    <div class="badge">Stwórz nowe konto pacjenta</div>
+                    <input type="text" id="pat_reg_name" placeholder="Imię i Nazwisko" />
+                    <input type="text" id="pat_reg_ssn" placeholder="SSN (Format: XXX-XX-XXXX)" maxlength="11" />
+                    <input type="password" id="pat_reg_pass" placeholder="Hasło" />
+                    <input type="text" id="pat_reg_insurance" placeholder="Ubezpieczyciel (Insurance Provider)" />
+                    <button class="btn-patient" onclick="registerPatient()">ZAREJESTRUJ PACJENTA</button>
+                    <div id="pat_reg_msg" class="msg"></div>
+                    <button class="toggle-btn" onclick="switchToPatientLogin()">← POWRÓT DO LOGOWANIA</button>
+                </div>
+            </div>
         </div>
     </div>
-    <div id="panel" class="wrap hidden">
-        <div class="card">
-            <h1>Hospital Administration</h1>
-            <div class="row3">
-                <button class="btn2" onclick="location.href='hospital_system.html'">START</button>
-                <button class="btn2" onclick="location.href='index.html'">ODDZIAŁ</button>
-                <button class="btn-danger" onclick="logout()">WYLOGUJ</button>
+
+    <!-- Główny System (widoczny po zalogowaniu) -->
+    <div id="mainSystem" class="main-system">
+        <div class="wrap">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h1 style="color: var(--accent); font-size: 32px;">🏥 HOSPITAL PORTAL</h1>
+                <div class="sub">Jesteś zalogowany jako: <span id="userInfo">-</span></div>
             </div>
-        </div>
-        <div class="grid">
-            <div>
-                <div class="card">
-                    <h2>Generator Kodów Dostępu</h2>
-                    <div class="sub">Jednorazowe tokeny trafiają do `pending_codes`.</div>
-                    <div class="row4">
-                        <select id="genType"><option value="doctor">Lekarz</option><option value="patient">Pacjent</option></select>
-                        <input id="genCount" type="number" min="1" max="20" value="1" />
-                        <input id="genPrefix" type="text" placeholder="Prefix (opcj.)" />
-                        <button class="btn" onclick="generateCodes()">GENERUJ</button>
-                    </div>
-                    <div id="genMsg" class="msg"></div>
-                    <table id="pendingTable" style="margin-top: 16px;"></table>
+            
+            <!-- Panel Lekarza -->
+            <div id="doctorPanel" class="card" style="display: none;">
+                <h2>👨‍⚕️ PANEL LEKARZA</h2>
+                <div class="sub">Baza pacjentów, karty medyczne, harmonogram</div>
+                <button class="btn-doctor" onclick="location.href='index.html'">OTWÓRZ BAZĘ PACJENTÓW</button>
+            </div>
+            
+            <!-- Panel Admina -->
+            <div id="adminPanel" class="card" style="display: none;">
+                <h2>⚙️ PANEL ADMINA</h2>
+                <div class="sub">Zarządzanie systemem, użytkownicy</div>
+                <button class="btn-admin" onclick="location.href='admin_analyzed.html'">OTWÓRZ PANEL ADMINA</button>
+            </div>
+            
+            <!-- Portal Pacjenta -->
+            <div id="patientPanel" style="display: none;">
+                <div class="card patient-data">
+                    <h2>🧑 TWOJE DANE</h2>
+                    <div id="patientInfo">Ładowanie danych...</div>
                 </div>
+                
                 <div class="card">
-                    <h2>Zarządzanie Grafikiem</h2>
-                    <div class="sub">Przypisywanie dyżurów lekarzom.</div>
-                    <div class="row3">
-                        <select id="schedule_doctor"><option value="">Wybierz lekarza...</option></select>
-                        <input id="schedule_date" type="datetime-local" />
-                        <button class="btn" onclick="addSchedule()">DODAJ DYŻUR</button>
-                    </div>
-                    <div id="scheduleMsg" class="msg"></div>
-                    <div id="scheduleTable" style="margin-top: 16px;"></div>
+                    <h2>📋 HISTORIA MEDYCZNA</h2>
+                    <div id="patientHistory">Ładowanie historii...</div>
                 </div>
+                
                 <div class="card">
-                    <h2>Baza Lekarzy</h2>
-                    <div class="sub">Zmiana rangi/specjalizacji i usuwanie kont.</div>
-                    <table id="doctorsTable" style="margin-top: 16px;"></table>
+                    <h2>💬 KONSULTACJE</h2>
+                    <div class="chat-container" id="chatContainer">
+                        <div id="chatMessages">Ładowanie konsultacji...</div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="chatInput" placeholder="Wiadomość do lekarza..." />
+                        <button class="btn-patient" onclick="sendMessage()">WYŚLIJ</button>
+                    </div>
                 </div>
             </div>
-            <div>
-                <div class="card">
-                    <h2>Baza Cywili (Pacjentów)</h2>
-                    <div class="sub">Usunięcie konta czyści też wpis w `hosp_v545`.</div>
-                    <table id="patientsTable" style="margin-top: 16px;"></table>
-                </div>
+            
+            <div style="text-align: center; margin-top: 24px;">
+                <button class="btn-admin" onclick="logoutAll()">WYLOGUJ SIĘ</button>
             </div>
         </div>
     </div>
+
     <script>
-        const BOSS = "BOSS123";
-        function readLS(k, f) { try { return JSON.parse(localStorage.getItem(k)) ?? f; } catch { return f; } }
-        function writeLS(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
-        function uid(p) { return p + "-" + Date.now().toString(36).toUpperCase() + "-" + Math.floor(Math.random() * 9999).toString().padStart(4, "0"); }
+        function readLS(key, fallback) { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } }
+        function writeLS(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
+        function uid(prefix) { return prefix + "-" + Date.now().toString(36).toUpperCase() + "-" + Math.floor(Math.random() * 9999).toString().padStart(4, "0"); }
         function esc(s) { return String(s ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;"); }
+        function logSystem(type, action, details) {
+            const logs = readLS("system_logs", []);
+            logs.push({ id: uid("LOG"), ts: Date.now(), type, action, details: details || {} });
+            writeLS("system_logs", logs.slice(-900));
+        }
+
         function ensureSeeds() {
-            if (!Array.isArray(readLS("pending_codes", null))) writeLS("pending_codes", []);
             if (!Array.isArray(readLS("hospital_staff", null))) writeLS("hospital_staff", []);
+            if (!Array.isArray(readLS("consultations", null))) writeLS("consultations", []);
+            if (!Array.isArray(readLS("pending_codes", null))) writeLS("pending_codes", []);
             if (!Array.isArray(readLS("hosp_v545", null))) writeLS("hosp_v545", []);
             if (!Array.isArray(readLS("hospital_schedule", null))) writeLS("hospital_schedule", []);
         }
-        ensureSeeds();
-        
-        function generateCodes() {
-            const type = document.getElementById("genType").value;
-            const count = Math.max(1, Math.min(20, Number(document.getElementById("genCount").value || 1)));
-            const prefix = document.getElementById("genPrefix").value.trim();
+
+        // Funkcja renderAll() dla kompatybilności z admin_analyzed.html
+        function renderAll() {
+            // W portal.html nie ma czegoś do renderowania przy auto-login
+            // Funkcja istnieje dla kompatybilności
+            console.log("renderAll() called - no action needed in portal.html");
+        }
+
+        function consumePendingCode(rawCode, type) {
+            const code = String(rawCode || "").trim().toUpperCase();
             const pending = readLS("pending_codes", []);
-            const created = [];
-            for (let i = 0; i < count; i += 1) {
-                let code = buildCode(type, prefix);
-                while (pending.some(x => x.code === code)) code = buildCode(type, prefix);
-                const row = { id: uid("PC"), code, type, rank: type === "doctor" ? "Rezydent" : "", specialization: type === "doctor" ? "Ogólna" : "", createdAt: Date.now() };
-                pending.push(row); created.push(code);
-            }
+            const idx = pending.findIndex(p => p.code === code && p.type === type);
+            if (idx < 0) return null;
+            const token = pending[idx];
+            pending.splice(idx, 1);
             writeLS("pending_codes", pending);
-            const msg = document.getElementById("genMsg");
-            msg.className = "msg ok"; msg.textContent = "Wygenerowano: " + created.join(", ");
-            renderPending();
+            return token;
         }
-        function removePending(id) { writeLS("pending_codes", readLS("pending_codes", []).filter(p => p.id !== id)); renderPending(); }
-        function updateDoctor(id, field, value) {
-            const docs = readLS("hospital_staff", []);
-            const idx = docs.findIndex(d => d.id === id);
-            if (idx < 0) return;
-            docs[idx][field] = value; writeLS("hospital_staff", docs); renderDoctors();
-        }
-        function deleteDoctor(id) {
-            if (!confirm("Usunąć konto lekarza?")) return;
-            writeLS("hospital_staff", readLS("hospital_staff", []).filter(d => d.id !== id));
-            renderDoctors();
-        }
-        function deletePatient(id) {
-            if (!confirm("Usunąć konto pacjenta?")) return;
-            writeLS("registered_patients", readLS("registered_patients", []).filter(p => p.id !== id));
-            writeLS("hosp_v545", readLS("hosp_v545", []).filter(p => p.patientId !== id));
-            renderPatients();
-        }
-        function renderPending() {
-            const rows = readLS("pending_codes", []);
-            const table = document.getElementById("pendingTable");
-            table.innerHTML = `<thead><tr><th>Kod</th><th>Typ</th><th>Parametry</th><th>Akcja</th></tr></thead><tbody>${rows.length ? rows.map(r => `<tr><td>${esc(r.code)}</td><td>${esc(r.type)}</td><td>${esc(r.rank || "-")} ${r.specialization ? "| " + esc(r.specialization) : ""}</td><td><button class="btn-danger" onclick="removePending('${esc(r.id)}')">USUŃ</button></td></tr>`).join("") : `<tr><td colspan="4">Brak aktywnych kodów.</td></tr>`}</tbody>`;
-        }
-        function renderDoctors() {
-            const docs = readLS("hospital_staff", []);
-            const ranks = ["Student Medycyny", "Młodszy Ratownik", "Ratownik Medyczny", "Lekarz Rezydent", "Lekarz Specjalista", "Zastępca Ordynatora", "Ordynator", "Zarząd Szpitala", "Dyrektor Szpitala"];
-            const table = document.getElementById("doctorsTable");
-            table.innerHTML = `<thead><tr><th>Kod</th><th>Imię i nazwisko</th><th>Ranga</th><th>Specjalizacja</th><th>Akcja</th></tr></thead><tbody>${docs.length ? docs.map(d => `
-                <tr><td>${esc(d.code)}</td><td>${esc(d.name || ((d.firstName || "") + " " + (d.lastName || "")).trim())}</td><td><select onchange="updateDoctor('${esc(d.id)}','rank',this.value)">${ranks.map(r => `<option value="${esc(r)}" ${d.rank === r ? "selected" : ""}>${esc(r)}</option>`).join("")}</select></td><td><input value="${esc(d.specialization || "Ogólna")}" onchange="updateDoctor('${esc(d.id)}','specialization',this.value)" /></td><td><button class="btn-danger" onclick="deleteDoctor('${esc(d.id)}')">USUŃ</button></td></tr>
-            `).join("") : `<tr><td colspan="5">Brak lekarzy.</td></tr>`}</tbody>`;
+
+        function switchAuthTab(tab) {
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.auth-panel').forEach(p => p.classList.remove('active'));
             
-            // Załaduj lekarzy do selecta harmonogramu
-            const scheduleSelect = document.getElementById("schedule_doctor");
-            if (scheduleSelect) {
-                scheduleSelect.innerHTML = "<option value=''>Wybierz lekarza...</option>";
-                docs.forEach(doctor => {
-                    scheduleSelect.innerHTML += `<option value='${doctor.id}'>${doctor.name} - ${doctor.specialization}</option>`;
-                });
+            if (tab === 'login') {
+                document.querySelector('.auth-tab:first-child').classList.add('active');
+                document.getElementById('loginPanel').classList.add('active');
+            } else {
+                document.querySelector('.auth-tab:last-child').classList.add('active');
+                document.getElementById('registerPanel').classList.add('active');
             }
         }
-        function renderPatients() {
-            // Pobierz pacjentów z hosp_v545 (jedyna baza!)
-            const pats = JSON.parse(localStorage.getItem('hosp_v545')) || [];
-            const table = document.getElementById("patientsTable");
-            table.innerHTML = `<thead><tr><th>SSN</th><th>Imię i nazwisko</th><th>Ubezpieczyciel</th><th>Status</th><th>Akcja</th></tr></thead><tbody>${pats.length ? pats.map(p => `<tr><td>${esc(p.ssn || '-')}</td><td>${esc(p.name)}</td><td>${esc(p.insurance || '-')}</td><td>${esc(p.status || 'Aktywny')}</td><td><button class="btn-danger" onclick="removePatient('${esc(p.id)}')" style="font-size: 10px; padding: 4px 8px;">USUŃ</button></td></tr>`).join("") : `<tr><td colspan="5">Brak pacjentów.</td></tr>`}</tbody>`;
+
+        function switchToPatientRegister() {
+            document.querySelectorAll('.auth-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById('patientRegisterPanel').classList.add('active');
         }
-        
-        function removePatient(id) {
-            if (!confirm("Usunąć tego pacjenta?")) return;
-            // Usuń z hosp_v545 (jedyna baza!)
-            const allPatients = JSON.parse(localStorage.getItem('hosp_v545')) || [];
-            const filteredPatients = allPatients.filter(p => p.id !== id);
-            localStorage.setItem('hosp_v545', JSON.stringify(filteredPatients));
-            renderPatients();
+
+        function switchToPatientLogin() {
+            document.querySelectorAll('.auth-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById('loginPanel').classList.add('active');
         }
-        function renderAll() { 
-            renderPending(); 
-            renderDoctors(); 
-            renderPatients(); 
-            renderSchedule(); 
-        }
-        
-        function addSchedule() {
-            const doctorId = document.getElementById("schedule_doctor").value;
-            const date = document.getElementById("schedule_date").value;
-            const msg = document.getElementById("scheduleMsg");
+
+        function registerPatient() {
+            const name = document.getElementById("pat_reg_name").value.trim();
+            const ssn = document.getElementById("pat_reg_ssn").value.trim();
+            const password = document.getElementById("pat_reg_pass").value;
+            const insurance = document.getElementById("pat_reg_insurance").value.trim();
+            const msg = document.getElementById("pat_reg_msg");
             
-            if (!doctorId) {
+            // Walidacja pól
+            if (!name || !ssn || !password || !insurance) {
                 msg.className = "msg err";
-                msg.textContent = "Wybierz lekarza.";
+                msg.textContent = "Uzupełnij wszystkie pola.";
                 return;
             }
             
-            if (!date) {
+            // Walidacja formatu SSN
+            const ssnPattern = /^\d{3}-\d{2}-\d{4}$/;
+            if (!ssnPattern.test(ssn)) {
                 msg.className = "msg err";
-                msg.textContent = "Wybierz datę dyżuru.";
+                msg.textContent = "Nieprawidłowy format SSN. Użyj formatu XXX-XX-XXXX.";
                 return;
             }
             
-            const docs = readLS("hospital_staff", []);
-            const doctor = docs.find(d => d.id === doctorId);
-            if (!doctor) {
+            // Pobierz obecną listę z hosp_v545 (jedyny klucz!)
+            const patients = JSON.parse(localStorage.getItem('hosp_v545')) || [];
+            
+            // Sprawdź czy SSN już istnieje
+            if (patients.some(p => p.ssn === ssn)) {
                 msg.className = "msg err";
-                msg.textContent = "Nie znaleziono lekarza.";
+                msg.textContent = "Pacjent z tym SSN już istnieje.";
                 return;
             }
             
-            const schedule = readLS("hospital_schedule", []);
-            const newShift = {
-                id: uid("SHIFT"),
-                doctorId: doctorId,
-                doctorName: doctor.name,
-                rank: doctor.rank,
-                date: new Date(date).getTime(),
-                dateStr: new Date(date).toLocaleString('pl-PL'),
+            // Podziel imię i nazwisko
+            const nameParts = name.split(' ');
+            const firstName = nameParts[0] || 'Nieznane';
+            const lastName = nameParts.slice(1).join(' ') || 'Nieznane';
+            
+            // Stwórz nowy obiekt pacjenta (tylko hosp_v545!)
+            const newPatient = {
+                id: uid("PAT"),
+                imie: firstName,
+                nazwisko: lastName,
+                name: name,
+                ssn: ssn, // SSN jako login
+                password: password,
+                insurance: insurance,
+                age: "Nieznany",
+                gender: "Nieznana",
+                blood: "Nieznana",
+                insured: "Tak",
+                insNumber: "",
+                address: "Nieznany",
+                job: "Nieznany",
+                status: "Aktywny",
+                triage: "Nieokreślony",
+                reason: "Rejestracja",
+                alergie: "Brak",
+                history: [], // WAŻNE: Pusta historia dla lekarza
                 createdAt: Date.now()
             };
             
-            schedule.push(newShift);
-            writeLS("hospital_schedule", schedule);
+            // Dodaj pacjenta do hosp_v545 (jedyna baza!)
+            patients.push(newPatient);
+            localStorage.setItem('hosp_v545', JSON.stringify(patients));
             
+            // Logowanie systemowe
+            logSystem("patient", "REGISTER_SUCCESS", { 
+                patientId: newPatient.id, 
+                name: newPatient.name,
+                ssn: newPatient.ssn
+            });
+            
+            // Sukces
             msg.className = "msg ok";
-            msg.textContent = `Dyżur dodany: ${doctor.name} - ${new Date(date).toLocaleString('pl-PL')}`;
+            msg.textContent = `Rejestracja zakończona! Twój login (SSN): ${newPatient.ssn}`;
             
-            document.getElementById("schedule_doctor").value = "";
-            document.getElementById("schedule_date").value = "";
-            renderSchedule();
+            // Wyczyść pola
+            ["pat_reg_name","pat_reg_ssn","pat_reg_pass","pat_reg_insurance"].forEach(id => {
+                document.getElementById(id).value = "";
+            });
+            
+            // Przełącz do logowania po 2 sekundach
+            setTimeout(() => {
+                switchToPatientLogin();
+            }, 2000);
         }
-        
-        function renderSchedule() {
-            const schedule = readLS("hospital_schedule", []);
-            const table = document.getElementById("scheduleTable");
+
+        function doctorRegister() {
+            const first = document.getElementById("doc_first").value.trim();
+            const last = document.getElementById("doc_last").value.trim();
+            const password = document.getElementById("doc_reg_pass").value;
+            const adminCode = document.getElementById("doc_admin_code").value.trim().toUpperCase();
+            const msg = document.getElementById("doc_reg_msg");
             
-            if (!schedule.length) {
-                table.innerHTML = '<div style="color: var(--muted); text-align: center; padding: 20px;">Brak dyżurów</div>';
+            if (!first || !last || !password || !adminCode) {
+                msg.className = "msg err"; 
+                msg.textContent = "Uzupełnij dane lekarza i kod od admina."; 
                 return;
             }
             
-            // Sortuj po dacie
-            schedule.sort((a, b) => a.date - b.date);
+            const token = consumePendingCode(adminCode, "doctor");
+            if (!token) { 
+                msg.className = "msg err"; 
+                msg.textContent = "Nieprawidłowy lub wykorzystany kod admina."; 
+                return;
+            }
             
-            table.innerHTML = `
-                <table style="width: 100%; border-collapse: collapse;">
-                    <thead><tr>
-                        <th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Lekarz</th>
-                        <th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Ranga</th>
-                        <th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Data dyżuru</th>
-                        <th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Akcja</th>
-                    </tr></thead>
-                    <tbody>
-                        ${schedule.map(shift => {
-                            const rankColor = shift.rank === 'Ordynator' || shift.rank === 'Dyrektor Szpitala' || shift.rank === 'Zarząd Szpitala' ? '#f1c40f' : '#39a8ff';
-                            const dateStr = new Date(shift.date).toLocaleString('pl-PL');
-                            return `
-                                <tr style="border-bottom: 1px solid var(--line);">
-                                    <td style="padding: 8px; color: var(--text);">${esc(shift.doctorName)}</td>
-                                    <td style="padding: 8px;">
-                                        <span style="background: ${rankColor}20; color: ${rankColor}; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">
-                                            ${esc(shift.rank)}
-                                        </span>
-                                    </td>
-                                    <td style="padding: 8px; color: var(--text);">${dateStr}</td>
-                                    <td style="padding: 8px;">
-                                        <button class="btn-danger" onclick="removeSchedule('${shift.id}')" style="font-size: 10px; padding: 4px 8px;">USUŃ</button>
-                                    </td>
-                                </tr>
-                            `;
-                        }).join('')}
-                    </tbody>
-                </table>
-            `;
+            const staff = readLS("hospital_staff", []);
+            const entry = {
+                id: uid("DOC"), 
+                code: adminCode, 
+                password, 
+                firstName: first, 
+                lastName: last, 
+                name: first + " " + last,
+                rank: token.rank || "Rezydent", 
+                specialization: token.specialization || "Ogólna", 
+                createdAt: Date.now()
+            };
+            
+            staff.push(entry);
+            writeLS("hospital_staff", staff);
+            logSystem("doctor", "REGISTER_SUCCESS", { doctorId: entry.id, code: entry.code });
+            msg.className = "msg ok"; 
+            msg.textContent = "Rejestracja lekarza zakończona.";
+            
+            ["doc_first","doc_last","doc_reg_pass","doc_admin_code"].forEach(id => document.getElementById(id).value = "");
+            
+            setTimeout(() => switchAuthTab('login'), 2000);
         }
-        
-        function removeSchedule(id) {
-            if (!confirm("Usunąć ten dyżur?")) return;
-            const schedule = readLS("hospital_schedule", []).filter(s => s.id !== id);
-            writeLS("hospital_schedule", schedule);
-            renderSchedule();
+
+        function doctorLogin() {
+            const code = document.getElementById("doc_code").value.trim().toUpperCase();
+            const password = document.getElementById("doc_pass").value;
+            const staff = readLS("hospital_staff", []);
+            const msg = document.getElementById("doc_msg");
+            const doctor = staff.find(s => s.code === code && s.password === password);
+
+            if (!doctor) {
+                msg.className = "msg err";
+                msg.textContent = "Błędny login (kod) lub hasło.";
+                logSystem("doctor", "LOGIN_FAIL", { code });
+                return;
+            }
+
+            // Zapisz pełną sesję z obiektem lekarza
+            const userData = {
+                imie: doctor.firstName || doctor.name.split(' ')[0],
+                nazwisko: doctor.lastName || doctor.name.split(' ')[1] || doctor.name,
+                ranga: doctor.rank,
+                id: doctor.id,
+                name: doctor.name,
+                rank: doctor.rank,
+                specialization: doctor.specialization,
+                code: doctor.code,
+                login: doctor.code,
+                loginTime: Date.now(),
+                type: 'doctor'
+            };
+            
+            localStorage.setItem('hospital_auth', JSON.stringify(userData));
+            writeLS("hospital_auth", JSON.stringify(userData));
+            writeLS("current_doctor_session", { doctorId: doctor.id, code: doctor.code, ts: Date.now() });
+            logSystem("doctor", "LOGIN_SUCCESS", { doctorId: doctor.id, name: doctor.name, code: doctor.code });
+            msg.className = "msg ok";
+            msg.textContent = "Autoryzacja OK. Przekierowanie...";
+            
+            // Przekierowanie z opóźnieniem
+            setTimeout(() => {
+                location.href = "index.html";
+            }, 100);
         }
+
+        // Prosta funkcja logowania admina
+        function loginAdmin() {
+            try {
+                const login = document.getElementById('adminLogin').value;
+                const pass = document.getElementById('adminPass').value;
+                const msg = document.getElementById('admin_msg');
+
+                if (login === 'ADMIN' && pass === 'ADMIN123') {
+                    const userData = {
+                        imie: "System",
+                        nazwisko: "Administrator",
+                        ranga: "Administrator",
+                        id: "ADMIN",
+                        name: "System Administrator",
+                        rank: "Administrator",
+                        code: login,
+                        login: login,
+                        loginTime: Date.now(),
+                        type: 'admin'
+                    };
+                    
+                    localStorage.setItem('hospital_auth', JSON.stringify(userData));
+                    msg.className = "msg ok";
+                    msg.textContent = "Autoryzacja OK. Przekierowanie...";
+                    
+                    setTimeout(() => {
+                        window.location.href = 'admin_analyzed.html';
+                    }, 1000);
+                } else {
+                    msg.className = "msg err";
+                    msg.textContent = 'Błędne dane!';
+                }
+            } catch (error) {
+                console.error('Błąd w loginAdmin():', error);
+                alert('Wystąpił błąd: ' + error.message);
+            }
+        }
+
+        function patientLogin() {
+            const login = document.getElementById("pat_login").value.trim().toUpperCase();
+            const pass = document.getElementById("pat_pass").value;
+            const msg = document.getElementById("pat_msg");
+            
+            // Przeszukaj hosp_v545 (jedyna baza pacjentów!)
+            const patients = JSON.parse(localStorage.getItem('hosp_v545')) || [];
+            const patient = patients.find(p => String(p.ssn).toUpperCase() === login && p.password === pass);
+
+            if (!patient) {
+                msg.className = "msg err";
+                msg.textContent = "Błędny login (SSN) lub hasło.";
+                logSystem("patient", "LOGIN_FAIL", { login });
+                return;
+            }
+
+            // Zapisz sesję pacjenta w hospital_auth
+            const userData = {
+                imie: patient.imie || patient.name?.split(' ')[0] || 'Pacjent',
+                nazwisko: patient.nazwisko || patient.name?.split(' ')[1] || 'Nieznany',
+                ranga: "Pacjent",
+                id: patient.id,
+                name: patient.name,
+                rank: "Pacjent",
+                login: patient.ssn, // SSN jako login
+                loginTime: Date.now(),
+                type: 'patient',
+                patientId: patient.id
+            };
+            
+            localStorage.setItem('hospital_auth', JSON.stringify(userData));
+            logSystem("patient", "LOGIN_SUCCESS", { patientId: patient.id, login: patient.ssn });
+            msg.className = "msg ok";
+            msg.textContent = "Autoryzacja OK. Przekierowanie...";
+            
+            showMainSystem('patient', patient.name);
+        }
+
+        function showMainSystem(userType, userName) {
+            document.getElementById('authOverlay').style.display = 'none';
+            document.getElementById('mainSystem').classList.add('active');
+            document.getElementById('userInfo').textContent = `${userType === 'doctor' ? 'Lekarz' : userType === 'admin' ? 'Admin' : 'Pacjent'}: ${userName}`;
+            
+            // Pokaż odpowiedni panel
+            document.getElementById('doctorPanel').style.display = 'none';
+            document.getElementById('adminPanel').style.display = 'none';
+            document.getElementById('patientPanel').style.display = 'none';
+            
+            if (userType === 'doctor') {
+                document.getElementById('doctorPanel').style.display = 'block';
+            } else if (userType === 'admin') {
+                document.getElementById('adminPanel').style.display = 'block';
+            } else if (userType === 'patient') {
+                document.getElementById('patientPanel').style.display = 'block';
+                loadPatientData();
+            }
+        }
+
+        function loadPatientData() {
+            const session = JSON.parse(localStorage.getItem('hospital_auth'));
+            if (!session || session.type !== 'patient') return;
+            
+            // Przeszukaj hosp_v545 (jedyna baza!)
+            const patients = JSON.parse(localStorage.getItem('hosp_v545')) || [];
+            const patient = patients.find(p => p.id === session.patientId);
+            
+            if (patient) {
+                // Pokaż dane pacjenta
+                document.getElementById('patientInfo').innerHTML = `
+                    <div><strong>Imię:</strong> ${patient.name || 'Brak'}</div>
+                    <div><strong>SSN:</strong> ${patient.ssn || 'Brak'}</div>
+                    <div><strong>Status:</strong> ${patient.status || 'Aktywny'}</div>
+                `;
+                
+                // Załaduj historię medyczną
+                loadPatientHistory(patient);
+                
+                // Załaduj konsultacje
+                loadConsultations(patient);
+            }
+        }
+
+        function loadPatientHistory(patient) {
+            const hospitalData = readLS("hosp_v545", []);
+            const patientRecord = hospitalData.find(p => p.id === patient.id);
+            
+            if (patientRecord && patientRecord.history) {
+                const historyHTML = patientRecord.history.map(item => `
+                    <div class="history-item">
+                        <div class="history-date">${item.time || new Date(item.ts).toLocaleString('pl-PL')}</div>
+                        <div class="history-note">${esc(item.note || 'Brak opisu')}</div>
+                    </div>
+                `).join('');
+                
+                document.getElementById('patientHistory').innerHTML = historyHTML || '<div>Brak historii medycznej</div>';
+            } else {
+                document.getElementById('patientHistory').innerHTML = '<div>Brak historii medycznej</div>';
+            }
+        }
+
+        function loadConsultations(patient) {
+            const consultations = readLS("consultations", []);
+            const patientConsultations = consultations.filter(c => c.patientId === patient.id);
+            
+            if (patientConsultations.length > 0) {
+                const messagesHTML = patientConsultations.map(msg => `
+                    <div class="chat-message ${msg.author === 'doctor' ? 'doctor' : 'patient'}">
+                        <div class="chat-author">${msg.author === 'doctor' ? 'Lekarz' : 'Ty'}</div>
+                        <div class="chat-text">${esc(msg.text)}</div>
+                        <div class="chat-time">${new Date(msg.ts).toLocaleString('pl-PL')}</div>
+                    </div>
+                `).join('');
+                
+                document.getElementById('chatMessages').innerHTML = messagesHTML;
+            } else {
+                document.getElementById('chatMessages').innerHTML = '<div>Brak konsultacji</div>';
+            }
+        }
+
+        function sendMessage() {
+            const session = JSON.parse(localStorage.getItem('hospital_auth'));
+            if (!session || session.type !== 'patient') return;
+            
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            
+            if (!text) return;
+            
+            const consultations = readLS("consultations", []);
+            const newMessage = {
+                id: uid("MSG"),
+                patientId: session.patientId,
+                author: 'patient',
+                text: text,
+                ts: Date.now()
+            };
+            
+            consultations.push(newMessage);
+            writeLS("consultations", consultations);
+            
+            input.value = '';
+            loadConsultations({ id: session.patientId });
+            logSystem("patient", "MESSAGE_SEND", { patientId: session.patientId });
+        }
+
+        function logout() {
+            localStorage.removeItem('hospital_auth');
+            localStorage.removeItem('current_doctor_session');
+            localStorage.removeItem('current_patient_session');
+            location.reload();
+        }
+
+        function logoutAll() {
+            logout();
+        }
+
+        function checkSession() {
+            const hospitalAuth = JSON.parse(localStorage.getItem('hospital_auth') || 'null');
+            
+            if (hospitalAuth) {
+                if (hospitalAuth.type === 'doctor') {
+                    // Auto-login dla lekarza
+                    setTimeout(() => {
+                        location.href = "index.html";
+                    }, 100);
+                } else if (hospitalAuth.type === 'patient') {
+                    // Pokaż panel pacjenta
+                    showMainSystem('patient', hospitalAuth.name);
+                }
+                // ✅ USUNIĘTO: Auto-login dla admina - admin loguje się bezpośrednio
+            }
+        }
+
+        // Inicjalizacja
+        document.addEventListener('DOMContentLoaded', function() {
+            ensureSeeds();
+            checkSession();
+            
+            // Chat input enter key
+            document.getElementById('chatInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') sendMessage();
+            });
+        });
     </script>
 </body>
 </html>
