@@ -377,9 +377,28 @@
 
         function consumePendingCode(rawCode, type) {
             const code = String(rawCode || "").trim().toUpperCase();
+            
+            // Najpierw sprawdź hospital_access_keys (nowy system)
+            const accessKeys = JSON.parse(localStorage.getItem('hospital_access_keys') || '[]');
+            const accessKey = accessKeys.find(k => k.code === code && k.type === type);
+            
+            if (accessKey) {
+                // USUŃ ten kod z bazy (jednorazowy)
+                const filteredKeys = accessKeys.filter(k => k.id !== accessKey.id);
+                localStorage.setItem('hospital_access_keys', JSON.stringify(filteredKeys));
+                console.log("Kod użyty i usunięty:", accessKey.code);
+                
+                return {
+                    rank: accessKey.assignedRank,
+                    specialization: type === 'doctor' ? 'Ogólna' : null,
+                    type: type // dodaj type do tworzenia konta z odpowiednią rolą
+                };
+            }
+            
+            // Jeśli nie znaleziono w hospital_access_keys, sprawdź pending_codes (stary system)
             const pending = readLS("pending_codes", []);
             const idx = pending.findIndex(p => p.code === code && p.type === type);
-            if (idx < 0) return null;
+            if (idx === -1) return null;
             const token = pending[idx];
             pending.splice(idx, 1);
             writeLS("pending_codes", pending);
@@ -526,6 +545,7 @@
                 name: first + " " + last,
                 rank: token.rank || "Rezydent", 
                 specialization: token.specialization || "Ogólna", 
+                type: token.type || "doctor", // dodaj type z kodu dostępu
                 createdAt: Date.now()
             };
             
