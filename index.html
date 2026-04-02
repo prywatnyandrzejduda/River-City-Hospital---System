@@ -306,12 +306,26 @@
 
     // Inicjalizuj pola z danymi sesji
     function initializeSessionFields() {
+        // Sprawdź czy użytkownik jest zalogowany
+        const autor = JSON.parse(localStorage.getItem('activeSession'));
+        
+        if (!autor || !autor.imie) {
+            // Zablokuj przycisk jeśli brak sesji
+            const saveBtn = document.querySelector('button[onclick="zapiszWpis()"]');
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                saveBtn.textContent = "ZALOGUJ SIĘ ABY DODAĆ WPIS";
+                saveBtn.style.background = "var(--err)";
+            }
+            return;
+        }
+        
         // Widget zalogowanego użytkownika
-        document.getElementById('logged_user_info').textContent = `${sessionUser.rank} ${sessionUser.name}`;
+        document.getElementById('logged_user_info').textContent = `${autor.ranga} ${autor.imie} ${autor.nazwisko}`;
         
         // Ukryte pola formularza
-        document.getElementById('inp_doc').value = sessionUser.name;
-        document.getElementById('inp_rank').value = sessionUser.rank;
+        document.getElementById('inp_doc').value = `${autor.imie} ${autor.nazwisko}`;
+        document.getElementById('inp_rank').value = autor.ranga;
     }
 
     const firebaseConfig = {
@@ -557,29 +571,41 @@
     }
 
     function zapiszWpis() {
+        // Sprawdź czy użytkownik jest zalogowany
+        const autor = JSON.parse(localStorage.getItem('activeSession'));
+        if (!autor || !autor.imie) {
+            alert("Musisz być zalogowany, aby dodać wpis.");
+            // Zablokuj przycisk
+            const saveBtn = document.querySelector('button[onclick="zapiszWpis()"]');
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                saveBtn.textContent = "ZALOGUJ SIĘ ABY DODAĆ WPIS";
+                saveBtn.style.background = "var(--err)";
+            }
+            return;
+        }
+        
         if (!savePatientFields()) return;
         let p = pacjenci[aktywIdx];
         let txt = document.getElementById('inp_note').value.trim();
         
-        // Pobierz dane z sesji zamiast z formularza
+        // Pobierz dane z sesji
         const timestamp = new Date().toLocaleString('pl-PL');
         
         // Dodaj automatyczny podpis z danych sesji
-        const signatureLine = `\n[${timestamp}] | Podpisał: ${sessionUser.rank} ${sessionUser.name}`;
+        const signatureLine = `\n[${timestamp}] | Podpisał: ${autor.ranga} ${autor.imie} ${autor.nazwisko}`;
         const fullText = txt + signatureLine;
-
-        if (!sessionUser.name) return alert("Nie można zidentyfikować lekarza!");
 
         if (txt) {
             if (!p.history) p.history = [];
             p.history.push({
                 id: Date.now(), 
                 note: fullText, 
-                doctor: sessionUser.name, 
-                rank: sessionUser.rank,
+                doctor: `${autor.imie} ${autor.nazwisko}`, 
+                rank: autor.ranga,
                 ts: Date.now(),
                 time: timestamp,
-                auth: (sessionUser.rank.includes("Dyrektor") || sessionUser.rank.includes("Zarząd") || sessionUser.rank.includes("Ordynator"))
+                auth: (autor.ranga.includes("Dyrektor") || autor.ranga.includes("Zarząd") || autor.ranga.includes("Ordynator"))
             });
             document.getElementById('inp_note').value = "";
         }
