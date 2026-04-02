@@ -5,28 +5,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Hospital System v5.35 - Admin Edition</title>
     <script>
-        // Sprawdzenie currentUser - bez alertów, tylko przekierowanie
+        // Sprawdzenie currentUser - DEBUG MODE NA ŻYWO
         (function() {
+            console.log("🔍 DEBUG: Sprawdzam currentUser...");
+            console.log("🔍 DEBUG: currentUser raw:", localStorage.getItem('currentUser'));
+            
             try {
                 const user = JSON.parse(localStorage.getItem('currentUser'));
-                if (!user || (user.role !== 'admin' && user.role !== 'doctor')) {
-                    console.error('POWINIENEM CIĘ WYRZUCIĆ, BO:', user?.role || 'brak sesji', 'pełny obiekt:', user);
-                    window.location.replace('portal.html'); // WŁĄCZONE Z POWROTEM
-                } else {
-                    console.log('Sesja potwierdzona:', user.name, 'rola:', user.role);
-                    
-                    // Ukryj przyciski admina dla lekarzy
-                    if (user.role === 'doctor') {
-                        const adminShortcut = document.getElementById('admin-shortcut');
-                        if (adminShortcut) {
-                            adminShortcut.style.display = 'none';
-                            console.log('🔒 Ukryto przycisk administracji dla lekarza');
-                        }
+                console.log("🔍 DEBUG: Parsed user:", user);
+                console.log("🔍 DEBUG: user.role:", user?.role);
+                
+                if (!user) {
+                    console.error("❌ DEBUG: Brak obiektu user!");
+                    // window.location.replace('portal.html'); // WYŁĄCZONE
+                    return;
+                }
+                
+                if (user.role !== 'admin' && user.role !== 'doctor') {
+                    console.error("❌ DEBUG: Zła rola! Oczekiwano 'admin' lub 'doctor', mam:", user.role);
+                    // window.location.replace('portal.html'); // WYŁĄCZONE
+                    return;
+                }
+                
+                console.log("✅ DEBUG: Sesja OK! Użytkownik:", user.name, "rola:", user.role);
+                
+                // Ukryj przyciski admina dla lekarzy
+                if (user.role === 'doctor') {
+                    const adminShortcut = document.getElementById('admin-shortcut');
+                    if (adminShortcut) {
+                        adminShortcut.style.display = 'none';
+                        console.log('🔒 Ukryto przycisk administracji dla lekarza');
                     }
                 }
+                
             } catch(e) {
-                console.error("Błąd parsowania sesji:", e);
-                window.location.replace('portal.html'); // WŁĄCZONE Z POWROTEM
+                console.error("❌ DEBUG: Błąd parsowania sesji:", e);
+                console.error("❌ DEBUG: currentUser value:", localStorage.getItem('currentUser'));
+                // window.location.replace('portal.html'); // WYŁĄCZONE
             }
         })();
     </script>
@@ -317,18 +332,20 @@
         writeLS("system_logs", logs.slice(-900));
     }
 
-    // Weryfikacja hospital_auth z nowego systemu
+    // Weryfikacja hospital_auth z nowego systemu - DEBUG MODE
     try {
         const hospitalAuth = JSON.parse(localStorage.getItem('hospital_auth') || 'null');
+        console.log("🔍 DEBUG: hospital_auth:", hospitalAuth);
+        
         if (!hospitalAuth || (hospitalAuth.type !== 'doctor' && hospitalAuth.type !== 'admin')) {
-            console.log("Odmowa dostępu dla roli (druga weryfikacja):", hospitalAuth?.type || 'brak sesji');
-            window.location.href = 'portal.html'; // WŁĄCZONE Z POWROTEM
+            console.log("❌ DEBUG: Odmowa dostępu dla roli (druga weryfikacja):", hospitalAuth?.type || 'brak sesji');
+            // window.location.href = 'portal.html'; // WYŁĄCZONE DO DEBUGOWANIA
         } else {
-            console.log("Druga weryfikacja sesji potwierdzona:", hospitalAuth.name, "typ:", hospitalAuth.type);
+            console.log("✅ DEBUG: Druga weryfikacja sesji potwierdzona:", hospitalAuth.name, "typ:", hospitalAuth.type);
         }
     } catch(e) {
-        console.error("Błąd parsowania sesji (druga weryfikacja):", e);
-        window.location.href = 'portal.html'; // WŁĄCZONE Z POWROTEM
+        console.error("❌ DEBUG: Błąd parsowania sesji (druga weryfikacja):", e);
+        // window.location.href = 'portal.html'; // WYŁĄCZONE DO DEBUGOWANIA
     }
 
     // Pobierz dane z sesji
