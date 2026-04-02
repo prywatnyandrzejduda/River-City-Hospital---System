@@ -5,45 +5,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Hospital System v5.35 - Admin Edition</title>
     <script>
-        // Sprawdzenie currentUser - DEBUG MODE NA ŻYWO
-        (function() {
-            console.log("🔍 DEBUG: Sprawdzam currentUser...");
-            console.log("🔍 DEBUG: currentUser raw:", localStorage.getItem('currentUser'));
+    // Inicjalizacja danych na samym początku - FIX dla błędu "Cannot access 'pacjenci' before initialization"
+    let pacjenci = readLS("hosp_v545", []);
+    let aktywIdx = -1;
+    let currentView = 'active';
+    
+    // Sprawdzenie currentUser - DEBUG MODE NA ŻYWO z opóźnieniem
+    window.onload = function() {
+        console.log("🔍 DEBUG: Strona załadowana, sprawdzam currentUser...");
+        console.log("🔍 DEBUG: currentUser raw:", localStorage.getItem('currentUser'));
+        
+        try {
+            const user = JSON.parse(localStorage.getItem('currentUser'));
+            console.log("🔍 DEBUG: Parsed user:", user);
+            console.log("🔍 DEBUG: user.role:", user?.role);
             
-            try {
-                const user = JSON.parse(localStorage.getItem('currentUser'));
-                console.log("🔍 DEBUG: Parsed user:", user);
-                console.log("🔍 DEBUG: user.role:", user?.role);
-                
-                if (!user) {
-                    console.error("❌ DEBUG: Brak obiektu user!");
-                    // window.location.replace('portal.html'); // WYŁĄCZONE
-                    return;
-                }
-                
-                if (user.role !== 'admin' && user.role !== 'doctor') {
-                    console.error("❌ DEBUG: Zła rola! Oczekiwano 'admin' lub 'doctor', mam:", user.role);
-                    // window.location.replace('portal.html'); // WYŁĄCZONE
-                    return;
-                }
-                
-                console.log("✅ DEBUG: Sesja OK! Użytkownik:", user.name, "rola:", user.role);
-                
-                // Ukryj przyciski admina dla lekarzy
-                if (user.role === 'doctor') {
-                    const adminShortcut = document.getElementById('admin-shortcut');
-                    if (adminShortcut) {
-                        adminShortcut.style.display = 'none';
-                        console.log('🔒 Ukryto przycisk administracji dla lekarza');
-                    }
-                }
-                
-            } catch(e) {
-                console.error("❌ DEBUG: Błąd parsowania sesji:", e);
-                console.error("❌ DEBUG: currentUser value:", localStorage.getItem('currentUser'));
+            if (!user) {
+                console.error("❌ DEBUG: Brak obiektu user!");
                 // window.location.replace('portal.html'); // WYŁĄCZONE
+                return;
             }
-        })();
+            
+            if (user.role !== 'admin' && user.role !== 'doctor') {
+                console.error("❌ DEBUG: Zła rola! Oczekiwano 'admin' lub 'doctor', mam:", user.role);
+                // window.location.replace('portal.html'); // WYŁĄCZONE
+                return;
+            }
+            
+            console.log("✅ DEBUG: Sesja OK! Użytkownik:", user.name, "rola:", user.role);
+            
+            // Ukryj przyciski admina dla lekarzy
+            if (user.role === 'doctor') {
+                const adminShortcut = document.getElementById('admin-shortcut');
+                if (adminShortcut) {
+                    adminShortcut.style.display = 'none';
+                    console.log('🔒 Ukryto przycisk administracji dla lekarza');
+                }
+            }
+            
+        } catch(e) {
+            console.error("❌ DEBUG: Błąd parsowania sesji:", e);
+            console.error("❌ DEBUG: currentUser value:", localStorage.getItem('currentUser'));
+            // window.location.replace('portal.html'); // WYŁĄCZONE
+        }
+    };
     </script>
     <style>
         :root {
@@ -401,10 +406,11 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let pacjenci = [];
+    // Zmienne już zadeklarowane na początku skryptu
     let lokalnePacjenci = [];
-    let aktywIdx = -1;
-    let currentView = 'active';
+    // let pacjenci = []; // USUNIĘTE - duplikat
+    // let aktywIdx = -1; // USUNIĘTE - duplikat  
+    // let currentView = 'active'; // USUNIĘTE - duplikat
 
     const EXAM_LIBRARY = {
         "USG": ["USG jamy brzusznej", "USG tarczycy", "USG nerek", "USG Doppler kończyn", "USG FAST urazowe"],
@@ -535,6 +541,7 @@
         pacjenci.push({
             name: n, adr: "", job: "", ins: "", blood: "Nieznana", alergie: "",
             reason: "", status: "Stabilny", triage: "none", cert: "BRAK",
+            role: 'user', // Dodaj rolę 'user' dla pacjentów dodawanych ręcznie
             arch: false, history: [{ id: Date.now(), txt: "Zarejestrowano pacjenta", doc: "SYSTEM", rank: "Automatyczny", time: new Date().toLocaleString() }]
         });
         document.getElementById('add_name').value = "";
