@@ -10,14 +10,23 @@
             try {
                 const user = JSON.parse(localStorage.getItem('currentUser'));
                 if (!user || (user.role !== 'admin' && user.role !== 'doctor')) {
-                    console.log('Brak uprawnień, przekierowuję do portalu...', user?.role || 'brak sesji');
-                    window.location.replace('portal.html');
+                    console.error('POWINIENEM CIĘ WYRZUCIĆ, BO:', user?.role || 'brak sesji', 'pełny obiekt:', user);
+                    // window.location.replace('portal.html'); // WYŁĄCZONE DO DEBUGOWANIA
                 } else {
                     console.log('Sesja potwierdzona:', user.name, 'rola:', user.role);
+                    
+                    // Ukryj przyciski admina dla lekarzy
+                    if (user.role === 'doctor') {
+                        const adminShortcut = document.getElementById('admin-shortcut');
+                        if (adminShortcut) {
+                            adminShortcut.style.display = 'none';
+                            console.log('🔒 Ukryto przycisk administracji dla lekarza');
+                        }
+                    }
                 }
             } catch(e) {
                 console.error("Błąd parsowania sesji:", e);
-                window.location.replace('portal.html');
+                // window.location.replace('portal.html'); // WYŁĄCZONE DO DEBUGOWANIA
             }
         })();
     </script>
