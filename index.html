@@ -336,6 +336,44 @@
     function writeLS(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
     function uid(prefix) { return prefix + "-" + Date.now().toString(36).toUpperCase() + "-" + Math.floor(Math.random() * 9999).toString().padStart(4, "0"); }
     function esc(s) { return String(s ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;"); }
+    
+    // Uniwersalna funkcja zapisu/odczytu bazy pacjentów
+    function saveToHospitalDB(data) {
+        if (!data || !Array.isArray(data)) {
+            console.error("❌ BŁĄD: Próba zapisu nieprawidłowych danych:", data);
+            return false;
+        }
+        try {
+            localStorage.setItem('hosp_v545', JSON.stringify(data));
+            console.log('✅ Baza pacjentów zapisana:', data.length, 'rekordów');
+            return true;
+        } catch (error) {
+            console.error("❌ BŁĄD ZAPISU DO LOCALSTORAGE:", error);
+            return false;
+        }
+    }
+    
+    // Uniwersalna funkcja odczytu bazy pacjentów
+    function loadFromHospitalDB() {
+        try {
+            const data = localStorage.getItem('hosp_v545');
+            if (!data) {
+                console.log("⚠️ Baza pacjentów jest pusta");
+                return [];
+            }
+            const parsed = JSON.parse(data);
+            if (!Array.isArray(parsed)) {
+                console.error("❌ BŁĄD: Baza pacjentów jest uszkodzona - resetowanie...");
+                localStorage.setItem('hosp_v545', '[]');
+                return [];
+            }
+            console.log('✅ Baza pacjentów wczytana:', parsed.length, 'rekordów');
+            return parsed;
+        } catch (error) {
+            console.error("❌ BŁĄD ODCZYTU Z LOCALSTORAGE:", error);
+            return [];
+        }
+    }
     function logSystem(type, action, details) {
         const logs = readLS("system_logs", []);
         logs.push({ id: uid("LOG"), ts: Date.now(), type, action, details: details || {} });
@@ -542,15 +580,28 @@
     }
 
     function nowyPacjent() {
-        // Pobierz aktualną listę na wypadek zmian w innej karcie
-        pacjenci = JSON.parse(localStorage.getItem('hosp_v545')) || [];
+        console.log("🔧 DEBUG: Rozpoczynam dodawanie pacjenta...");
+        
+        // Pobierz aktualną listę z użyciem uniwersalnej funkcji
+        let currentData = loadFromHospitalDB();
+        if (!currentData || !Array.isArray(currentData)) {
+            console.error("❌ BŁĄD: Nie można odczytać bazę pacjentów");
+            alert("Błąd bazy danych! Spróbuj odświeżyć stronę.");
+            return;
+        }
         
         let n = document.getElementById('add_name').value.trim();
-        if (!n) return alert("Podaj nazwisko!");
+        if (!n) {
+            alert("Podaj nazwisko!");
+            return;
+        }
         
+        // Tworzenie nowego pacjenta z pełną walidacją
         const nowy = {
             id: "PAT-" + Math.random().toString(36).substr(2, 9).toUpperCase(),
-            name: n,
+            name: n || 'Nieznany pacjent',
+            imie: n ? n.split(' ')[0] : 'Nieznane',
+            nazwisko: n ? n.split(' ')[1] || n : 'Nieznane',
             adr: "",
             job: "",
             ins: "",
@@ -560,42 +611,72 @@
             status: "Stabilny",
             triage: "none",
             cert: "BRAK",
-            role: 'user', // Dodaj rolę 'user' dla pacjentów dodawanych ręcznie
+            role: 'user', // KLUCZOWE: dodaj rolę 'user' dla pacjentów
             arch: false,
-            history: [{ id: Date.now(), txt: "Zarejestrowano pacjenta", doc: "SYSTEM", rank: "Automatyczny", time: new Date().toLocaleString() }]
+            history: [{ 
+                id: Date.now(), 
+                txt: "Zarejestrowano pacjenta", 
+                doc: "SYSTEM", 
+                rank: "Automatyczny", 
+                time: new Date().toLocaleString() 
+            }]
         };
-
-        pacjenci.push(nowy);
-        localStorage.setItem('hosp_v545', JSON.stringify(pacjenci));
+        
+        // Dodaj pacjenta do listy z użyciem uniwersalnej funkcji
+        currentData.push(nowy);
+        
+        // Zapisz z użyciem uniwersalnej funkcji
+        if (!saveToHospitalDB(currentData)) {
+            alert("Błąd zapisu pacjenta do bazy!");
+            return;
+        }
+        
+        // Czyść pole i odśwież listę
         document.getElementById('add_name').value = "";
         
-        console.log("✅ DEBUG: Dodano pacjenta:", nowy.name, "ID:", nowy.id);
-        alert('Pacjent dodany!');
+        console.log("✅ DEBUG: Dodano pacjenta:", nowy.name, "ID:", nowy.id, "rola:", nowy.role);
+        alert('Pacjent dodany pomyślnie!');
         
-        // Odśwież żeby zobaczyć zmiany
-        location.reload();
+        // Odśwież listę
+        wyswietlPacjentow();
     }
 
     function renderLista() {
+        console.log("🔧 DEBUG: Rozpoczynam renderowanie listy pacjentów...");
+        
+        // Pobierz dane z użyciem uniwersalnej funkcji
+        let currentData = loadFromHospitalDB();
+        if (!currentData || !Array.isArray(currentData)) {
+            console.error("❌ BŁĄD: Nie można odczytać bazy pacjentów");
+            document.getElementById('lista_pacjentow').innerHTML = '<div style="color: red;">Błąd bazy danych!</div>';
+            return;
+        }
+        
         let l = document.getElementById('lista_pacjentow'); 
         l.innerHTML = ""; // Czyść kontener przed renderowaniem
         let currentRank = document.getElementById('inp_rank').value;
         let isAdmin = (currentRank === "Dyrektor Szpitala" || currentRank === "Zarząd Szpitala");
-
-        pacjenci.forEach((p, i) => {
-            if (!p) return;
+        
+        console.log("🔧 DEBUG: Renderuję", currentData.length, "pacjentów");
+        
+        currentData.forEach((p, i) => {
+            if (!p) {
+                console.warn("⚠️ Pomijam pustego pacjenta na indeksie:", i);
+                return;
+            }
+            
             if ((currentView === 'active' && !p.arch) || (currentView === 'archive' && p.arch)) {
                 let wrap = document.createElement('div');
                 wrap.style.display = "flex";
                 wrap.style.marginBottom = "5px";
-
+                
                 let d = document.createElement('div');
                 d.className = `p-item ${aktywIdx === i ? 'active' : ''} ${p.arch ? 'archived' : ''}`;
                 d.style.flex = "1";
                 d.innerHTML = `<b>${p.name || 'Nieznany pacjent'}</b><br><small>Status: ${p.status || 'Nieznany'}</small>`;
                 d.onclick = () => otworz(i);
                 wrap.appendChild(d);
-
+                
                 if (isAdmin) {
                     let del = document.createElement('button');
                     del.className = "del-patient-btn";
@@ -603,18 +684,46 @@
                     del.onclick = (e) => { e.stopPropagation(); usunPacjenta(i); };
                     wrap.appendChild(del);
                 }
+                
                 l.appendChild(wrap);
             }
         });
+        
+        console.log("✅ DEBUG: Lista wyrenderowana");
     }
 
     function usunPacjenta(i) {
-        if (!pacjenci[i]) return;
-        if (confirm("Czy trwale USUNĄĆ kartotekę pacjenta: " + pacjenci[i].name + "?")) {
-            pacjenci.splice(i, 1);
+        console.log("🗑️ DEBUG: Usuwam pacjenta:", i);
+        
+        // Pobierz dane z użyciem uniwersalnej funkcji
+        let currentData = loadFromHospitalDB();
+        if (!currentData || !Array.isArray(currentData)) {
+            console.error("❌ BŁĄD: Nie można odczytać bazy pacjentów");
+            alert("Błąd bazy danych!");
+            return;
+        }
+        
+        if (!currentData[i]) {
+            console.warn("⚠️ Pacjent o indeksie", i, "nie istnieje");
+            return;
+        }
+        
+        if (confirm("Czy trwale USUNĄĆ kartotekę pacjenta: " + currentData[i].name + "?")) {
+            currentData.splice(i, 1);
             aktywIdx = -1;
             document.getElementById('interface').classList.add('hidden');
-            synchronizuj();
+            
+            // Zapisz z użyciem uniwersalnej funkcji
+            if (!saveToHospitalDB(currentData)) {
+                alert("Błąd zapisu po usunięciu pacjenta!");
+                return;
+            }
+            
+            console.log("✅ DEBUG: Usunięto pacjenta:", currentData[i].name);
+            alert("Pacjent usunięty!");
+            
+            // Odśwież listę
+            wyswietlPacjentow();
         }
     }
 
@@ -626,20 +735,19 @@
     }
 
     function odswiezDanePacjenta() {
-        let p = pacjenci[aktywIdx];
-        if (!p) return;
-        document.getElementById('disp_name').innerText = p.name;
-        document.getElementById('inp_adr').value = p.adr || "";
-        document.getElementById('inp_job').value = p.job || "";
-        document.getElementById('inp_ins').value = p.ins || "";
-        document.getElementById('inp_blood').value = p.blood || "Nieznana";
-        document.getElementById('inp_alergie').value = p.alergie || "";
-        document.getElementById('inp_reason').value = p.reason || "";
-        document.getElementById('inp_status').value = p.status || "Stabilny";
-        document.getElementById('inp_triage').value = p.triage || "none";
-        updateTriageVisuals();
-        updateCertVisuals(p.cert || "BRAK");
-        pokazHistorie();
+        if (aktywIdx >= 0 && aktywIdx < pacjenci.length) {
+            const p = pacjenci[aktywIdx];
+            document.getElementById('inp_name').value = p.name || '';
+            document.getElementById('inp_adr').value = p.adr || '';
+            document.getElementById('inp_job').value = p.job || '';
+            document.getElementById('inp_ins').value = p.ins || '';
+            document.getElementById('inp_blood').value = p.blood || 'Nieznana';
+            document.getElementById('inp_alergie').value = p.alergie || '';
+            document.getElementById('inp_reason').value = p.reason || '';
+            document.getElementById('inp_status').value = p.status || 'Stabilny';
+            document.getElementById('inp_triage').value = p.triage || 'none';
+            document.getElementById('inp_cert').value = p.cert || 'BRAK';
+        }
     }
 
     function savePatientFields() {
