@@ -734,9 +734,59 @@
                 }
             }
 
+            // Funkcja naprawcza bazy danych
+            function repairDatabase() {
+                console.log("🔧 Rozpoczynam naprawę bazy danych...");
+                
+                try {
+                    // Napraw pacjentów w hosp_v545
+                    const patients = JSON.parse(localStorage.getItem('hosp_v545')) || [];
+                    let repairedPatients = 0;
+                    
+                    patients.forEach(patient => {
+                        if (!patient.role) {
+                            // Sprawdź czy to lekarz po nazwisku lub kodzie
+                            if (patient.name && (patient.name.includes('Dr') || patient.name.includes('Lekarz') || patient.code)) {
+                                patient.role = 'doctor';
+                                console.log("🔧 Nadano rolę 'doctor' pacjentowi:", patient.name);
+                            } else {
+                                patient.role = 'patient';
+                                console.log("🔧 Nadano rolę 'patient' pacjentowi:", patient.name);
+                            }
+                            repairedPatients++;
+                        }
+                    });
+                    
+                    // Zapisz naprawioną bazę
+                    localStorage.setItem('hosp_v545', JSON.stringify(patients));
+                    console.log(`✅ Naprawiono ${repairedPatients} kont pacjentów`);
+                    
+                    // Napraw lekarzy w hospital_staff
+                    const staff = JSON.parse(localStorage.getItem('hospital_staff')) || [];
+                    let repairedStaff = 0;
+                    
+                    staff.forEach(doctor => {
+                        if (!doctor.role) {
+                            doctor.role = 'doctor';
+                            console.log("🔧 Nadano rolę 'doctor' lekarzowi:", doctor.name);
+                            repairedStaff++;
+                        }
+                    });
+                    
+                    localStorage.setItem('hospital_staff', JSON.stringify(staff));
+                    console.log(`✅ Naprawiono ${repairedStaff} kont lekarzy`);
+                    
+                    console.log("🎉 Naprawa bazy zakończona!");
+                    
+                } catch(error) {
+                    console.error("❌ Błąd podczas naprawy bazy:", error);
+                }
+            }
+
             // Inicjalizacja
             document.addEventListener('DOMContentLoaded', function() {
                 ensureSeeds();
+                repairDatabase(); // Uruchom naprawę przy starcie
                 checkSession();
                 
                 // Chat input enter key
