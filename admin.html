@@ -5,12 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin Center - Hospital</title>
     <script>
-        // Synchronizacja z nowym systemem logowania - uruchom przed resztą
+        // Sprawdzenie hospital_auth - bez alertów, tylko przekierowanie
         (function() {
-            const session = JSON.parse(localStorage.getItem('activeSession'));
-            if (!session || session.type !== 'admin') {
-                alert("Brak autoryzacji admina. Przekierowanie do portalu...");
-                location.href = "portal.html";
+            const hospitalAuth = JSON.parse(localStorage.getItem('hospital_auth'));
+            if (!hospitalAuth || hospitalAuth.type !== 'admin') {
+                window.location.href = 'portal.html';
             }
         })();
     </script>
@@ -143,17 +142,20 @@
                 type: 'admin'
             };
             
-            localStorage.setItem('activeSession', JSON.stringify(userObject));
-            writeLS("activeSession", JSON.stringify(userObject));
+            localStorage.setItem('hospital_auth', JSON.stringify(userObject));
+            writeLS("hospital_auth", JSON.stringify(userObject));
             logSystem("admin", "LOGIN_SUCCESS", { code: v });
             
-            document.getElementById("loginScreen").classList.add("hidden");
-            document.getElementById("panel").classList.remove("hidden");
-            renderAll();
+            // Opóźnienie dla zapisu danych
+            setTimeout(() => {
+                document.getElementById("loginScreen").classList.add("hidden");
+                document.getElementById("panel").classList.remove("hidden");
+                renderAll();
+            }, 100);
         }
         function logout() {
-            localStorage.removeItem('activeSession');
-            location.href = "portal.html";
+            localStorage.removeItem('hospital_auth');
+            window.location.href = "portal.html";
         }
         function buildCode(type, customPrefix) {
             const prefix = customPrefix ? customPrefix.toUpperCase() : (type === "doctor" ? "DR" : "PT");
