@@ -526,13 +526,26 @@
                 const password = document.getElementById("doc_pass").value;
                 const staff = readLS("hospital_staff", []);
                 const msg = document.getElementById("doc_msg");
-                const doctor = staff.find(s => s.code === code && s.password === password);
-
+                
+                console.log("🔍 DEBUG: Próba logowania lekarza:", code);
+                
+                // Poprawiona weryfikacja - ignoruj wielkość liter i dodaj zabezpieczenia
+                const doctor = staff.find(s => s.code === code || s.code === code.toUpperCase() && s.password === password);
+                
+                console.log("🔍 DEBUG: Przeszukano", staff.length, "lekarzy, znaleziono:", doctor ? doctor.name : "brak");
+                
                 if (!doctor) {
+                    console.log("❌ DEBUG: Lekarz nie znaleziony:", code);
                     msg.className = "msg err";
                     msg.textContent = "Błędny login (kod) lub hasło.";
                     logSystem("doctor", "LOGIN_FAIL", { code });
                     return;
+                }
+                
+                // Automatycznie przypisz rolę, jeśli brakuje
+                if (!doctor.role) {
+                    doctor.role = 'doctor';
+                    console.log("🔧 DEBUG: Automatycznie przypisano rolę 'doctor' dla:", doctor.name);
                 }
 
                 // Zapisz pełną sesję z obiektem lekarza
@@ -548,7 +561,7 @@
                     login: doctor.code,
                     loginTime: Date.now(),
                     type: 'doctor',
-                    role: 'doctor'  // Dodaj pole role dla kompatybilności
+                    role: 'doctor'  // KLUCZOWE: automatycznie przypisz rolę 'doctor'
                 };
                 
                 localStorage.setItem('hospital_auth', JSON.stringify(userData));
