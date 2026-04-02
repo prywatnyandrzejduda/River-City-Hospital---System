@@ -11,7 +11,7 @@
                 const user = JSON.parse(localStorage.getItem('currentUser'));
                 if (!user || (user.role !== 'admin' && user.role !== 'doctor')) {
                     console.error('POWINIENEM CIĘ WYRZUCIĆ, BO:', user?.role || 'brak sesji', 'pełny obiekt:', user);
-                    // window.location.replace('portal.html'); // WYŁĄCZONE DO DEBUGOWANIA
+                    window.location.replace('portal.html'); // WŁĄCZONE Z POWROTEM
                 } else {
                     console.log('Sesja potwierdzona:', user.name, 'rola:', user.role);
                     
@@ -26,7 +26,7 @@
                 }
             } catch(e) {
                 console.error("Błąd parsowania sesji:", e);
-                // window.location.replace('portal.html'); // WYŁĄCZONE DO DEBUGOWANIA
+                window.location.replace('portal.html'); // WŁĄCZONE Z POWROTEM
             }
         })();
     </script>
@@ -104,7 +104,7 @@
 </head>
 <body>
 
-<a id="admin-shortcut" href="admin.html">Administracja</a>
+<a id="admin-shortcut" href="admin_analyzed.html">Administracja</a>
 
 <div id="sidebar">
     <h2 style="color: white; text-align: center; letter-spacing: 2px; margin-bottom: 10px;">MED-SYSTEM <span style="color:var(--accent)">v5.35</span></h2>
@@ -322,13 +322,13 @@
         const hospitalAuth = JSON.parse(localStorage.getItem('hospital_auth') || 'null');
         if (!hospitalAuth || (hospitalAuth.type !== 'doctor' && hospitalAuth.type !== 'admin')) {
             console.log("Odmowa dostępu dla roli (druga weryfikacja):", hospitalAuth?.type || 'brak sesji');
-            // window.location.href = 'portal.html'; // WYŁĄCZONE DO DEBUGOWANIA
+            window.location.href = 'portal.html'; // WŁĄCZONE Z POWROTEM
         } else {
             console.log("Druga weryfikacja sesji potwierdzona:", hospitalAuth.name, "typ:", hospitalAuth.type);
         }
     } catch(e) {
         console.error("Błąd parsowania sesji (druga weryfikacja):", e);
-        // window.location.href = 'portal.html'; // WYŁĄCZONE DO DEBUGOWANIA
+        window.location.href = 'portal.html'; // WŁĄCZONE Z POWROTEM
     }
 
     // Pobierz dane z sesji
@@ -348,7 +348,7 @@
             
             if (!autor || (autor.type !== 'doctor' && autor.type !== 'admin')) {
                 console.log("Odmowa dostępu dla roli w initializeSessionFields:", autor?.type || 'brak sesji');
-                // window.location.href = 'portal.html'; // WYŁĄCZONE DO DEBUGOWANIA
+                window.location.href = 'portal.html'; // WŁĄCZONE Z POWROTEM
                 return;
             }
             
@@ -363,7 +363,7 @@
             }
         } catch(e) {
             console.error("Błąd parsowania sesji w initializeSessionFields:", e);
-            // window.location.href = 'portal.html'; // WYŁĄCZONE DO DEBUGOWANIA
+            window.location.href = 'portal.html'; // WŁĄCZONE Z POWROTEM
         }
     } {
         // Ukryte pola formularza
@@ -609,7 +609,7 @@
             const autor = JSON.parse(localStorage.getItem('hospital_auth'));
             if (!autor || (autor.type !== 'doctor' && autor.type !== 'admin')) {
                 console.log("Odmowa dostępu dla roli w zapiszWpis:", autor?.type || 'brak sesji');
-                // window.location.href = "portal.html"; // WYŁĄCZONE DO DEBUGOWANIA
+                window.location.href = "portal.html"; // WŁĄCZONE Z POWROTEM
                 return;
             }
             console.log("Sesja potwierdzona w zapiszWpis:", autor.name, "typ:", autor.type);
@@ -642,7 +642,7 @@
             synchronizuj();
         } catch(e) {
             console.error("Błąd parsowania sesji w zapiszWpis:", e);
-            // window.location.href = "portal.html"; // WYŁĄCZONE DO DEBUGOWANIA
+            window.location.href = "portal.html"; // WŁĄCZONE Z POWROTEM
         }
     }
     
