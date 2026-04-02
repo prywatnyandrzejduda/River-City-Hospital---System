@@ -5,12 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Hospital System v5.35 - Admin Edition</title>
     <script>
-        // Synchronizacja z nowym systemem logowania - uruchom przed resztą
+        // Sprawdzenie hospital_auth - bez alertów, tylko przekierowanie
         (function() {
-            const session = JSON.parse(localStorage.getItem('activeSession'));
-            if (!session || session.type !== 'doctor') {
-                alert("Brak autoryzacji lekarza. Przekierowanie do portalu...");
-                location.href = "portal.html";
+            const hospitalAuth = JSON.parse(localStorage.getItem('hospital_auth'));
+            if (!hospitalAuth || hospitalAuth.type !== 'doctor') {
+                window.location.href = 'portal.html';
             }
         })();
     </script>
@@ -301,35 +300,28 @@
         writeLS("system_logs", logs.slice(-900));
     }
 
-    // Weryfikacja sesji z nowego systemu
-    const activeSession = JSON.parse(localStorage.getItem('activeSession') || 'null');
-    if (!activeSession || activeSession.type !== 'doctor') {
-        alert("Brak autoryzacji lekarza. Przekierowanie do portalu...");
-        location.href = "portal.html";
+    // Weryfikacja hospital_auth z nowego systemu
+    const hospitalAuth = JSON.parse(localStorage.getItem('hospital_auth') || 'null');
+    if (!hospitalAuth || hospitalAuth.type !== 'doctor') {
+        window.location.href = 'portal.html';
     }
 
     // Pobierz dane z sesji
     const sessionUser = {
-        name: activeSession.name,
-        rank: activeSession.ranga,
-        imie: activeSession.imie,
-        nazwisko: activeSession.nazwisko,
-        id: activeSession.id
+        name: hospitalAuth.name,
+        rank: hospitalAuth.ranga,
+        imie: hospitalAuth.imie,
+        nazwisko: hospitalAuth.nazwisko,
+        id: hospitalAuth.id
     };
 
     // Inicjalizuj pola z danymi sesji
     function initializeSessionFields() {
         // Sprawdź czy użytkownik jest zalogowany
-        const autor = JSON.parse(localStorage.getItem('activeSession'));
+        const autor = JSON.parse(localStorage.getItem('hospital_auth'));
         
-        if (!autor || !autor.imie) {
-            // Zablokuj przycisk jeśli brak sesji
-            const saveBtn = document.querySelector('button[onclick="zapiszWpis()"]');
-            if (saveBtn) {
-                saveBtn.disabled = true;
-                saveBtn.textContent = "ZALOGUJ SIĘ ABY DODAĆ WPIS";
-                saveBtn.style.background = "var(--err)";
-            }
+        if (!autor || autor.type !== 'doctor') {
+            window.location.href = 'portal.html';
             return;
         }
         
@@ -585,10 +577,9 @@
 
     function zapiszWpis() {
         // Sprawdź czy użytkownik jest zalogowany
-        const autor = JSON.parse(localStorage.getItem('activeSession'));
+        const autor = JSON.parse(localStorage.getItem('hospital_auth'));
         if (!autor || autor.type !== 'doctor') {
-            alert("Musisz być zalogowany jako lekarz, aby dodać wpis.");
-            location.href = "portal.html";
+            window.location.href = "portal.html";
             return;
         }
         
@@ -621,9 +612,9 @@
     }
     
     function logoutUser() {
-        localStorage.removeItem('activeSession');
+        localStorage.removeItem('hospital_auth');
         localStorage.removeItem('current_doctor_session');
-        location.href = "portal.html";
+        window.location.href = "portal.html";
     }
 
     function usunWpis(idx) {
