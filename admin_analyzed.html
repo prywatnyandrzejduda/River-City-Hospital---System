@@ -228,21 +228,26 @@
         }
         
         function generateCodes() {
+            console.log("generateCodes() called");
             const type = document.getElementById("genType").value;
             const count = Math.max(1, Math.min(20, Number(document.getElementById("genCount").value || 1)));
             const prefix = document.getElementById("genPrefix").value.trim();
             const pending = readLS("pending_codes", []);
             const created = [];
             
+            console.log("Generating", count, "codes of type:", type);
+            
             for (let i = 0; i < count; i += 1) {
                 const newCode = generateAccessCode(type, type === "doctor" ? "Lekarz" : "Pacjent");
                 created.push(newCode.code);
+                console.log("Generated code:", newCode.code);
             }
             
             const msg = document.getElementById("genMsg");
             msg.className = "msg ok";
             msg.textContent = "Wygenerowano: " + created.join(", ");
             renderPending();
+            console.log("Codes generated and rendered");
         }
         
         function clearAllCodes() {
@@ -413,15 +418,27 @@
         function renderPending() {
             const codes = JSON.parse(localStorage.getItem('hospital_codes') || '[]');
             const table = document.getElementById("pendingTable");
-            table.innerHTML = `<thead><tr><th>Kod</th><th>Typ</th><th>Ranga</th><th>Status</th><th>Akcja</th></tr></thead><tbody>${codes.length ? codes.map(c => `
-                <tr>
-                    <td>${esc(c.code)}</td>
-                    <td>${esc(c.type)}</td>
-                    <td>${esc(c.assignedRank)}</td>
-                    <td>${c.used ? 'Użyty' : 'Aktywny'}</td>
-                    <td><button class="btn-danger" onclick="removeCode('${esc(c.code)}')">USUŃ</button></td>
-                </tr>
-            `).join("") : `<tr><td colspan="5">Brak aktywnych kodów.</td></tr>`}</tbody>`;
+            console.log("renderPending() called, codes:", codes);
+            console.log("table element:", table);
+            
+            table.innerHTML = codes.length ? `
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead><tr><th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Kod</th><th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Typ</th><th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Ranga</th><th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Status</th><th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Akcja</th></tr></thead>
+                    <tbody>
+                        ${codes.map(c => `
+                            <tr style="border-bottom: 1px solid var(--line);">
+                                <td style="padding: 8px;">${esc(c.code)}</td>
+                                <td style="padding: 8px;">${esc(c.type)}</td>
+                                <td style="padding: 8px;">${esc(c.assignedRank)}</td>
+                                <td style="padding: 8px;">${c.used ? 'Użyty' : 'Aktywny'}</td>
+                                <td style="padding: 8px;"><button class="btn-danger" onclick="removeCode('${esc(c.code)}')" style="font-size: 10px; padding: 4px 8px;">USUŃ</button></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            ` : '<div style="color: var(--muted); text-align: center; padding: 20px;">Brak aktywnych kodów.</div>';
+            
+            console.log("renderPending() completed");
         }
         
         function removeCode(code) {
@@ -430,6 +447,27 @@
             const filteredCodes = codes.filter(c => c.code !== code);
             localStorage.setItem('hospital_codes', JSON.stringify(filteredCodes));
             renderPending();
+        }
+        
+        function renderSchedule() {
+            const schedule = readLS("hospital_schedule", []);
+            const table = document.getElementById("scheduleTable");
+            if (!table) return;
+            
+            table.innerHTML = schedule.length ? `
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead><tr><th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Lekarz</th><th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Data dyżuru</th><th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Akcja</th></tr></thead>
+                    <tbody>
+                        ${schedule.map(s => `
+                            <tr style="border-bottom: 1px solid var(--line);">
+                                <td style="padding: 8px;">${esc(s.doctorName)}</td>
+                                <td style="padding: 8px;">${new Date(s.date).toLocaleString('pl-PL')}</td>
+                                <td style="padding: 8px;"><button class="btn-danger" onclick="removeSchedule('${s.id}')" style="font-size: 10px; padding: 4px 8px;">USUŃ</button></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            ` : '<div style="color: var(--muted); text-align: center; padding: 20px;">Brak dyżurów.</div>';
         }
         
         function renderAll() { 
