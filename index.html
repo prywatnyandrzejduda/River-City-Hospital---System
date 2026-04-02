@@ -255,14 +255,18 @@
             </div>
 
             <div class="card" style="border-top: 5px solid var(--green); position: sticky; top: 0; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
+                <!-- Widget zalogowanego użytkownika -->
+                <div style="position: absolute; top: 10px; right: 10px; background: var(--accent); color: #032022; padding: 8px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; z-index: 1001;">
+                    Zalogowany jako: <span id="logged_user_info">${sessionUser.rank} ${sessionUser.name}</span>
+                    <button onclick="logoutUser()" style="background: var(--err); color: white; border: none; padding: 4px 8px; margin-left: 8px; border-radius: 4px; font-size: 10px; cursor: pointer;">WYLOGUJ</button>
+                </div>
+                
                 <span class="label">Wpis do karty</span>
                 <textarea id="inp_note" rows="3" placeholder="Wpisz treść wpisu..."></textarea>
-                <div class="grid">
-                    <input type="text" id="inp_doc" placeholder="Podpis">
-                    <select id="inp_rank">
-                        <optgroup label="Służba Medyczna"><option>Student Medycyny</option><option>Młodszy Ratownik</option><option>Ratownik Medyczny</option><option>Lekarz Rezydent</option><option>Lekarz Specjalista</option></optgroup>
-                        <optgroup label="Kadra Kierownicza"><option>Zastępca Ordynatora</option><option>Ordynator</option></optgroup>
-                        <optgroup label="Dyrekcja"><option>Zarząd Szpitala</option><option>Dyrektor Szpitala</option></optgroup>
+                <div class="grid" style="display: none;">
+                    <input type="text" id="inp_doc" placeholder="Podpis" value="${sessionUser.name}" readonly>
+                    <select id="inp_rank" style="display: none;">
+                        <option value="${sessionUser.rank}" selected>${sessionUser.rank}</option>
                     </select>
                 </div>
                 <button style="background:var(--green); color:white; width:100%; margin-top:10px;" onclick="zapiszWpis()">ZATWIERDŹ I DOPISZ DO HISTORII</button>
@@ -285,6 +289,20 @@
         logs.push({ id: uid("LOG"), ts: Date.now(), type, action, details: details || {} });
         writeLS("system_logs", logs.slice(-900));
     }
+
+    // Weryfikacja sesji
+    const activeSession = JSON.parse(localStorage.getItem('activeSession') || 'null');
+    if (!activeSession) {
+        alert("Brak autoryzacji. Proszę się zalogować.");
+        location.href = "hospital_system.html";
+    }
+
+    // Pobierz dane z sesji
+    const sessionUser = {
+        name: activeSession.name,
+        rank: activeSession.rank,
+        id: activeSession.id
+    };
 
     const firebaseConfig = {
         apiKey: "AIzaSyC5MioZo7CMVGopaZANfglS12Gy_TMPzEw",
@@ -533,33 +551,36 @@
         let p = pacjenci[aktywIdx];
         let txt = document.getElementById('inp_note').value.trim();
         
-        // Pobierz dane zalogowanego lekarza
-        const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser')) || '{}';
-        const doctorName = loggedInUser.name || document.getElementById('inp_doc').value.trim();
-        const doctorRank = loggedInUser.rank || document.getElementById('inp_rank').value || 'Lekarz';
+        // Pobierz dane z sesji zamiast z formularza
         const timestamp = new Date().toLocaleString('pl-PL');
         
-        // Dodaj automatyczny podpis elektroniczny
-        const electronicSignature = `\n\n--- Podpisano elektronicznie ---\n[${doctorRank}] ${doctorName}\nData: ${timestamp}`;
-        const fullText = txt + electronicSignature;
+        // Dodaj automatyczny podpis z danych sesji
+        const signatureLine = `\n[${timestamp}] | Podpisał: ${sessionUser.rank} ${sessionUser.name}`;
+        const fullText = txt + signatureLine;
 
-        if (!doctorName) return alert("Nie można zidentyfikować lekarza!");
+        if (!sessionUser.name) return alert("Nie można zidentyfikować lekarza!");
 
         if (txt) {
             if (!p.history) p.history = [];
             p.history.push({
                 id: Date.now(), 
                 note: fullText, 
-                doctor: doctorName, 
-                rank: doctorRank,
+                doctor: sessionUser.name, 
+                rank: sessionUser.rank,
                 ts: Date.now(),
                 time: timestamp,
-                auth: (doctorRank.includes("Dyrektor") || doctorRank.includes("Zarząd") || doctorRank.includes("Ordynator"))
+                auth: (sessionUser.rank.includes("Dyrektor") || sessionUser.rank.includes("Zarząd") || sessionUser.rank.includes("Ordynator"))
             });
             document.getElementById('inp_note').value = "";
         }
 
         synchronizuj();
+    }
+    
+    function logoutUser() {
+        localStorage.removeItem('activeSession');
+        localStorage.removeItem('current_doctor_session');
+        location.href = "hospital_system.html";
     }
 
     function usunWpis(idx) {
