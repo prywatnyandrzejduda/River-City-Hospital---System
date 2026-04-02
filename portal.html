@@ -319,7 +319,7 @@
                 <div id="doctorPanel" class="card" style="display: none;">
                     <h2>👨‍⚕️ PANEL LEKARZA</h2>
                     <div class="sub">Baza pacjentów, karty medyczne, harmonogram</div>
-                    <button class="btn-doctor" onclick="location.href='index.html'">OTWÓRZ BAZĘ PACJENTÓW</button>
+                    <button class="btn-doctor" onclick="goToIndex()">OTWÓRZ BAZĘ PACJENTÓW</button>
                 </div>
                 
                 <!-- Panel Admina -->
@@ -718,6 +718,20 @@
                 location.reload();
             }
 
+            function goToIndex() {
+                // Sprawdź czy mamy sesję lekarza
+                const hospitalAuth = JSON.parse(localStorage.getItem('hospital_auth') || 'null');
+                if (hospitalAuth && hospitalAuth.type === 'doctor') {
+                    // Zapisz currentUser przed przekierowaniem
+                    if (!localStorage.getItem('currentUser')) {
+                        localStorage.setItem('currentUser', JSON.stringify(hospitalAuth));
+                    }
+                    location.href = 'index.html';
+                } else {
+                    alert('Musisz być zalogowany jako lekarz!');
+                }
+            }
+
             function logoutAll() {
                 logout();
             }
@@ -727,7 +741,10 @@
                 
                 if (hospitalAuth) {
                     if (hospitalAuth.type === 'doctor') {
-                        // Auto-login dla lekarza
+                        // Auto-login dla lekarza - dodaj currentUser przed przekierowaniem
+                        if (!localStorage.getItem('currentUser')) {
+                            localStorage.setItem('currentUser', JSON.stringify(hospitalAuth));
+                        }
                         setTimeout(() => {
                             location.href = "index.html";
                         }, 100);
