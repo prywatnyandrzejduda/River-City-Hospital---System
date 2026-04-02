@@ -366,6 +366,7 @@
             if (!Array.isArray(readLS("consultations", null))) writeLS("consultations", []);
             if (!Array.isArray(readLS("pending_codes", null))) writeLS("pending_codes", []);
             if (!Array.isArray(readLS("hosp_v545", null))) writeLS("hosp_v545", []);
+            if (!Array.isArray(readLS("hospital_schedule", null))) writeLS("hospital_schedule", []);
         }
 
         function consumePendingCode(rawCode, type) {
