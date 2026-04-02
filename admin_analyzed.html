@@ -46,173 +46,240 @@
             color: var(--text); 
             background: linear-gradient(135deg, #05070b, #0d1320);
             position: relative;
+            min-height: 100vh;
         }
         
         .hidden { display: none !important; }
-        .wrap { max-width: 1450px; margin: 0 auto; padding: 16px; }
-        .card { 
+        .glass { 
             background: var(--glass); 
-            backdrop-filter: blur(15px); 
+            backdrop-filter: blur(10px); 
             border: 1px solid var(--line); 
             border-radius: 12px; 
-            padding: 14px; 
-            margin-bottom: 12px;
+        }
+        .btn, .btn-danger { 
+            background: var(--doc); 
+            color: var(--bg); 
+            border: none; 
+            padding: 8px 12px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            font-size: 11px; 
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+        .btn:hover, .btn-danger:hover { transform: translateY(-2px); box-shadow: 0 4px 12px var(--doc); }
+        .btn-danger { background: var(--err); }
+        .btn-danger:hover { box-shadow: 0 4px 12px var(--err); }
+        .msg { 
+            padding: 8px 12px; 
+            border-radius: 6px; 
+            margin: 8px 0; 
+            font-size: 11px; 
+            text-transform: uppercase;
+        }
+        .msg.ok { background: rgba(55, 255, 148, 0.1); color: var(--pat); border: 1px solid var(--pat); }
+        .msg.err { background: rgba(255, 92, 115, 0.1); color: var(--err); border: 1px solid var(--err); }
+        
+        .card { 
+            background: var(--glass); 
+            border: 1px solid var(--line); 
+            border-radius: 12px; 
+            padding: 20px; 
+            margin: 16px;
+            backdrop-filter: blur(10px);
+        }
+        .card h2 { 
+            color: #ffeb9e; 
+            margin: 0 0 8px 0; 
+            font-size: 16px; 
+            text-transform: uppercase;
+        }
+        .card .sub { 
+            color: var(--muted); 
+            margin: 0 0 16px 0; 
+            font-size: 11px; 
+        }
+        .row4 { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 8px; margin: 16px 0; }
+        .row3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px; margin: 16px 0; }
+        .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 16px 0; }
+        
+        input, select { 
+            background: rgba(255,255,255,0.05); 
+            border: 1px solid var(--line); 
+            color: var(--text); 
+            padding: 8px 12px; 
+            border-radius: 6px; 
+            font-size: 11px; 
+        }
+        input:focus, select:focus { 
+            outline: none; 
+            border-color: var(--doc); 
+            box-shadow: 0 0 0 2px rgba(51, 199, 255, 0.2);
         }
         
-        h1, h2 { margin: 0 0 10px 0; } 
-        h2 { color: var(--gold); font-size: 16px; }
-        .sub { color: var(--muted); font-size: 12px; margin-bottom: 8px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .row4 { display: grid; grid-template-columns: 1fr 120px 140px 160px; gap: 8px; }
-        .row3 { display: grid; grid-template-columns: 1fr 1fr 180px; gap: 8px; }
-        input, select, button { width: 100%; border: 1px solid var(--line); background: rgba(10,20,35,.75); color: var(--text); border-radius: 8px; padding: 10px; margin-bottom: 8px; }
-        button { cursor: pointer; font-weight: 700; text-transform: uppercase; transition: .2s ease; }
-        .btn { border-color: rgba(241,196,15,.6); color: #fff3bb; }
-        .btn:hover { box-shadow: 0 0 16px rgba(241,196,15,.45); }
-        .btn2 { border-color: rgba(51,199,255,.5); color: #d8f6ff; }
-        .btn2:hover { box-shadow: 0 0 16px rgba(51,199,255,.4); }
-        .btn-danger { border-color: rgba(255,92,115,.5); color: #ffc2cb; }
-        .btn-danger:hover { box-shadow: 0 0 16px rgba(255,92,115,.4); }
         table { width: 100%; border-collapse: collapse; }
-        th, td { border-bottom: 1px solid var(--line); padding: 8px; font-size: 12px; text-align: left; }
-        th { color: #ffeb9e; font-size: 11px; text-transform: uppercase; }
-        .login-wrap { min-height: 100vh; display: grid; place-items: center; padding: 16px; }
-        .login-card { width: 100%; max-width: 430px; background: var(--glass); backdrop-filter: blur(15px); border: 1px solid var(--line); border-top: 3px solid var(--gold); border-radius: 12px; padding: 18px; }
-        .msg { min-height: 16px; font-size: 12px; color: var(--muted); } .ok { color: var(--pat); } .err { color: var(--err); }
-        @media (max-width: 1100px) { .grid, .row4, .row3 { grid-template-columns: 1fr; } }
+        th { 
+            color: #ffeb9e; 
+            font-size: 11px; 
+            text-transform: uppercase; 
+            padding: 8px; 
+            text-align: left;
+        }
+        td { 
+            padding: 8px; 
+            color: var(--text); 
+            border-bottom: 1px solid var(--line);
+        }
+        
+        #loginScreen { 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            bottom: 0; 
+            background: var(--bg); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            z-index: 1000;
+        }
+        #panel { 
+            max-width: 1400px; 
+            margin: 0 auto; 
+            padding: 20px; 
+        }
+        .login-box { 
+            background: var(--glass); 
+            border: 1px solid var(--line); 
+            border-radius: 12px; 
+            padding: 40px; 
+            backdrop-filter: blur(10px);
+            text-align: center;
+        }
+        .login-box h1 { 
+            color: #ffeb9e; 
+            margin: 0 0 20px 0; 
+            font-size: 24px; 
+        }
+        .login-box input { 
+            width: 100%; 
+            margin: 8px 0; 
+        }
     </style>
 </head>
 <body>
-    <div id="loginScreen" class="login-wrap">
-        <div class="login-card">
-            <h1>ADMIN CENTER</h1>
-            <div class="sub">Dostęp tylko dla kodu bezpieczeństwa.</div>
-            <input id="bossPass" type="password" placeholder="Kod bezpieczeństwa" />
+    <div id="loginScreen" class="hidden">
+        <div class="login-box">
+            <h1>🏥 ADMIN CENTER</h1>
+            <input type="password" id="adminPass" placeholder="Kod Admina" />
             <button class="btn" onclick="adminLogin()">AUTORYZUJ</button>
-            <button class="btn2" onclick="location.href='portal.html'">POWRÓT</button>
             <div id="loginMsg" class="msg"></div>
         </div>
     </div>
-    <div id="panel" class="wrap hidden">
-        <div class="card">
-            <h1>Hospital Administration</h1>
-            <div class="row3">
-                <button class="btn-tactile" onclick="location.href='hospital_system.html'">START</button>
-                <button class="btn-tactile" onclick="location.href='index.html'">ODDZIAŁ</button>
-                <button class="btn-tactile btn-danger-tactile" onclick="logout()">WYLOGUJ</button>
+
+    <div id="panel" class="hidden">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="card">
+                <h2>Generator Kodów Dostępu</h2>
+                <div class="sub">Generowanie jednorazowych tokenów dostępu.</div>
+                <div class="row4">
+                    <select id="genType"><option value="doctor">Lekarz</option><option value="patient">Pacjent</option></select>
+                    <input id="genCount" type="number" min="1" max="20" value="1" />
+                    <input id="genPrefix" type="text" placeholder="Prefix (opcj.)" />
+                    <button class="btn" onclick="generateCodes()">GENERUJ</button>
+                </div>
+                <div class="row4" style="margin-top: 8px;">
+                    <button class="btn-danger" onclick="clearAllCodes()">WYCZYŚĆ WSZYSTKIE KODY</button>
+                </div>
+                <div id="genMsg" class="msg"></div>
+                <div id="pendingTable" style="margin-top: 16px;"></div>
+            </div>
+            
+            <div class="card">
+                <h2>Zarządzanie Grafikiem</h2>
+                <div class="sub">Przypisywanie dyżurów lekarzom.</div>
+                <div class="row3">
+                    <select id="schedule_doctor"><option value="">Wybierz lekarza...</option></select>
+                    <input id="schedule_date" type="datetime-local" />
+                    <button class="btn" onclick="addSchedule()">DODAJ DYŻUR</button>
+                </div>
+                <div id="scheduleMsg" class="msg"></div>
+                <div id="scheduleTable" style="margin-top: 16px;"></div>
             </div>
         </div>
-        
-        <!-- Vitals Monitor -->
-        <div class="vitals-monitor">
-            <div class="vitals-title">VITAL SIGNS</div>
-            <div class="vitals-chart"></div>
-        </div>
-        
-        <!-- Terminal Window -->
-        <div class="terminal-window">
-            <div class="terminal-line"><span class="terminal-prompt">></span> [OK] ENCRYPTED_CONN_ESTABLISHED</div>
-            <div class="terminal-line"><span class="terminal-prompt">></span> [INFO] DATABASE_SYNC_SUCCESS</div>
-            <div class="terminal-line"><span class="terminal-prompt">></span> [SCAN] REFRESHING_PATIENT_DATA...</div>
-        </div>
-        <div class="grid">
-            <div>
-                <div class="card">
-                    <h2>Generator Kodów Dostępu</h2>
-                    <div class="sub">Generowanie jednorazowych tokenów dostępu.</div>
-                    <div class="row4">
-                        <select id="genType"><option value="doctor">Lekarz</option><option value="patient">Pacjent</option></select>
-                        <input id="genCount" type="number" min="1" max="20" value="1" />
-                        <input id="genPrefix" type="text" placeholder="Prefix (opcj.)" />
-                        <button class="btn" onclick="generateCodes()">GENERUJ</button>
-                    </div>
-                    <div class="row4" style="margin-top: 8px;">
-                        <button class="btn-danger" onclick="clearAllCodes()">WYCZYŚĆ WSZYSTKIE KODY</button>
-                    </div>
-                    <div id="genMsg" class="msg"></div>
-                    <div id="pendingTable" style="margin-top: 16px;"></div>
-                </div>
-                <div class="card">
-                    <h2>Zarządzanie Grafikiem</h2>
-                    <div class="sub">Przypisywanie dyżurów lekarzom.</div>
-                    <div class="row3">
-                        <select id="schedule_doctor"><option value="">Wybierz lekarza...</option></select>
-                        <input id="schedule_date" type="datetime-local" />
-                        <button class="btn" onclick="addSchedule()">DODAJ DYŻUR</button>
-                    </div>
-                    <div id="scheduleMsg" class="msg"></div>
-                    <div id="scheduleTable" style="margin-top: 16px;"></div>
-                </div>
-                <div class="card">
-                    <h2>Baza Lekarzy</h2>
-                    <div class="sub">Zmiana rangi/specjalizacji i usuwanie kont.</div>
-                    <table id="doctorsTable" style="margin-top: 16px;"></table>
-                </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <div class="card">
+                <h2>Baza Lekarzy</h2>
+                <div class="sub">Zmiana rangi/specjalizacji i usuwanie kont.</div>
+                <table id="doctorsTable" style="margin-top: 16px;"></table>
             </div>
-            <div>
-                <div class="card">
-                    <h2>Baza Cywili (Pacjentów)</h2>
-                    <div class="sub">Usunięcie konta czyści też wpis w `hosp_v545`.</div>
-                    <table id="patientsTable" style="margin-top: 16px;"></table>
-                </div>
+            
+            <div class="card">
+                <h2>Baza Cywili (Pacjentów)</h2>
+                <div class="sub">Usunięcie konta czyści też wpis w `hosp_v545`.</div>
+                <table id="patientsTable" style="margin-top: 16px;"></table>
             </div>
         </div>
     </div>
+
     <script>
         const BOSS = "BOSS123";
-        function readLS(k, f) { try { return JSON.parse(localStorage.getItem(k)) ?? f; } catch { return f; } }
-        function writeLS(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
-        function uid(p) { return p + "-" + Date.now().toString(36).toUpperCase() + "-" + Math.floor(Math.random() * 9999).toString().padStart(4, "0"); }
-        function esc(s) { return String(s ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;"); }
-        function ensureSeeds() {
-            if (!Array.isArray(readLS("pending_codes", null))) writeLS("pending_codes", []);
-            if (!Array.isArray(readLS("hospital_staff", null))) writeLS("hospital_staff", []);
-            if (!Array.isArray(readLS("hosp_v545", null))) writeLS("hosp_v545", []);
-            if (!Array.isArray(readLS("hospital_schedule", null))) writeLS("hospital_schedule", []);
+
+        function uid(prefix) {
+            return (prefix || "ID") + "-" + Math.random().toString(36).substr(2, 9).toUpperCase();
         }
-        ensureSeeds();
-        
+
+        function esc(txt) {
+            if (!txt) return "";
+            return String(txt).replace(/[&<>"']/g, function(m) { 
+                return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]; 
+            });
+        }
+
+        function readLS(key, def) {
+            try {
+                const v = localStorage.getItem(key);
+                return v ? JSON.parse(v) : def;
+            } catch(e) { 
+                return def; 
+            }
+        }
+
+        function writeLS(key, val) {
+            localStorage.setItem(key, JSON.stringify(val));
+        }
+
         function adminLogin() {
-            const v = document.getElementById("bossPass").value.trim();
+            const pass = document.getElementById("adminPass").value.trim().toUpperCase();
             const msg = document.getElementById("loginMsg");
             
-            if (v !== BOSS) { 
-                msg.className = "msg err"; 
-                msg.textContent = "Błędny kod."; 
-                return; 
+            if (pass === BOSS) {
+                const userData = {
+                    type: 'admin',
+                    name: 'Administrator',
+                    loginTime: Date.now()
+                };
+                localStorage.setItem('hospital_auth', JSON.stringify(userData));
+                msg.className = "msg ok";
+                msg.textContent = "Autoryzacja OK. Przekierowanie...";
+                setTimeout(() => {
+                    document.getElementById("loginScreen").classList.add("hidden");
+                    document.getElementById("panel").classList.remove("hidden");
+                    renderAll();
+                }, 500);
+            } else {
+                msg.className = "msg err";
+                msg.textContent = "Błędny kod dostępu.";
             }
-            
-            // Zapisz sesję admina
-            const userData = {
-                imie: "System",
-                nazwisko: "Administrator",
-                ranga: "Administrator",
-                id: "ADMIN",
-                name: "System Administrator",
-                rank: "Administrator",
-                code: v,
-                login: v,
-                loginTime: Date.now(),
-                type: 'admin'
-            };
-            
-            localStorage.setItem('hospital_auth', JSON.stringify(userData));
-            msg.className = "msg ok";
-            msg.textContent = "Autoryzacja OK. Przekierowanie...";
-            
-            // Opóźnienie dla zapisu danych
-            setTimeout(() => {
-                document.getElementById("loginScreen").classList.add("hidden");
-                document.getElementById("panel").classList.remove("hidden");
-                renderAll();
-            }, 500);
         }
-        
+
         function logout() {
             localStorage.removeItem('hospital_auth');
             window.location.href = "portal.html";
         }
-        
+
         function createSecureCode(type, rank) {
             const accessKeys = JSON.parse(localStorage.getItem('hospital_access_keys') || '[]');
             const newCode = {
@@ -227,7 +294,7 @@
             console.log("Kody w bazie:", localStorage.getItem('hospital_access_keys'));
             return newCode;
         }
-        
+
         function generateCodes() {
             console.log("generateCodes() called");
             const type = document.getElementById("genType").value;
@@ -248,7 +315,7 @@
             renderPending();
             console.log("Codes generated and rendered");
         }
-        
+
         function clearAllCodes() {
             if (!confirm("Czy na pewno wyczyścić WSZYSTKIE kody dostępu?")) return;
             localStorage.setItem('hospital_access_keys', JSON.stringify([]));
@@ -258,163 +325,7 @@
             document.getElementById("genMsg").textContent = "Wszystkie kody zostały wyczyszczone.";
             console.log("Kody w bazie po wyczyszczeniu:", localStorage.getItem('hospital_access_keys'));
         }
-        
-                        </div>
-                        <div id="genMsg" class="msg"></div>
-                        <div id="pendingTable" style="margin-top: 16px;"></div>
-                    </div>
-                    <div class="card">
-                        <h2>Zarządzanie Grafikiem</h2>
-                        <div class="sub">Przypisywanie dyżurów lekarzom.</div>
-                        <div class="row3">
-                            <select id="schedule_doctor"><option value="">Wybierz lekarza...</option></select>
-                            <input id="schedule_date" type="datetime-local" />
-                            <button class="btn" onclick="addSchedule()">DODAJ DYŻUR</button>
-                        </div>
-                        <div id="scheduleMsg" class="msg"></div>
-                        <div id="scheduleTable" style="margin-top: 16px;"></div>
-                    </div>
-                    <div class="card">
-                        <h2>Baza Lekarzy</h2>
-                        <div class="sub">Zmiana rangi/specjalizacji i usuwanie kont.</div>
-                        <table id="doctorsTable" style="margin-top: 16px;"></table>
-                    </div>
-                </div>
-                <div>
-                    <div class="card">
-                        <h2>Baza Cywili (Pacjentów)</h2>
-                        <div class="sub">Usunięcie konta czyści też wpis w `hosp_v545`.</div>
-                        <div id="patientsGrid" class="bento-grid">
-                            <!-- Karty pacjentów będą generowane dynamicznie -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <script>
-            const BOSS = "BOSS123";
-            function readLS(k, f) { try { return JSON.parse(localStorage.getItem(k)) ?? f; } catch { return f; } }
-            function writeLS(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
-            function uid(p) { return p + "-" + Date.now().toString(36).toUpperCase() + "-" + Math.floor(Math.random() * 9999).toString().padStart(4, "0"); }
-            function esc(s) { return String(s ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;"); }
-            function ensureSeeds() {
-                if (!Array.isArray(readLS("pending_codes", null))) writeLS("pending_codes", []);
-                if (!Array.isArray(readLS("hospital_staff", null))) writeLS("hospital_staff", []);
-                if (!Array.isArray(readLS("hosp_v545", null))) writeLS("hosp_v545", []);
-                if (!Array.isArray(readLS("hospital_schedule", null))) writeLS("hospital_schedule", []);
-            }
-            ensureSeeds();
-            
-            function adminLogin() {
-                const v = document.getElementById("bossPass").value.trim();
-                const msg = document.getElementById("loginMsg");
-                
-                if (v !== BOSS) { 
-                    msg.className = "msg err"; 
-                    msg.textContent = "Błędny kod."; 
-                    return; 
-                }
-                
-                // Zapisz sesję admina
-                const userData = {
-                    imie: "System",
-                    nazwisko: "Administrator",
-                    ranga: "Administrator",
-                    id: "ADMIN",
-                    name: "System Administrator",
-                    rank: "Administrator",
-                    code: v,
-                    login: v,
-                    loginTime: Date.now(),
-                    type: 'admin'
-                };
-                
-                localStorage.setItem('hospital_auth', JSON.stringify(userData));
-                msg.className = "msg ok";
-                msg.textContent = "Autoryzacja OK. Przekierowanie...";
-                
-                // Opóźnienie dla zapisu danych
-                setTimeout(() => {
-                    document.getElementById("loginScreen").classList.add("hidden");
-                    document.getElementById("panel").classList.remove("hidden");
-                    renderAll();
-            }
-        }
-        
-        function editDoctorRank(doctorId) {
-            const docs = readLS("hospital_staff", []);
-            const doctor = docs.find(d => d.id === doctorId);
-            if (doctor) {
-                const newRank = prompt("Podaj nową rangę:", doctor.rank);
-                if (newRank && newRank !== doctor.rank) {
-                    doctor.rank = newRank;
-                    writeLS("hospital_staff", docs);
-                    renderDoctors();
-                    document.getElementById("genMsg").className = "msg ok";
-                    document.getElementById("genMsg").textContent = "Ranga została zaktualizowana.";
-                }
-            }
-        }
-        
-        function deleteDoctor(id) {
-            if (!confirm("Usunąć konto lekarza?")) return;
-            writeLS("hospital_staff", readLS("hospital_staff", []).filter(d => d.id !== id));
-            renderDoctors();
-        }
-        
-        function renderPatients() {
-            const pats = readLS("hosp_v545", []);
-            const table = document.getElementById("patientsTable");
-            table.innerHTML = `<thead><tr><th>SSN</th><th>Imię i nazwisko</th><th>Ubezpieczyciel</th><th>Status</th><th>Akcja</th></tr></thead><tbody>${pats.length ? pats.map(p => `
-                <tr>
-                    <td>${esc(p.ssn || '-')}</td>
-                    <td>${esc(p.name)}</td>
-                    <td>${esc(p.insurance || '-')}</td>
-                    <td>${esc(p.status || 'Aktywny')}</td>
-                    <td>
-                        <button class="btn" onclick="editPatientData('${esc(p.id)}')">EDYTUJ DANE</button>
-                        <button class="btn-danger" onclick="removePatient('${esc(p.id)}')">USUŃ</button>
-                    </td>
-                </tr>
-            `).join("") : `<tr><td colspan="5">Brak pacjentów.</td></tr>`}</tbody>`;
-        }
-        
-        function editPatientData(patientId) {
-            const pats = readLS("hosp_v545", []);
-            const patient = pats.find(p => p.id === patientId);
-            if (patient) {
-                const newInsurance = prompt("Nowe ubezpieczenie:", patient.insurance || '');
-                const newNote = prompt("Nowa notatka (do historii):", '');
-                
-                if (newInsurance !== null) {
-                    patient.insurance = newInsurance;
-                }
-                
-                if (newNote !== null && newNote.trim()) {
-                    if (!patient.history) patient.history = [];
-                    patient.history.push({
-                        id: Date.now(),
-                        note: newNote,
-                        timestamp: new Date().toISOString(),
-                        type: 'admin_note'
-                    });
-                }
-                
-                writeLS("hosp_v545", pats);
-                renderPatients();
-                document.getElementById("genMsg").className = "msg ok";
-                document.getElementById("genMsg").textContent = "Dane pacjenta zostały zaktualizowane.";
-            }
-        }
-        
-        function removePatient(id) {
-            if (!confirm("Usunąć tego pacjenta?")) return;
-            const allPatients = readLS("hosp_v545", []);
-            const filteredPatients = allPatients.filter(p => p.id !== id);
-            writeLS("hosp_v545", filteredPatients);
-            renderPatients();
-        }
-        
+
         function renderPending() {
             const accessKeys = JSON.parse(localStorage.getItem('hospital_access_keys') || '[]');
             const table = document.getElementById("pendingTable");
@@ -440,7 +351,7 @@
             
             console.log("renderPending() completed");
         }
-        
+
         function removeAccessKey(keyId) {
             if (!confirm("Usunąć ten kod?")) return;
             const accessKeys = JSON.parse(localStorage.getItem('hospital_access_keys') || '[]');
@@ -449,35 +360,136 @@
             console.log("Kody w bazie po usunięciu:", localStorage.getItem('hospital_access_keys'));
             renderPending();
         }
-        
-        function renderSchedule() {
-            const schedule = readLS("hospital_schedule", []);
-            const table = document.getElementById("scheduleTable");
-            if (!table) return;
-            
-            table.innerHTML = schedule.length ? `
-                <table style="width: 100%; border-collapse: collapse;">
-                    <thead><tr><th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Lekarz</th><th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Data dyżuru</th><th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Akcja</th></tr></thead>
-                    <tbody>
-                        ${schedule.map(s => `
-                            <tr style="border-bottom: 1px solid var(--line);">
-                                <td style="padding: 8px;">${esc(s.doctorName)}</td>
-                                <td style="padding: 8px;">${new Date(s.date).toLocaleString('pl-PL')}</td>
-                                <td style="padding: 8px;"><button class="btn-danger" onclick="removeSchedule('${s.id}')" style="font-size: 10px; padding: 4px 8px;">USUŃ</button></td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            ` : '<div style="color: var(--muted); text-align: center; padding: 20px;">Brak dyżurów.</div>';
+
+        function renderDoctors() {
+            const docs = readLS("hospital_staff", []);
+            const ranks = ["Student Medycyny", "Młodszy Ratownik", "Ratownik Medyczny", "Lekarz Rezydent", "Lekarz Specjalista", "Zastępca Ordynatora", "Ordynator", "Zarząd Szpitala", "Dyrektor Szpitala"];
+            const table = document.getElementById("doctorsTable");
+            table.innerHTML = `<thead><tr><th>Kod</th><th>Imię i nazwisko</th><th>Ranga</th><th>Specjalizacja</th><th>Akcja</th></tr></thead><tbody>${docs.length ? docs.map(d => `
+                <tr>
+                    <td>${esc(d.code)}</td>
+                    <td>${esc(d.name)}</td>
+                    <td>
+                        <select id="rank_${esc(d.id)}" onchange="updateDoctorRank('${esc(d.id)}', this.value)">
+                            ${ranks.map(r => `<option value="${esc(r)}" ${d.rank === r ? 'selected' : ''}>${esc(r)}</option>`).join('')}
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" value="${esc(d.specialization || '')}" onchange="updateDoctorSpecialization('${esc(d.id)}', this.value)" placeholder="Specjalizacja" />
+                    </td>
+                    <td>
+                        <button class="btn" onclick="editDoctorRank('${esc(d.id)}')">EDYTUJ RANGĘ</button>
+                        <button class="btn-danger" onclick="deleteDoctor('${esc(d.id)}')">USUŃ</button>
+                    </td>
+                </tr>
+            `).join("") : `<tr><td colspan="5">Brak lekarzy.</td></tr>`}</tbody>`;
+
+            // Załaduj lekarzy do selecta harmonogramu
+            const scheduleSelect = document.getElementById("schedule_doctor");
+            if (scheduleSelect) {
+                scheduleSelect.innerHTML = "<option value=''>Wybierz lekarza...</option>";
+                docs.forEach(doctor => {
+                    scheduleSelect.innerHTML += `<option value='${doctor.id}'>${doctor.name} - ${doctor.specialization}</option>`;
+                });
+            }
         }
-        
-        function renderAll() { 
-            renderPending(); 
-            renderDoctors(); 
-            renderPatients(); 
-            renderSchedule(); 
+
+        function updateDoctorRank(doctorId, newRank) {
+            const docs = readLS("hospital_staff", []);
+            const doctor = docs.find(d => d.id === doctorId);
+            if (doctor) {
+                doctor.rank = newRank;
+                writeLS("hospital_staff", docs);
+                document.getElementById("genMsg").className = "msg ok";
+                document.getElementById("genMsg").textContent = "Ranga została zaktualizowana.";
+            }
         }
-        
+
+        function updateDoctorSpecialization(doctorId, newSpecialization) {
+            const docs = readLS("hospital_staff", []);
+            const doctor = docs.find(d => d.id === doctorId);
+            if (doctor) {
+                doctor.specialization = newSpecialization;
+                writeLS("hospital_staff", docs);
+                document.getElementById("genMsg").className = "msg ok";
+                document.getElementById("genMsg").textContent = "Specjalizacja została zaktualizowana.";
+            }
+        }
+
+        function editDoctorRank(doctorId) {
+            const docs = readLS("hospital_staff", []);
+            const doctor = docs.find(d => d.id === doctorId);
+            if (doctor) {
+                const newRank = prompt("Podaj nową rangę:", doctor.rank);
+                if (newRank && newRank !== doctor.rank) {
+                    doctor.rank = newRank;
+                    writeLS("hospital_staff", docs);
+                    renderDoctors();
+                    document.getElementById("genMsg").className = "msg ok";
+                    document.getElementById("genMsg").textContent = "Ranga została zaktualizowana.";
+                }
+            }
+        }
+
+        function deleteDoctor(id) {
+            if (!confirm("Usunąć konto lekarza?")) return;
+            writeLS("hospital_staff", readLS("hospital_staff", []).filter(d => d.id !== id));
+            renderDoctors();
+        }
+
+        function renderPatients() {
+            const pats = readLS("hosp_v545", []);
+            const table = document.getElementById("patientsTable");
+            table.innerHTML = `<thead><tr><th>SSN</th><th>Imię i nazwisko</th><th>Ubezpieczyciel</th><th>Status</th><th>Akcja</th></tr></thead><tbody>${pats.length ? pats.map(p => `
+                <tr>
+                    <td>${esc(p.ssn || '-')}</td>
+                    <td>${esc(p.name)}</td>
+                    <td>${esc(p.insurance || '-')}</td>
+                    <td>${esc(p.status || 'Aktywny')}</td>
+                    <td>
+                        <button class="btn" onclick="editPatientData('${esc(p.id)}')">EDYTUJ DANE</button>
+                        <button class="btn-danger" onclick="removePatient('${esc(p.id)}')">USUŃ</button>
+                    </td>
+                </tr>
+            `).join("") : `<tr><td colspan="5">Brak pacjentów.</td></tr>`}</tbody>`;
+        }
+
+        function editPatientData(patientId) {
+            const pats = readLS("hosp_v545", []);
+            const patient = pats.find(p => p.id === patientId);
+            if (patient) {
+                const newInsurance = prompt("Nowe ubezpieczenie:", patient.insurance || '');
+                const newNote = prompt("Nowa notatka (do historii):", '');
+
+                if (newInsurance !== null) {
+                    patient.insurance = newInsurance;
+                }
+
+                if (newNote !== null && newNote.trim()) {
+                    if (!patient.history) patient.history = [];
+                    patient.history.push({
+                        id: Date.now(),
+                        note: newNote,
+                        timestamp: new Date().toISOString(),
+                        type: 'admin_note'
+                    });
+                }
+
+                writeLS("hosp_v545", pats);
+                renderPatients();
+                document.getElementById("genMsg").className = "msg ok";
+                document.getElementById("genMsg").textContent = "Dane pacjenta zostały zaktualizowane.";
+            }
+        }
+
+        function removePatient(id) {
+            if (!confirm("Usunąć tego pacjenta?")) return;
+            const allPatients = readLS("hosp_v545", []);
+            const filteredPatients = allPatients.filter(p => p.id !== id);
+            writeLS("hosp_v545", filteredPatients);
+            renderPatients();
+        }
+
         function addSchedule() {
             const doctorId = document.getElementById("schedule_doctor").value;
             const date = document.getElementById("schedule_date").value;
@@ -524,27 +536,22 @@
             document.getElementById("schedule_date").value = "";
             renderSchedule();
         }
-        
+
+        function removeSchedule(id) {
+            if (!confirm("Usunąć ten dyżur?")) return;
+            const schedule = readLS("hospital_schedule", []).filter(s => s.id !== id);
+            writeLS("hospital_schedule", schedule);
+            renderSchedule();
+        }
+
         function renderSchedule() {
             const schedule = readLS("hospital_schedule", []);
             const table = document.getElementById("scheduleTable");
+            if (!table) return;
             
-            if (!schedule.length) {
-                table.innerHTML = '<div style="color: var(--muted); text-align: center; padding: 20px;">Brak dyżurów</div>';
-                return;
-            }
-            
-            // Sortuj po dacie
-            schedule.sort((a, b) => a.date - b.date);
-            
-            table.innerHTML = `
+            table.innerHTML = schedule.length ? `
                 <table style="width: 100%; border-collapse: collapse;">
-                    <thead><tr>
-                        <th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Lekarz</th>
-                        <th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Ranga</th>
-                        <th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Data dyżuru</th>
-                        <th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Akcja</th>
-                    </tr></thead>
+                    <thead><tr><th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Lekarz</th><th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Ranga</th><th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Data dyżuru</th><th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Akcja</th></tr></thead>
                     <tbody>
                         ${schedule.map(shift => {
                             const rankColor = shift.rank === 'Ordynator' || shift.rank === 'Dyrektor Szpitala' || shift.rank === 'Zarząd Szpitala' ? '#f1c40f' : '#39a8ff';
@@ -566,14 +573,15 @@
                         }).join('')}
                     </tbody>
                 </table>
-            `;
+            ` : '<div style="color: var(--muted); text-align: center; padding: 20px;">Brak dyżurów.</div>';
         }
-        
-        function removeSchedule(id) {
-            if (!confirm("Usunąć ten dyżur?")) return;
-            const schedule = readLS("hospital_schedule", []).filter(s => s.id !== id);
-            writeLS("hospital_schedule", schedule);
-            renderSchedule();
+
+        // Funkcje pomocnicze
+        function renderAll() { 
+            renderPending(); 
+            renderDoctors(); 
+            renderPatients(); 
+            renderSchedule(); 
         }
     </script>
 </body>
