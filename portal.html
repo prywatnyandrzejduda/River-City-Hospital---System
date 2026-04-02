@@ -501,11 +501,13 @@
                     code: doctor.code,
                     login: doctor.code,
                     loginTime: Date.now(),
-                    type: 'doctor'
+                    type: 'doctor',
+                    role: 'doctor'  // Dodaj pole role dla kompatybilności
                 };
                 
                 localStorage.setItem('hospital_auth', JSON.stringify(userData));
                 writeLS("hospital_auth", JSON.stringify(userData));
+                localStorage.setItem('currentUser', JSON.stringify(userData));  // Dodaj currentUser
                 writeLS("current_doctor_session", { doctorId: doctor.id, code: doctor.code, ts: Date.now() });
                 logSystem("doctor", "LOGIN_SUCCESS", { doctorId: doctor.id, name: doctor.name, code: doctor.code });
                 msg.className = "msg ok";
@@ -535,10 +537,12 @@
                             code: login,
                             login: login,
                             loginTime: Date.now(),
-                            type: 'admin'
+                            type: 'admin',
+                            role: 'admin'  // Dodaj pole role dla kompatybilności
                         };
                         
                         localStorage.setItem('hospital_auth', JSON.stringify(userData));
+                        localStorage.setItem('currentUser', JSON.stringify(userData));  // Dodaj currentUser
                         msg.className = "msg ok";
                         msg.textContent = "Autoryzacja OK. Przekierowanie...";
                         
@@ -582,10 +586,12 @@
                     login: patient.ssn, // SSN jako login
                     loginTime: Date.now(),
                     type: 'patient',
+                    role: 'patient',  // Dodaj pole role dla kompatybilności
                     patientId: patient.id
                 };
                 
                 localStorage.setItem('hospital_auth', JSON.stringify(userData));
+                localStorage.setItem('currentUser', JSON.stringify(userData));  // Dodaj currentUser
                 logSystem("patient", "LOGIN_SUCCESS", { patientId: patient.id, login: patient.ssn });
                 msg.className = "msg ok";
                 msg.textContent = "Autoryzacja OK. Przekierowanie...";
