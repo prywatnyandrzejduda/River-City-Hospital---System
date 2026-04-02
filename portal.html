@@ -369,6 +369,13 @@
             if (!Array.isArray(readLS("hospital_schedule", null))) writeLS("hospital_schedule", []);
         }
 
+        // Funkcja renderAll() dla kompatybilności z admin_analyzed.html
+        function renderAll() {
+            // W portal.html nie ma czegoś do renderowania przy auto-login
+            // Funkcja istnieje dla kompatybilności
+            console.log("renderAll() called - no action needed in portal.html");
+        }
+
         function consumePendingCode(rawCode, type) {
             const code = String(rawCode || "").trim().toUpperCase();
             const pending = readLS("pending_codes", []);
