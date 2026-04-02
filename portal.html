@@ -555,7 +555,7 @@
             }
 
             // Zapisz pełną sesję z obiektem lekarza
-            const userObject = {
+            const userData = {
                 imie: doctor.firstName || doctor.name.split(' ')[0],
                 nazwisko: doctor.lastName || doctor.name.split(' ')[1] || doctor.name,
                 ranga: doctor.rank,
@@ -569,8 +569,8 @@
                 type: 'doctor'
             };
             
-            localStorage.setItem('hospital_auth', JSON.stringify(userObject));
-            writeLS("hospital_auth", JSON.stringify(userObject));
+            localStorage.setItem('hospital_auth', JSON.stringify(userData));
+            writeLS("hospital_auth", JSON.stringify(userData));
             writeLS("current_doctor_session", { doctorId: doctor.id, code: doctor.code, ts: Date.now() });
             logSystem("doctor", "LOGIN_SUCCESS", { doctorId: doctor.id, name: doctor.name, code: doctor.code });
             msg.className = "msg ok";
@@ -596,7 +596,7 @@
             }
 
             // Zapisz sesję admina
-            const userObject = {
+            const userData = {
                 imie: "System",
                 nazwisko: "Administrator",
                 ranga: "Administrator",
@@ -609,8 +609,8 @@
                 type: 'admin'
             };
             
-            localStorage.setItem('hospital_auth', JSON.stringify(userObject));
-            writeLS("hospital_auth", JSON.stringify(userObject));
+            localStorage.setItem('hospital_auth', JSON.stringify(userData));
+            writeLS("hospital_auth", JSON.stringify(userData));
             logSystem("admin", "LOGIN_SUCCESS", { code });
             msg.className = "msg ok";
             msg.textContent = "Autoryzacja OK. Przekierowanie...";
@@ -638,7 +638,7 @@
             }
 
             // Zapisz sesję pacjenta w hospital_auth
-            const userObject = {
+            const userData = {
                 imie: patient.imie || patient.name?.split(' ')[0] || 'Pacjent',
                 nazwisko: patient.nazwisko || patient.name?.split(' ')[1] || 'Nieznany',
                 ranga: "Pacjent",
@@ -651,7 +651,7 @@
                 patientId: patient.id
             };
             
-            localStorage.setItem('hospital_auth', JSON.stringify(userObject));
+            localStorage.setItem('hospital_auth', JSON.stringify(userData));
             logSystem("patient", "LOGIN_SUCCESS", { patientId: patient.id, login: patient.ssn });
             msg.className = "msg ok";
             msg.textContent = "Autoryzacja OK. Przekierowanie...";
