@@ -383,10 +383,9 @@
             console.error("❌ DEBUG: Błąd parsowania sesji w initializeSessionFields:", e);
             // window.location.href = 'portal.html'; // WYŁĄCZONE DO DEBUGOWANIA
         }
-    } {
-        // Ukryte pola formularza
-        document.getElementById('inp_doc').value = `${autor.imie} ${autor.nazwisko}`;
-        document.getElementById('inp_rank').value = autor.ranga;
+    // Ukryte pola formularza
+    document.getElementById('inp_doc').value = `${autor.imie} ${autor.nazwisko}`;
+    document.getElementById('inp_rank').value = autor.ranga;
     }
 
     const firebaseConfig = {
