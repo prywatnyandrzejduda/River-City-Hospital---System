@@ -7,8 +7,16 @@
     <script>
         // Sprawdzenie hospital_auth - bez alertów, tylko przekierowanie
         (function() {
-            const hospitalAuth = JSON.parse(localStorage.getItem('hospital_auth'));
-            if (!hospitalAuth || hospitalAuth.type !== 'doctor') {
+            try {
+                const hospitalAuth = JSON.parse(localStorage.getItem('hospital_auth'));
+                if (!hospitalAuth || hospitalAuth.type !== 'doctor') {
+                    console.log("Brak sesji lekarza lub zły typ:", hospitalAuth?.type);
+                    window.location.href = 'portal.html';
+                } else {
+                    console.log("Sesja lekarza potwierdzona:", hospitalAuth.name);
+                }
+            } catch(e) {
+                console.error("Błąd parsowania sesji:", e);
                 window.location.href = 'portal.html';
             }
         })();
@@ -301,8 +309,16 @@
     }
 
     // Weryfikacja hospital_auth z nowego systemu
-    const hospitalAuth = JSON.parse(localStorage.getItem('hospital_auth') || 'null');
-    if (!hospitalAuth || hospitalAuth.type !== 'doctor') {
+    try {
+        const hospitalAuth = JSON.parse(localStorage.getItem('hospital_auth') || 'null');
+        if (!hospitalAuth || hospitalAuth.type !== 'doctor') {
+            console.log("Brak sesji lekarza lub zły typ (druga weryfikacja):", hospitalAuth?.type);
+            window.location.href = 'portal.html';
+        } else {
+            console.log("Druga weryfikacja sesji lekarza potwierdzona:", hospitalAuth.name);
+        }
+    } catch(e) {
+        console.error("Błąd parsowania sesji (druga weryfikacja):", e);
         window.location.href = 'portal.html';
     }
 
@@ -318,16 +334,28 @@
     // Inicjalizuj pola z danymi sesji
     function initializeSessionFields() {
         // Sprawdź czy użytkownik jest zalogowany
-        const autor = JSON.parse(localStorage.getItem('hospital_auth'));
-        
-        if (!autor || autor.type !== 'doctor') {
+        try {
+            const autor = JSON.parse(localStorage.getItem('hospital_auth'));
+            
+            if (!autor || autor.type !== 'doctor') {
+                console.log("Brak sesji lekarza w initializeSessionFields:", autor?.type);
+                window.location.href = 'portal.html';
+                return;
+            }
+            
+            console.log("Sesja lekarza potwierdzona w initializeSessionFields:", autor.name);
+            
+            // Inicjalizuj pola formularza danymi z sesji
+            const pacjenci = readLS("hosp_v545", []);
+            const aktywny = pacjenci.findIndex(p => p.id === autor.activePatient);
+            if (aktywny !== -1) {
+                aktywnyIdx = aktywny;
+                aktualizujPola();
+            }
+        } catch(e) {
+            console.error("Błąd parsowania sesji w initializeSessionFields:", e);
             window.location.href = 'portal.html';
-            return;
         }
-        
-        // Widget zalogowanego użytkownika
-        document.getElementById('logged_user_info').textContent = `${autor.ranga} ${autor.imie} ${autor.nazwisko}`;
-        
         // Ukryte pola formularza
         document.getElementById('inp_doc').value = `${autor.imie} ${autor.nazwisko}`;
         document.getElementById('inp_rank').value = autor.ranga;
@@ -567,38 +595,45 @@
 
     function zapiszWpis() {
         // Sprawdź czy użytkownik jest zalogowany
-        const autor = JSON.parse(localStorage.getItem('hospital_auth'));
-        if (!autor || autor.type !== 'doctor') {
+        try {
+            const autor = JSON.parse(localStorage.getItem('hospital_auth'));
+            if (!autor || autor.type !== 'doctor') {
+                console.log("Brak sesji lekarza w zapiszWpis:", autor?.type);
+                window.location.href = "portal.html";
+                return;
+            }
+            console.log("Sesja lekarza potwierdzona w zapiszWpis:", autor.name);
+            
+            if (!savePatientFields()) return;
+            let p = pacjenci[aktywIdx];
+            let txt = document.getElementById('inp_note').value.trim();
+            
+            // Pobierz dane z sesji
+            const timestamp = new Date().toLocaleString('pl-PL');
+            
+            // Dodaj automatyczny podpis z danych sesji
+            const signatureLine = `\n\n--- Podpisano elektronicznie ---\n[${autor.ranga}] ${autor.imie} ${autor.nazwisko}\nData: ${timestamp}`;
+            const fullText = txt + signatureLine;
+
+            if (txt) {
+                if (!p.history) p.history = [];
+                p.history.push({
+                    id: Date.now(), 
+                    note: fullText, 
+                    doctor: `${autor.imie} ${autor.nazwisko}`, 
+                    rank: autor.ranga,
+                    ts: Date.now(),
+                    time: timestamp,
+                    auth: (autor.ranga.includes("Dyrektor") || autor.ranga.includes("Zarząd") || autor.ranga.includes("Ordynator"))
+                });
+                document.getElementById('inp_note').value = "";
+            }
+
+            synchronizuj();
+        } catch(e) {
+            console.error("Błąd parsowania sesji w zapiszWpis:", e);
             window.location.href = "portal.html";
-            return;
         }
-        
-        if (!savePatientFields()) return;
-        let p = pacjenci[aktywIdx];
-        let txt = document.getElementById('inp_note').value.trim();
-        
-        // Pobierz dane z sesji
-        const timestamp = new Date().toLocaleString('pl-PL');
-        
-        // Dodaj automatyczny podpis z danych sesji
-        const signatureLine = `\n\n--- Podpisano elektronicznie ---\n[${autor.ranga}] ${autor.imie} ${autor.nazwisko}\nData: ${timestamp}`;
-        const fullText = txt + signatureLine;
-
-        if (txt) {
-            if (!p.history) p.history = [];
-            p.history.push({
-                id: Date.now(), 
-                note: fullText, 
-                doctor: `${autor.imie} ${autor.nazwisko}`, 
-                rank: autor.ranga,
-                ts: Date.now(),
-                time: timestamp,
-                auth: (autor.ranga.includes("Dyrektor") || autor.ranga.includes("Zarząd") || autor.ranga.includes("Ordynator"))
-            });
-            document.getElementById('inp_note').value = "";
-        }
-
-        synchronizuj();
     }
     
     function logoutUser() {
