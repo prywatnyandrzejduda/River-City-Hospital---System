@@ -803,13 +803,19 @@
 
         // Sprawdź sesję przy ładowaniu
         const session = readLS("current_patient_session", null);
-        if (session && session.patientId) {
+        if (!session || !session.patientId) {
+            alert("Brak autoryzacji pacjenta. Proszę się zalogować.");
+            location.href = "hospital_system.html";
+        } else {
             const patients = readLS("registered_patients", []);
             me = patients.find(p => p.id === session.patientId);
             if (me) {
                 showPortal();
                 // Inicjalizuj Live Refresh
                 ostatniaWersjaDanych = JSON.stringify(readLS("hosp_v545", []));
+            } else {
+                alert("Sesja wygasła lub pacjent nie istnieje. Proszę się zalogować ponownie.");
+                location.href = "hospital_system.html";
             }
         }
     </script>
