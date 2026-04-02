@@ -77,7 +77,7 @@
                         <button class="btn" onclick="generateCodes()">GENERUJ</button>
                     </div>
                     <div id="genMsg" class="msg"></div>
-                    <table id="pendingTable"></table>
+                    <table id="pendingTable" style="margin-top: 16px;"></table>
                 </div>
                 <div class="card">
                     <h2>Zarządzanie Grafikiem</h2>
@@ -93,14 +93,14 @@
                 <div class="card">
                     <h2>Baza Lekarzy</h2>
                     <div class="sub">Zmiana rangi/specjalizacji i usuwanie kont.</div>
-                    <table id="doctorsTable"></table>
+                    <table id="doctorsTable" style="margin-top: 16px;"></table>
                 </div>
             </div>
             <div>
                 <div class="card">
                     <h2>Baza Cywili (Pacjentów)</h2>
                     <div class="sub">Usunięcie konta czyści też wpis w `hosp_v545`.</div>
-                    <table id="patientsTable"></table>
+                    <table id="patientsTable" style="margin-top: 16px;"></table>
                 </div>
             </div>
         </div>
@@ -232,7 +232,18 @@
         function renderPatients() {
             const pats = readLS("registered_patients", []);
             const table = document.getElementById("patientsTable");
-            table.innerHTML = `<thead><tr><th>Login</th><th>Imię i nazwisko</th><th>Dane</th><th>Akcja</th></tr></thead><tbody>${pats.length ? pats.map(p => `<tr><td>${esc(p.login)}</td><td>${esc(p.name)}</td><td>Wiek: ${esc(p.age)} | Płeć: ${esc(p.gender)}<br>Ubezp.: ${esc(p.insured)} ${p.insNumber ? "(" + esc(p.insNumber) + ")" : ""}<br>Adres: ${esc(p.address)}<br>Zawód: ${esc(p.job)}<br>Krew: ${esc(p.blood || "-")}</td><td><button class="btn-danger" onclick="deletePatient('${esc(p.id)}')">USUŃ</button></td></tr>`).join("") : `<tr><td colspan="4">Brak pacjentów.</td></tr>`}</tbody>`;
+            table.innerHTML = `<thead><tr><th>Login</th><th>Imię i nazwisko</th><th>SSN</th><th>Ubezpieczyciel</th><th>Status</th><th>Akcja</th></tr></thead><tbody>${pats.length ? pats.map(p => `<tr><td>${esc(p.login)}</td><td>${esc(p.name)}</td><td>${esc(p.ssn || '-')}</td><td>${esc(p.insurance || '-')}</td><td>${esc(p.status || 'Aktywny')}</td><td><button class="btn-danger" onclick="removePatient('${esc(p.id)}')" style="font-size: 10px; padding: 4px 8px;">USUŃ</button></td></tr>`).join("") : `<tr><td colspan="6">Brak pacjentów.</td></tr>`}</tbody>`;
+        }
+        
+        function removePatient(id) {
+            if (!confirm("Usunąć tego pacjenta?")) return;
+            // Usuń z registered_patients
+            const registeredPatients = readLS("registered_patients", []).filter(p => p.id !== id);
+            writeLS("registered_patients", registeredPatients);
+            // Usuń również z hosp_v545
+            const allPatients = readLS("hosp_v545", []).filter(p => p.id !== id);
+            writeLS("hosp_v545", allPatients);
+            renderPatients();
         }
         function renderAll() { 
             renderPending(); 
@@ -258,21 +269,26 @@
                 return;
             }
             
-            const schedule = readLS("hospital_schedule", []);
-            const staff = readLS("hospital_staff", []);
-            const doctor = staff.find(d => d.id === doctorId);
+            const docs = readLS("hospital_staff", []);
+            const doctor = docs.find(d => d.id === doctorId);
+            if (!doctor) {
+                msg.className = "msg err";
+                msg.textContent = "Nie znaleziono lekarza.";
+                return;
+            }
             
-            const shift = {
+            const schedule = readLS("hospital_schedule", []);
+            const newShift = {
                 id: uid("SHIFT"),
-                doctorId,
-                doctorName: doctor ? doctor.name : "Nieznany",
+                doctorId: doctorId,
+                doctorName: doctor.name,
+                rank: doctor.rank,
                 date: new Date(date).getTime(),
                 dateStr: new Date(date).toLocaleString('pl-PL'),
-                rank: doctor ? doctor.rank : "Nieznana",
                 createdAt: Date.now()
             };
             
-            schedule.push(shift);
+            schedule.push(newShift);
             writeLS("hospital_schedule", schedule);
             
             msg.className = "msg ok";
@@ -306,6 +322,7 @@
                     <tbody>
                         ${schedule.map(shift => {
                             const rankColor = shift.rank === 'Ordynator' || shift.rank === 'Dyrektor Szpitala' || shift.rank === 'Zarząd Szpitala' ? '#f1c40f' : '#39a8ff';
+                            const dateStr = new Date(shift.date).toLocaleString('pl-PL');
                             return `
                                 <tr style="border-bottom: 1px solid var(--line);">
                                     <td style="padding: 8px; color: var(--text);">${esc(shift.doctorName)}</td>
@@ -314,7 +331,7 @@
                                             ${esc(shift.rank)}
                                         </span>
                                     </td>
-                                    <td style="padding: 8px; color: var(--text);">${shift.dateStr}</td>
+                                    <td style="padding: 8px; color: var(--text);">${dateStr}</td>
                                     <td style="padding: 8px;">
                                         <button class="btn-danger" onclick="removeSchedule('${shift.id}')" style="font-size: 10px; padding: 4px 8px;">USUŃ</button>
                                     </td>
