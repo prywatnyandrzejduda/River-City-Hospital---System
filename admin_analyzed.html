@@ -371,7 +371,7 @@
                     <td>${esc(d.name)}</td>
                     <td>
                         <select id="rank_${esc(d.id)}" onchange="updateDoctorRank('${esc(d.id)}', this.value)">
-                            ${ranks.map(r => `<option value="${esc(r)}" ${d.rank === r ? 'selected' : ''}>${esc(r)}</option>`).join('')}
+                            ${ranks.map(r => '<option value="' + esc(r) + '"' + (d.rank === r ? ' selected' : '') + '>' + esc(r) + '</option>').join('')}
                         </select>
                     </td>
                     <td>
