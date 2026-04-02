@@ -534,7 +534,7 @@
         let txt = document.getElementById('inp_note').value.trim();
         
         // Pobierz dane zalogowanego lekarza
-        const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
+        const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser')) || '{}';
         const doctorName = loggedInUser.name || document.getElementById('inp_doc').value.trim();
         const doctorRank = loggedInUser.rank || document.getElementById('inp_rank').value || 'Lekarz';
         const timestamp = new Date().toLocaleString('pl-PL');
