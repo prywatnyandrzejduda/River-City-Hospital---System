@@ -281,39 +281,58 @@
         }
 
         function createSecureCode(type, rank) {
-            const accessKeys = JSON.parse(localStorage.getItem('hospital_access_keys') || '[]');
-            const newCode = {
-                id: Date.now(),
-                code: Math.random().toString(36).substr(2, 6).toUpperCase(),
-                type: type,
-                assignedRank: rank,
-                createdAt: new Date().toISOString()
-            };
-            accessKeys.push(newCode);
-            localStorage.setItem('hospital_access_keys', JSON.stringify(accessKeys));
-            console.log("Kody w bazie:", localStorage.getItem('hospital_access_keys'));
-            return newCode;
+            try {
+                console.log("createSecureCode called with type:", type, "rank:", rank);
+                const accessKeys = JSON.parse(localStorage.getItem('hospital_access_keys') || '[]');
+                console.log("Current accessKeys before adding:", accessKeys);
+                
+                const newCode = {
+                    id: Date.now(),
+                    code: Math.random().toString(36).substr(2, 6).toUpperCase(),
+                    type: type,
+                    assignedRank: rank,
+                    createdAt: new Date().toISOString()
+                };
+                
+                accessKeys.push(newCode);
+                localStorage.setItem('hospital_access_keys', JSON.stringify(accessKeys));
+                console.log("Kody w bazie po dodaniu:", localStorage.getItem('hospital_access_keys'));
+                console.log("New code created:", newCode);
+                return newCode;
+            } catch(error) {
+                console.error("Error in createSecureCode:", error);
+                throw error;
+            }
         }
 
         function generateCodes() {
             console.log("generateCodes() called");
-            const type = document.getElementById("genType").value;
-            const count = Math.max(1, Math.min(20, Number(document.getElementById("genCount").value || 1)));
-            const created = [];
-            
-            console.log("Generating", count, "codes of type:", type);
-            
-            for (let i = 0; i < count; i += 1) {
-                const newCode = createSecureCode(type, type === "doctor" ? "Lekarz" : "Pacjent");
-                created.push(newCode.code);
-                console.log("Generated code:", newCode.code);
+            try {
+                const type = document.getElementById("genType").value;
+                const count = Math.max(1, Math.min(20, Number(document.getElementById("genCount").value || 1)));
+                const created = [];
+                
+                console.log("Generating", count, "codes of type:", type);
+                console.log("Current hospital_access_keys:", localStorage.getItem('hospital_access_keys'));
+                
+                for (let i = 0; i < count; i += 1) {
+                    const newCode = createSecureCode(type, type === "doctor" ? "Lekarz" : "Pacjent");
+                    created.push(newCode.code);
+                    console.log("Generated code:", newCode.code);
+                }
+                
+                const msg = document.getElementById("genMsg");
+                msg.className = "msg ok";
+                msg.textContent = "Wygenerowano: " + created.join(", ");
+                renderPending();
+                console.log("Codes generated and rendered");
+                console.log("Final hospital_access_keys:", localStorage.getItem('hospital_access_keys'));
+            } catch(error) {
+                console.error("Error in generateCodes:", error);
+                const msg = document.getElementById("genMsg");
+                msg.className = "msg err";
+                msg.textContent = "Błąd generowania kodów: " + error.message;
             }
-            
-            const msg = document.getElementById("genMsg");
-            msg.className = "msg ok";
-            msg.textContent = "Wygenerowano: " + created.join(", ");
-            renderPending();
-            console.log("Codes generated and rendered");
         }
 
         function clearAllCodes() {
@@ -375,7 +394,7 @@
                         </select>
                     </td>
                     <td>
-                        <input type="text" value="${esc(d.specialization || '')}" onchange="updateDoctorSpecialization('${esc(d.id)}', this.value)" placeholder="Specjalizacja" />
+                        <input type="text" value="' + esc(d.specialization || '') + '" onchange="updateDoctorSpecialization('${esc(d.id)}', this.value)" placeholder="Specjalizacja" />
                     </td>
                     <td>
                         <button class="btn" onclick="editDoctorRank('${esc(d.id)}')">EDYTUJ RANGĘ</button>
@@ -440,7 +459,7 @@
         function renderPatients() {
             const pats = readLS("hosp_v545", []);
             const table = document.getElementById("patientsTable");
-            table.innerHTML = `<thead><tr><th>SSN</th><th>Imię i nazwisko</th><th>Ubezpieczyciel</th><th>Status</th><th>Akcja</th></tr></thead><tbody>${pats.length ? pats.map(p => `
+            table.innerHTML = '<thead><tr><th>SSN</th><th>Imię i nazwisko</th><th>Ubezpieczyciel</th><th>Status</th><th>Akcja</th></tr></thead><tbody>' + (pats.length ? pats.map(p => `
                 <tr>
                     <td>${esc(p.ssn || '-')}</td>
                     <td>${esc(p.name)}</td>
@@ -451,7 +470,7 @@
                         <button class="btn-danger" onclick="removePatient('${esc(p.id)}')">USUŃ</button>
                     </td>
                 </tr>
-            `).join("") : `<tr><td colspan="5">Brak pacjentów.</td></tr>`}</tbody>`;
+            `).join("") : '<tr><td colspan="5">Brak pacjentów.</td></tr>') + '</tbody>';
         }
 
         function editPatientData(patientId) {
@@ -556,20 +575,7 @@
                         ${schedule.map(shift => {
                             const rankColor = shift.rank === 'Ordynator' || shift.rank === 'Dyrektor Szpitala' || shift.rank === 'Zarząd Szpitala' ? '#f1c40f' : '#39a8ff';
                             const dateStr = new Date(shift.date).toLocaleString('pl-PL');
-                            return `
-                                <tr style="border-bottom: 1px solid var(--line);">
-                                    <td style="padding: 8px; color: var(--text);">${esc(shift.doctorName)}</td>
-                                    <td style="padding: 8px;">
-                                        <span style="background: ${rankColor}20; color: ${rankColor}; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">
-                                            ${esc(shift.rank)}
-                                        </span>
-                                    </td>
-                                    <td style="padding: 8px; color: var(--text);">${dateStr}</td>
-                                    <td style="padding: 8px;">
-                                        <button class="btn-danger" onclick="removeSchedule('${shift.id}')" style="font-size: 10px; padding: 4px 8px;">USUŃ</button>
-                                    </td>
-                                </tr>
-                            `;
+                            return '<tr style="border-bottom: 1px solid var(--line);"><td style="padding: 8px; color: var(--text);">' + esc(shift.doctorName) + '</td><td style="padding: 8px;"><span style="background: ' + rankColor + '20; color: ' + rankColor + '; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">' + esc(shift.rank) + '</span></td><td style="padding: 8px; color: var(--text);">' + dateStr + '</td><td style="padding: 8px;"><button class="btn-danger" onclick="removeSchedule(\'' + esc(shift.id) + '\')" style="font-size: 10px; padding: 4px 8px;">USUŃ</button></td></tr>';
                         }).join('')}
                     </tbody>
                 </table>
