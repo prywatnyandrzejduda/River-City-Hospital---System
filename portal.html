@@ -259,6 +259,9 @@
                     <input type="password" id="pat_pass" placeholder="Hasło" />
                     <button class="btn-patient" onclick="patientLogin()">ZALOGUJ SIĘ</button>
                     <div id="pat_msg" class="msg"></div>
+                    <div style="text-align: center; margin-top: 12px;">
+                        <button class="toggle-btn" onclick="switchToPatientRegister()">Nie masz konta? Zarejestruj się jako pacjent</button>
+                    </div>
                 </div>
             </div>
             
@@ -274,6 +277,21 @@
                     <button class="btn-doctor" onclick="doctorRegister()">ZAREJESTRUJ LEKARZA</button>
                     <div id="doc_reg_msg" class="msg"></div>
                     <button class="toggle-btn" onclick="switchAuthTab('login')">← POWRÓT DO LOGOWANIA</button>
+                </div>
+            </div>
+            
+            <!-- Panel Rejestracji Pacjentów -->
+            <div id="patientRegisterPanel" class="auth-panel">
+                <div class="card patient-card">
+                    <h2>🧑 REJESTRACJA PACJENTA</h2>
+                    <div class="badge">Stwórz nowe konto pacjenta</div>
+                    <input type="text" id="pat_reg_name" placeholder="Imię i Nazwisko" />
+                    <input type="text" id="pat_reg_ssn" placeholder="SSN (Format: XXX-XX-XXXX)" maxlength="11" />
+                    <input type="password" id="pat_reg_pass" placeholder="Hasło" />
+                    <input type="text" id="pat_reg_insurance" placeholder="Ubezpieczyciel (Insurance Provider)" />
+                    <button class="btn-patient" onclick="registerPatient()">ZAREJESTRUJ PACJENTA</button>
+                    <div id="pat_reg_msg" class="msg"></div>
+                    <button class="toggle-btn" onclick="switchToPatientLogin()">← POWRÓT DO LOGOWANIA</button>
                 </div>
             </div>
         </div>
@@ -372,6 +390,118 @@
                 document.querySelector('.auth-tab:last-child').classList.add('active');
                 document.getElementById('registerPanel').classList.add('active');
             }
+        }
+
+        function switchToPatientRegister() {
+            document.querySelectorAll('.auth-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById('patientRegisterPanel').classList.add('active');
+        }
+
+        function switchToPatientLogin() {
+            document.querySelectorAll('.auth-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById('loginPanel').classList.add('active');
+        }
+
+        function registerPatient() {
+            const name = document.getElementById("pat_reg_name").value.trim();
+            const ssn = document.getElementById("pat_reg_ssn").value.trim();
+            const password = document.getElementById("pat_reg_pass").value;
+            const insurance = document.getElementById("pat_reg_insurance").value.trim();
+            const msg = document.getElementById("pat_reg_msg");
+            
+            // Walidacja pól
+            if (!name || !ssn || !password || !insurance) {
+                msg.className = "msg err";
+                msg.textContent = "Uzupełnij wszystkie pola.";
+                return;
+            }
+            
+            // Walidacja formatu SSN
+            const ssnPattern = /^\d{3}-\d{2}-\d{4}$/;
+            if (!ssnPattern.test(ssn)) {
+                msg.className = "msg err";
+                msg.textContent = "Nieprawidłowy format SSN. Użyj formatu XXX-XX-XXXX.";
+                return;
+            }
+            
+            // Pobierz obecną listę pacjentów
+            const patients = readLS("hosp_v545", []);
+            
+            // Sprawdź czy SSN już istnieje
+            if (patients.some(p => p.ssn === ssn)) {
+                msg.className = "msg err";
+                msg.textContent = "Pacjent z tym SSN już istnieje.";
+                return;
+            }
+            
+            // Generuj unikalny login
+            const login = "PAT" + Date.now().toString(36).toUpperCase();
+            
+            // Stwórz nowy obiekt pacjenta
+            const newPatient = {
+                id: uid("PAT"),
+                name: name,
+                firstName: name.split(' ')[0],
+                lastName: name.split(' ').slice(1).join(' ') || name,
+                login: login,
+                password: password,
+                ssn: ssn,
+                insurance: insurance,
+                age: "Nieznany",
+                gender: "Nieznana",
+                blood: "Nieznana",
+                insured: "Tak",
+                insNumber: "",
+                address: "Nieznany",
+                job: "Nieznany",
+                status: "Aktywny",
+                triage: "Nieokreślony",
+                reason: "Rejestracja",
+                alergie: "Brak",
+                history: [], // WAŻNE: Pusta historia dla lekarza
+                createdAt: Date.now()
+            };
+            
+            // Dodaj pacjenta do bazy
+            patients.push(newPatient);
+            writeLS("hosp_v545", patients);
+            
+            // Zapisz również do registered_patients dla logowania
+            const registeredPatients = readLS("registered_patients", []);
+            const registeredPatient = {
+                id: newPatient.id,
+                name: newPatient.name,
+                login: newPatient.login,
+                password: newPatient.password,
+                ssn: newPatient.ssn,
+                insurance: newPatient.insurance,
+                status: newPatient.status,
+                createdAt: newPatient.createdAt
+            };
+            registeredPatients.push(registeredPatient);
+            writeLS("registered_patients", registeredPatients);
+            
+            // Logowanie systemowe
+            logSystem("patient", "REGISTER_SUCCESS", { 
+                patientId: newPatient.id, 
+                name: newPatient.name,
+                login: newPatient.login,
+                ssn: newPatient.ssn
+            });
+            
+            // Sukces
+            msg.className = "msg ok";
+            msg.textContent = `Rejestracja zakończona! Twój login: ${newPatient.login}`;
+            
+            // Wyczyść pola
+            ["pat_reg_name","pat_reg_ssn","pat_reg_pass","pat_reg_insurance"].forEach(id => {
+                document.getElementById(id).value = "";
+            });
+            
+            // Przełącz do logowania po 2 sekundach
+            setTimeout(() => {
+                switchToPatientLogin();
+            }, 2000);
         }
 
         function doctorRegister() {
