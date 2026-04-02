@@ -4,6 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin Center - Hospital</title>
+    <script>
+        // Synchronizacja z nowym systemem logowania - uruchom przed resztą
+        (function() {
+            const session = JSON.parse(localStorage.getItem('activeSession'));
+            if (!session || session.type !== 'admin') {
+                alert("Brak autoryzacji admina. Przekierowanie do portalu...");
+                location.href = "portal.html";
+            }
+        })();
+    </script>
     <style>
         :root {
             --bg: #070a10; --glass: rgba(255, 255, 255, 0.05); --line: rgba(255,255,255,.12);
@@ -117,7 +127,10 @@
             document.getElementById("panel").classList.remove("hidden");
             renderAll();
         }
-        function logout() { location.reload(); }
+        function logout() {
+            localStorage.removeItem('activeSession');
+            location.href = "portal.html";
+        }
         function buildCode(type, customPrefix) {
             const prefix = customPrefix ? customPrefix.toUpperCase() : (type === "doctor" ? "DR" : "PT");
             return prefix + "-" + Math.random().toString(36).slice(2, 6).toUpperCase();
