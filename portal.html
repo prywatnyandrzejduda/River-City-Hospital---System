@@ -447,14 +447,17 @@
                 type: 'doctor'
             };
             
-            localStorage.setItem('activeSession', JSON.stringify(userObject));
-            writeLS("activeSession", JSON.stringify(userObject));
+            localStorage.setItem('hospital_auth', JSON.stringify(userObject));
+            writeLS("hospital_auth", JSON.stringify(userObject));
             writeLS("current_doctor_session", { doctorId: doctor.id, code: doctor.code, ts: Date.now() });
             logSystem("doctor", "LOGIN_SUCCESS", { doctorId: doctor.id, name: doctor.name, code: doctor.code });
             msg.className = "msg ok";
             msg.textContent = "Autoryzacja OK. Przekierowanie...";
             
-            showMainSystem('doctor', doctor.name);
+            // Przekierowanie z opóźnieniem
+            setTimeout(() => {
+                location.href = "index.html";
+            }, 100);
         }
 
         function adminLogin() {
@@ -484,13 +487,16 @@
                 type: 'admin'
             };
             
-            localStorage.setItem('activeSession', JSON.stringify(userObject));
-            writeLS("activeSession", JSON.stringify(userObject));
+            localStorage.setItem('hospital_auth', JSON.stringify(userObject));
+            writeLS("hospital_auth", JSON.stringify(userObject));
             logSystem("admin", "LOGIN_SUCCESS", { code });
             msg.className = "msg ok";
             msg.textContent = "Autoryzacja OK. Przekierowanie...";
             
-            showMainSystem('admin', 'Administrator');
+            // Przekierowanie z opóźnieniem
+            setTimeout(() => {
+                location.href = "admin_analyzed.html";
+            }, 100);
         }
 
         function patientLogin() {
@@ -521,8 +527,8 @@
                 patientId: patient.id
             };
             
-            localStorage.setItem('activeSession', JSON.stringify(userObject));
-            writeLS("activeSession", JSON.stringify(userObject));
+            localStorage.setItem('hospital_auth', JSON.stringify(userObject));
+            writeLS("hospital_auth", JSON.stringify(userObject));
             writeLS("current_patient_session", { patientId: patient.id, login: patient.login, ts: Date.now() });
             logSystem("patient", "LOGIN_SUCCESS", { patientId: patient.id, login: patient.login });
             msg.className = "msg ok";
@@ -552,7 +558,7 @@
         }
 
         function loadPatientData() {
-            const session = JSON.parse(localStorage.getItem('activeSession'));
+            const session = JSON.parse(localStorage.getItem('hospital_auth'));
             if (!session || session.type !== 'patient') return;
             
             const patients = readLS("registered_patients", []);
@@ -612,7 +618,7 @@
         }
 
         function sendMessage() {
-            const session = JSON.parse(localStorage.getItem('activeSession'));
+            const session = JSON.parse(localStorage.getItem('hospital_auth'));
             if (!session || session.type !== 'patient') return;
             
             const input = document.getElementById('chatInput');
@@ -637,23 +643,34 @@
             logSystem("patient", "MESSAGE_SEND", { patientId: session.patientId });
         }
 
-        function logoutAll() {
-            localStorage.removeItem('activeSession');
+        function logout() {
+            localStorage.removeItem('hospital_auth');
             localStorage.removeItem('current_doctor_session');
             localStorage.removeItem('current_patient_session');
             location.reload();
         }
 
+        function logoutAll() {
+            logout();
+        }
+
         function checkSession() {
-            const activeSession = JSON.parse(localStorage.getItem('activeSession') || 'null');
+            const hospitalAuth = JSON.parse(localStorage.getItem('hospital_auth') || 'null');
             
-            if (activeSession) {
-                if (activeSession.type === 'doctor') {
-                    showMainSystem('doctor', activeSession.name);
-                } else if (activeSession.type === 'admin') {
-                    showMainSystem('admin', activeSession.name);
-                } else if (activeSession.type === 'patient') {
-                    showMainSystem('patient', activeSession.name);
+            if (hospitalAuth) {
+                if (hospitalAuth.type === 'doctor') {
+                    // Auto-login dla lekarza
+                    setTimeout(() => {
+                        location.href = "index.html";
+                    }, 100);
+                } else if (hospitalAuth.type === 'admin') {
+                    // Auto-login dla admina
+                    setTimeout(() => {
+                        location.href = "admin_analyzed.html";
+                    }, 100);
+                } else if (hospitalAuth.type === 'patient') {
+                    // Pokaż panel pacjenta
+                    showMainSystem('patient', hospitalAuth.name);
                 }
             }
         }
