@@ -577,7 +577,8 @@
     }
 
     function renderLista() {
-        let l = document.getElementById('lista_pacjentow'); l.innerHTML = "";
+        let l = document.getElementById('lista_pacjentow'); 
+        l.innerHTML = ""; // Czyść kontener przed renderowaniem
         let currentRank = document.getElementById('inp_rank').value;
         let isAdmin = (currentRank === "Dyrektor Szpitala" || currentRank === "Zarząd Szpitala");
 
@@ -591,7 +592,7 @@
                 let d = document.createElement('div');
                 d.className = `p-item ${aktywIdx === i ? 'active' : ''} ${p.arch ? 'archived' : ''}`;
                 d.style.flex = "1";
-                d.innerHTML = `<b>${p.name}</b><br><small>${p.status}</small>`;
+                d.innerHTML = `<b>${p.name || 'Nieznany pacjent'}</b><br><small>Status: ${p.status || 'Nieznany'}</small>`;
                 d.onclick = () => otworz(i);
                 wrap.appendChild(d);
 
@@ -990,6 +991,9 @@
     
     // Inicjalizuj pola z danymi sesji
     initializeSessionFields();
+    
+    // Odśwież listę pacjentów po załadowaniu strony
+    wyswietlPacjentow();
 </script>
 </body>
 </html>
