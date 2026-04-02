@@ -357,19 +357,20 @@
         id: hospitalAuth.id
     };
 
-    // Inicjalizuj pola z danymi sesji
+    // Inicjalizuj pola z danymi sesji - DEBUG MODE
     function initializeSessionFields() {
         // Sprawdź czy użytkownik jest zalogowany
         try {
             const autor = JSON.parse(localStorage.getItem('hospital_auth'));
+            console.log("🔍 DEBUG: initializeSessionFields autor:", autor);
             
             if (!autor || (autor.type !== 'doctor' && autor.type !== 'admin')) {
-                console.log("Odmowa dostępu dla roli w initializeSessionFields:", autor?.type || 'brak sesji');
-                window.location.href = 'portal.html'; // WŁĄCZONE Z POWROTEM
+                console.log("❌ DEBUG: Odmowa dostępu dla roli w initializeSessionFields:", autor?.type || 'brak sesji');
+                // window.location.href = 'portal.html'; // WYŁĄCZONE DO DEBUGOWANIA
                 return;
             }
             
-            console.log("Sesja potwierdzona w initializeSessionFields:", autor.name, "typ:", autor.type);
+            console.log("✅ DEBUG: Sesja potwierdzona w initializeSessionFields:", autor.name, "typ:", autor.type);
             
             // Inicjalizuj pola formularza danymi z sesji
             const pacjenci = readLS("hosp_v545", []);
@@ -379,8 +380,8 @@
                 aktualizujPola();
             }
         } catch(e) {
-            console.error("Błąd parsowania sesji w initializeSessionFields:", e);
-            window.location.href = 'portal.html'; // WŁĄCZONE Z POWROTEM
+            console.error("❌ DEBUG: Błąd parsowania sesji w initializeSessionFields:", e);
+            // window.location.href = 'portal.html'; // WYŁĄCZONE DO DEBUGOWANIA
         }
     } {
         // Ukryte pola formularza
@@ -621,15 +622,17 @@
     }
 
     function zapiszWpis() {
-        // Sprawdź czy użytkownik jest zalogowany
+        // Sprawdź czy użytkownik jest zalogowany - DEBUG MODE
         try {
             const autor = JSON.parse(localStorage.getItem('hospital_auth'));
+            console.log("🔍 DEBUG: zapiszWpis autor:", autor);
+            
             if (!autor || (autor.type !== 'doctor' && autor.type !== 'admin')) {
-                console.log("Odmowa dostępu dla roli w zapiszWpis:", autor?.type || 'brak sesji');
-                window.location.href = "portal.html"; // WŁĄCZONE Z POWROTEM
+                console.log("❌ DEBUG: Odmowa dostępu dla roli w zapiszWpis:", autor?.type || 'brak sesji');
+                // window.location.href = "portal.html"; // WYŁĄCZONE DO DEBUGOWANIA
                 return;
             }
-            console.log("Sesja potwierdzona w zapiszWpis:", autor.name, "typ:", autor.type);
+            console.log("✅ DEBUG: Sesja potwierdzona w zapiszWpis:", autor.name, "typ:", autor.type);
             
             if (!savePatientFields()) return;
             let p = pacjenci[aktywIdx];
@@ -658,8 +661,8 @@
 
             synchronizuj();
         } catch(e) {
-            console.error("Błąd parsowania sesji w zapiszWpis:", e);
-            window.location.href = "portal.html"; // WŁĄCZONE Z POWROTEM
+            console.error("❌ DEBUG: Błąd parsowania sesji w zapiszWpis:", e);
+            // window.location.href = "portal.html"; // WYŁĄCZONE DO DEBUGOWANIA
         }
     }
     
