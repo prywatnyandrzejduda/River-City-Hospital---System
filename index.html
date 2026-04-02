@@ -532,21 +532,29 @@
         if (!savePatientFields()) return;
         let p = pacjenci[aktywIdx];
         let txt = document.getElementById('inp_note').value.trim();
-        let doc = document.getElementById('inp_doc').value.trim();
-        let r = document.getElementById('inp_rank').value;
+        
+        // Pobierz dane zalogowanego lekarza
+        const loggedInUser = JSON.parse(localStorage.getItem('loggedInUser') || '{}');
+        const doctorName = loggedInUser.name || document.getElementById('inp_doc').value.trim();
+        const doctorRank = loggedInUser.rank || document.getElementById('inp_rank').value || 'Lekarz';
+        const timestamp = new Date().toLocaleString('pl-PL');
+        
+        // Dodaj automatyczny podpis elektroniczny
+        const electronicSignature = `\n\n--- Podpisano elektronicznie ---\n[${doctorRank}] ${doctorName}\nData: ${timestamp}`;
+        const fullText = txt + electronicSignature;
 
-        if (!doc) return alert("Podpisz się!");
+        if (!doctorName) return alert("Nie można zidentyfikować lekarza!");
 
         if (txt) {
             if (!p.history) p.history = [];
             p.history.push({
                 id: Date.now(), 
-                note: txt, 
-                doctor: doc, 
-                rank: r,
+                note: fullText, 
+                doctor: doctorName, 
+                rank: doctorRank,
                 ts: Date.now(),
-                time: new Date().toLocaleString('pl-PL'),
-                auth: (r.includes("Dyrektor") || r.includes("Zarząd") || r.includes("Ordynator"))
+                time: timestamp,
+                auth: (doctorRank.includes("Dyrektor") || doctorRank.includes("Zarząd") || doctorRank.includes("Ordynator"))
             });
             document.getElementById('inp_note').value = "";
         }
