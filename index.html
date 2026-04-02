@@ -641,8 +641,8 @@
         wyswietlPacjentow();
     }
 
-    function renderLista() {
-        console.log("🔧 DEBUG: Rozpoczynam renderowanie listy pacjentów...");
+    function renderPatientsTable() {
+        console.log("🔧 DEBUG: Rozpoczynam renderowanie tabeli pacjentów...");
         
         // Pobierz dane z użyciem uniwersalnej funkcji
         let currentData = loadFromHospitalDB();
@@ -689,7 +689,7 @@
             }
         });
         
-        console.log("✅ DEBUG: Lista wyrenderowana");
+        console.log("✅ DEBUG: Tabela pacjentów wyrenderowana");
     }
 
     function usunPacjenta(i) {
@@ -1101,7 +1101,7 @@
     initializeSessionFields();
     
     // Odśwież stronę po załadowaniu danych pacjentów
-    location.reload(); // Proste odświeżenie zamiast nieistniejącej funkcji
+    renderPatientsTable(); // Użycie poprawnej nazwy funkcji
 </script>
 </body>
 </html>
