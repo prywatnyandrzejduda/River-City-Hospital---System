@@ -362,7 +362,6 @@
 
         function ensureSeeds() {
             if (!Array.isArray(readLS("hospital_staff", null))) writeLS("hospital_staff", []);
-            if (!Array.isArray(readLS("registered_patients", null))) writeLS("registered_patients", []);
             if (!Array.isArray(readLS("consultations", null))) writeLS("consultations", []);
             if (!Array.isArray(readLS("pending_codes", null))) writeLS("pending_codes", []);
             if (!Array.isArray(readLS("hosp_v545", null))) writeLS("hosp_v545", []);
@@ -432,8 +431,8 @@
                 return;
             }
             
-            // Pobierz obecną listę pacjentów
-            const patients = readLS("hosp_v545", []);
+            // Pobierz obecną listę z hosp_v545 (jedyny klucz!)
+            const patients = JSON.parse(localStorage.getItem('hosp_v545')) || [];
             
             // Sprawdź czy SSN już istnieje
             if (patients.some(p => p.ssn === ssn)) {
@@ -442,18 +441,19 @@
                 return;
             }
             
-            // Generuj unikalny login
-            const login = "PAT" + Date.now().toString(36).toUpperCase();
+            // Podziel imię i nazwisko
+            const nameParts = name.split(' ');
+            const firstName = nameParts[0] || 'Nieznane';
+            const lastName = nameParts.slice(1).join(' ') || 'Nieznane';
             
-            // Stwórz nowy obiekt pacjenta
+            // Stwórz nowy obiekt pacjenta (tylko hosp_v545!)
             const newPatient = {
                 id: uid("PAT"),
+                imie: firstName,
+                nazwisko: lastName,
                 name: name,
-                firstName: name.split(' ')[0],
-                lastName: name.split(' ').slice(1).join(' ') || name,
-                login: login,
+                ssn: ssn, // SSN jako login
                 password: password,
-                ssn: ssn,
                 insurance: insurance,
                 age: "Nieznany",
                 gender: "Nieznana",
@@ -470,36 +470,20 @@
                 createdAt: Date.now()
             };
             
-            // Dodaj pacjenta do bazy
+            // Dodaj pacjenta do hosp_v545 (jedyna baza!)
             patients.push(newPatient);
-            writeLS("hosp_v545", patients);
-            
-            // Zapisz również do registered_patients dla logowania
-            const registeredPatients = readLS("registered_patients", []);
-            const registeredPatient = {
-                id: newPatient.id,
-                name: newPatient.name,
-                login: newPatient.login,
-                password: newPatient.password,
-                ssn: newPatient.ssn,
-                insurance: newPatient.insurance,
-                status: newPatient.status,
-                createdAt: newPatient.createdAt
-            };
-            registeredPatients.push(registeredPatient);
-            writeLS("registered_patients", registeredPatients);
+            localStorage.setItem('hosp_v545', JSON.stringify(patients));
             
             // Logowanie systemowe
             logSystem("patient", "REGISTER_SUCCESS", { 
                 patientId: newPatient.id, 
                 name: newPatient.name,
-                login: newPatient.login,
                 ssn: newPatient.ssn
             });
             
             // Sukces
             msg.className = "msg ok";
-            msg.textContent = `Rejestracja zakończona! Twój login: ${newPatient.login}`;
+            msg.textContent = `Rejestracja zakończona! Twój login (SSN): ${newPatient.ssn}`;
             
             // Wyczyść pola
             ["pat_reg_name","pat_reg_ssn","pat_reg_pass","pat_reg_insurance"].forEach(id => {
@@ -640,35 +624,35 @@
         function patientLogin() {
             const login = document.getElementById("pat_login").value.trim().toUpperCase();
             const pass = document.getElementById("pat_pass").value;
-            const patients = readLS("registered_patients", []);
             const msg = document.getElementById("pat_msg");
-            const patient = patients.find(p => String(p.login).toUpperCase() === login && p.password === pass);
+            
+            // Przeszukaj hosp_v545 (jedyna baza pacjentów!)
+            const patients = JSON.parse(localStorage.getItem('hosp_v545')) || [];
+            const patient = patients.find(p => String(p.ssn).toUpperCase() === login && p.password === pass);
 
             if (!patient) {
                 msg.className = "msg err";
-                msg.textContent = "Błędny login lub hasło.";
+                msg.textContent = "Błędny login (SSN) lub hasło.";
                 logSystem("patient", "LOGIN_FAIL", { login });
                 return;
             }
 
-            // Zapisz sesję pacjenta
+            // Zapisz sesję pacjenta w hospital_auth
             const userObject = {
-                imie: patient.firstName || patient.name?.split(' ')[0] || 'Pacjent',
-                nazwisko: patient.lastName || patient.name?.split(' ')[1] || 'Nieznany',
+                imie: patient.imie || patient.name?.split(' ')[0] || 'Pacjent',
+                nazwisko: patient.nazwisko || patient.name?.split(' ')[1] || 'Nieznany',
                 ranga: "Pacjent",
                 id: patient.id,
                 name: patient.name,
                 rank: "Pacjent",
-                login: patient.login,
+                login: patient.ssn, // SSN jako login
                 loginTime: Date.now(),
                 type: 'patient',
                 patientId: patient.id
             };
             
             localStorage.setItem('hospital_auth', JSON.stringify(userObject));
-            writeLS("hospital_auth", JSON.stringify(userObject));
-            writeLS("current_patient_session", { patientId: patient.id, login: patient.login, ts: Date.now() });
-            logSystem("patient", "LOGIN_SUCCESS", { patientId: patient.id, login: patient.login });
+            logSystem("patient", "LOGIN_SUCCESS", { patientId: patient.id, login: patient.ssn });
             msg.className = "msg ok";
             msg.textContent = "Autoryzacja OK. Przekierowanie...";
             
@@ -699,14 +683,15 @@
             const session = JSON.parse(localStorage.getItem('hospital_auth'));
             if (!session || session.type !== 'patient') return;
             
-            const patients = readLS("registered_patients", []);
+            // Przeszukaj hosp_v545 (jedyna baza!)
+            const patients = JSON.parse(localStorage.getItem('hosp_v545')) || [];
             const patient = patients.find(p => p.id === session.patientId);
             
             if (patient) {
                 // Pokaż dane pacjenta
                 document.getElementById('patientInfo').innerHTML = `
                     <div><strong>Imię:</strong> ${patient.name || 'Brak'}</div>
-                    <div><strong>Login:</strong> ${patient.login || 'Brak'}</div>
+                    <div><strong>SSN:</strong> ${patient.ssn || 'Brak'}</div>
                     <div><strong>Status:</strong> ${patient.status || 'Aktywny'}</div>
                 `;
                 
