@@ -257,16 +257,16 @@
             <div class="card" style="border-top: 5px solid var(--green); position: sticky; top: 0; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
                 <!-- Widget zalogowanego użytkownika -->
                 <div style="position: absolute; top: 10px; right: 10px; background: var(--accent); color: #032022; padding: 8px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; z-index: 1001;">
-                    Zalogowany jako: <span id="logged_user_info">${sessionUser.rank} ${sessionUser.name}</span>
+                    Zalogowany jako: <span id="logged_user_info">-</span>
                     <button onclick="logoutUser()" style="background: var(--err); color: white; border: none; padding: 4px 8px; margin-left: 8px; border-radius: 4px; font-size: 10px; cursor: pointer;">WYLOGUJ</button>
                 </div>
                 
                 <span class="label">Wpis do karty</span>
                 <textarea id="inp_note" rows="3" placeholder="Wpisz treść wpisu..."></textarea>
                 <div class="grid" style="display: none;">
-                    <input type="text" id="inp_doc" placeholder="Podpis" value="${sessionUser.name}" readonly>
+                    <input type="text" id="inp_doc" placeholder="Podpis" readonly>
                     <select id="inp_rank" style="display: none;">
-                        <option value="${sessionUser.rank}" selected>${sessionUser.rank}</option>
+                        <option value="" selected></option>
                     </select>
                 </div>
                 <button style="background:var(--green); color:white; width:100%; margin-top:10px;" onclick="zapiszWpis()">ZATWIERDŹ I DOPISZ DO HISTORII</button>
@@ -303,6 +303,16 @@
         rank: activeSession.rank,
         id: activeSession.id
     };
+
+    // Inicjalizuj pola z danymi sesji
+    function initializeSessionFields() {
+        // Widget zalogowanego użytkownika
+        document.getElementById('logged_user_info').textContent = `${sessionUser.rank} ${sessionUser.name}`;
+        
+        // Ukryte pola formularza
+        document.getElementById('inp_doc').value = sessionUser.name;
+        document.getElementById('inp_rank').value = sessionUser.rank;
+    }
 
     const firebaseConfig = {
         apiKey: "AIzaSyC5MioZo7CMVGopaZANfglS12Gy_TMPzEw",
@@ -864,6 +874,9 @@
     }
 
     initExamSelects();
+    
+    // Inicjalizuj pola z danymi sesji
+    initializeSessionFields();
 </script>
 </body>
 </html>
