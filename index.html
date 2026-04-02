@@ -322,13 +322,13 @@
         const hospitalAuth = JSON.parse(localStorage.getItem('hospital_auth') || 'null');
         if (!hospitalAuth || (hospitalAuth.type !== 'doctor' && hospitalAuth.type !== 'admin')) {
             console.log("Odmowa dostępu dla roli (druga weryfikacja):", hospitalAuth?.type || 'brak sesji');
-            window.location.href = 'portal.html';
+            // window.location.href = 'portal.html'; // WYŁĄCZONE DO DEBUGOWANIA
         } else {
             console.log("Druga weryfikacja sesji potwierdzona:", hospitalAuth.name, "typ:", hospitalAuth.type);
         }
     } catch(e) {
         console.error("Błąd parsowania sesji (druga weryfikacja):", e);
-        window.location.href = 'portal.html';
+        // window.location.href = 'portal.html'; // WYŁĄCZONE DO DEBUGOWANIA
     }
 
     // Pobierz dane z sesji
@@ -348,7 +348,7 @@
             
             if (!autor || (autor.type !== 'doctor' && autor.type !== 'admin')) {
                 console.log("Odmowa dostępu dla roli w initializeSessionFields:", autor?.type || 'brak sesji');
-                window.location.href = 'portal.html';
+                // window.location.href = 'portal.html'; // WYŁĄCZONE DO DEBUGOWANIA
                 return;
             }
             
@@ -363,7 +363,7 @@
             }
         } catch(e) {
             console.error("Błąd parsowania sesji w initializeSessionFields:", e);
-            window.location.href = 'portal.html';
+            // window.location.href = 'portal.html'; // WYŁĄCZONE DO DEBUGOWANIA
         }
     } {
         // Ukryte pola formularza
@@ -609,7 +609,7 @@
             const autor = JSON.parse(localStorage.getItem('hospital_auth'));
             if (!autor || (autor.type !== 'doctor' && autor.type !== 'admin')) {
                 console.log("Odmowa dostępu dla roli w zapiszWpis:", autor?.type || 'brak sesji');
-                window.location.href = "portal.html";
+                // window.location.href = "portal.html"; // WYŁĄCZONE DO DEBUGOWANIA
                 return;
             }
             console.log("Sesja potwierdzona w zapiszWpis:", autor.name, "typ:", autor.type);
@@ -642,7 +642,7 @@
             synchronizuj();
         } catch(e) {
             console.error("Błąd parsowania sesji w zapiszWpis:", e);
-            window.location.href = "portal.html";
+            // window.location.href = "portal.html"; // WYŁĄCZONE DO DEBUGOWANIA
         }
     }
     
