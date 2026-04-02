@@ -355,14 +355,19 @@
 
             // Zapisz pełną sesję z obiektem lekarza
             const userObject = {
+                imie: doctor.firstName || doctor.name.split(' ')[0],
+                nazwisko: doctor.lastName || doctor.name.split(' ')[1] || doctor.name,
+                ranga: doctor.rank,
                 id: doctor.id,
                 name: doctor.name,
                 rank: doctor.rank,
                 specialization: doctor.specialization,
                 code: doctor.code,
+                login: doctor.code,
                 loginTime: Date.now()
             };
             
+            localStorage.setItem('activeSession', JSON.stringify(userObject));
             writeLS("activeSession", JSON.stringify(userObject));
             writeLS("current_doctor_session", { doctorId: doctor.id, code: doctor.code, ts: Date.now() });
             logSystem("doctor", "LOGIN_SUCCESS", { doctorId: doctor.id, name: doctor.name, code: doctor.code });
@@ -396,10 +401,24 @@
             showMainSystem('patient', patient.name);
         }
 
+        function updateUserUI() {
+            const session = JSON.parse(localStorage.getItem('activeSession'));
+            if (session) {
+                // Aktualizuj UI w głównym systemie
+                const userInfo = document.getElementById('userInfo');
+                if (userInfo) {
+                    userInfo.textContent = `${session.ranga} ${session.name}`;
+                }
+            }
+        }
+
         function showMainSystem(userType, userName) {
             document.getElementById('authOverlay').style.display = 'none';
             document.getElementById('mainSystem').classList.add('active');
             document.getElementById('userInfo').textContent = `${userType === 'doctor' ? 'Lekarz' : 'Pacjent'}: ${userName}`;
+            
+            // Zaktualizuj UI po zalogowaniu
+            updateUserUI();
         }
 
         function logoutAll() {
@@ -421,6 +440,7 @@
                 const doctor = staff.find(s => s.id === user.doctorId);
                 if (doctor) {
                     showMainSystem('doctor', doctor.name);
+                    updateUserUI();
                     return;
                 }
             }
@@ -430,6 +450,7 @@
                 const patient = patients.find(p => p.id === patientSession.patientId);
                 if (patient) {
                     showMainSystem('patient', patient.name);
+                    updateUserUI();
                     return;
                 }
             }
