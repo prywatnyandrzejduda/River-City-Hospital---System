@@ -638,7 +638,7 @@
         alert('Pacjent dodany pomyślnie!');
         
         // Odśwież listę
-        wyswietlPacjentow();
+        renderPatientsTable();
     }
 
     function renderPatientsTable() {
@@ -723,7 +723,7 @@
             alert("Pacjent usunięty!");
             
             // Odśwież listę
-            wyswietlPacjentow();
+            renderPatientsTable();
         }
     }
 
@@ -731,7 +731,7 @@
         aktywIdx = i;
         odswiezDanePacjenta();
         document.getElementById('interface').classList.remove('hidden');
-        renderLista();
+        renderPatientsTable(); // Poprawna nazwa funkcji
     }
 
     function odswiezDanePacjenta() {
