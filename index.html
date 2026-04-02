@@ -1,8 +1,19 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Hospital System v5.35 - Admin Edition</title>
+    <script>
+        // Synchronizacja z nowym systemem logowania - uruchom przed resztą
+        (function() {
+            const session = JSON.parse(localStorage.getItem('activeSession'));
+            if (!session || session.type !== 'doctor') {
+                alert("Brak autoryzacji lekarza. Przekierowanie do portalu...");
+                location.href = "portal.html";
+            }
+        })();
+    </script>
     <style>
         :root {
             --accent: #00d2d3; --psych: #a29bfe; --bg: #0b0c0d; --card: #1c1f22;
@@ -290,17 +301,19 @@
         writeLS("system_logs", logs.slice(-900));
     }
 
-    // Weryfikacja sesji
+    // Weryfikacja sesji z nowego systemu
     const activeSession = JSON.parse(localStorage.getItem('activeSession') || 'null');
-    if (!activeSession) {
-        alert("Brak autoryzacji. Proszę się zalogować.");
-        location.href = "hospital_system.html";
+    if (!activeSession || activeSession.type !== 'doctor') {
+        alert("Brak autoryzacji lekarza. Przekierowanie do portalu...");
+        location.href = "portal.html";
     }
 
     // Pobierz dane z sesji
     const sessionUser = {
         name: activeSession.name,
-        rank: activeSession.rank,
+        rank: activeSession.ranga,
+        imie: activeSession.imie,
+        nazwisko: activeSession.nazwisko,
         id: activeSession.id
     };
 
@@ -573,15 +586,9 @@
     function zapiszWpis() {
         // Sprawdź czy użytkownik jest zalogowany
         const autor = JSON.parse(localStorage.getItem('activeSession'));
-        if (!autor || !autor.imie) {
-            alert("Musisz być zalogowany, aby dodać wpis.");
-            // Zablokuj przycisk
-            const saveBtn = document.querySelector('button[onclick="zapiszWpis()"]');
-            if (saveBtn) {
-                saveBtn.disabled = true;
-                saveBtn.textContent = "ZALOGUJ SIĘ ABY DODAĆ WPIS";
-                saveBtn.style.background = "var(--err)";
-            }
+        if (!autor || autor.type !== 'doctor') {
+            alert("Musisz być zalogowany jako lekarz, aby dodać wpis.");
+            location.href = "portal.html";
             return;
         }
         
@@ -593,7 +600,7 @@
         const timestamp = new Date().toLocaleString('pl-PL');
         
         // Dodaj automatyczny podpis z danych sesji
-        const signatureLine = `\n[${timestamp}] | Podpisał: ${autor.ranga} ${autor.imie} ${autor.nazwisko}`;
+        const signatureLine = `\n\n--- Podpisano elektronicznie ---\n[${autor.ranga}] ${autor.imie} ${autor.nazwisko}\nData: ${timestamp}`;
         const fullText = txt + signatureLine;
 
         if (txt) {
@@ -616,7 +623,7 @@
     function logoutUser() {
         localStorage.removeItem('activeSession');
         localStorage.removeItem('current_doctor_session');
-        location.href = "hospital_system.html";
+        location.href = "portal.html";
     }
 
     function usunWpis(idx) {
