@@ -213,17 +213,18 @@
             window.location.href = "portal.html";
         }
         
-        function generateAccessCode(type, rank) {
-            const codes = JSON.parse(localStorage.getItem('hospital_codes') || '[]');
+        function createSecureCode(type, rank) {
+            const accessKeys = JSON.parse(localStorage.getItem('hospital_access_keys') || '[]');
             const newCode = {
-                code: "RANDOM-" + Math.floor(Math.random() * 1000).toString().padStart(3, '0'),
+                id: Date.now(),
+                code: Math.random().toString(36).substr(2, 6).toUpperCase(),
                 type: type,
                 assignedRank: rank,
-                used: false,
-                createdAt: Date.now()
+                createdAt: new Date().toISOString()
             };
-            codes.push(newCode);
-            localStorage.setItem('hospital_codes', JSON.stringify(codes));
+            accessKeys.push(newCode);
+            localStorage.setItem('hospital_access_keys', JSON.stringify(accessKeys));
+            console.log("Kody w bazie:", localStorage.getItem('hospital_access_keys'));
             return newCode;
         }
         
@@ -231,14 +232,12 @@
             console.log("generateCodes() called");
             const type = document.getElementById("genType").value;
             const count = Math.max(1, Math.min(20, Number(document.getElementById("genCount").value || 1)));
-            const prefix = document.getElementById("genPrefix").value.trim();
-            const pending = readLS("pending_codes", []);
             const created = [];
             
             console.log("Generating", count, "codes of type:", type);
             
             for (let i = 0; i < count; i += 1) {
-                const newCode = generateAccessCode(type, type === "doctor" ? "Lekarz" : "Pacjent");
+                const newCode = createSecureCode(type, type === "doctor" ? "Lekarz" : "Pacjent");
                 created.push(newCode.code);
                 console.log("Generated code:", newCode.code);
             }
@@ -252,11 +251,12 @@
         
         function clearAllCodes() {
             if (!confirm("Czy na pewno wyczyścić WSZYSTKIE kody dostępu?")) return;
-            localStorage.setItem('hospital_codes', JSON.stringify([]));
+            localStorage.setItem('hospital_access_keys', JSON.stringify([]));
             localStorage.setItem('pending_codes', JSON.stringify([]));
             renderPending();
             document.getElementById("genMsg").className = "msg ok";
             document.getElementById("genMsg").textContent = "Wszystkie kody zostały wyczyszczone.";
+            console.log("Kody w bazie po wyczyszczeniu:", localStorage.getItem('hospital_access_keys'));
         }
         
                         </div>
@@ -416,22 +416,22 @@
         }
         
         function renderPending() {
-            const codes = JSON.parse(localStorage.getItem('hospital_codes') || '[]');
+            const accessKeys = JSON.parse(localStorage.getItem('hospital_access_keys') || '[]');
             const table = document.getElementById("pendingTable");
-            console.log("renderPending() called, codes:", codes);
+            console.log("renderPending() called, accessKeys:", accessKeys);
             console.log("table element:", table);
             
-            table.innerHTML = codes.length ? `
+            table.innerHTML = accessKeys.length ? `
                 <table style="width: 100%; border-collapse: collapse;">
-                    <thead><tr><th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Kod</th><th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Typ</th><th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Ranga</th><th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Status</th><th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Akcja</th></tr></thead>
+                    <thead><tr><th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Kod</th><th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Typ</th><th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Ranga</th><th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Data utworzenia</th><th style="color: #ffeb9e; font-size: 11px; text-transform: uppercase; padding: 8px;">Akcja</th></tr></thead>
                     <tbody>
-                        ${codes.map(c => `
+                        ${accessKeys.map(c => `
                             <tr style="border-bottom: 1px solid var(--line);">
                                 <td style="padding: 8px;">${esc(c.code)}</td>
                                 <td style="padding: 8px;">${esc(c.type)}</td>
                                 <td style="padding: 8px;">${esc(c.assignedRank)}</td>
-                                <td style="padding: 8px;">${c.used ? 'Użyty' : 'Aktywny'}</td>
-                                <td style="padding: 8px;"><button class="btn-danger" onclick="removeCode('${esc(c.code)}')" style="font-size: 10px; padding: 4px 8px;">USUŃ</button></td>
+                                <td style="padding: 8px;">${new Date(c.createdAt).toLocaleString('pl-PL')}</td>
+                                <td style="padding: 8px;"><button class="btn-danger" onclick="removeAccessKey('${esc(c.id)}')" style="font-size: 10px; padding: 4px 8px;">USUŃ</button></td>
                             </tr>
                         `).join('')}
                     </tbody>
@@ -441,11 +441,12 @@
             console.log("renderPending() completed");
         }
         
-        function removeCode(code) {
+        function removeAccessKey(keyId) {
             if (!confirm("Usunąć ten kod?")) return;
-            const codes = JSON.parse(localStorage.getItem('hospital_codes') || '[]');
-            const filteredCodes = codes.filter(c => c.code !== code);
-            localStorage.setItem('hospital_codes', JSON.stringify(filteredCodes));
+            const accessKeys = JSON.parse(localStorage.getItem('hospital_access_keys') || '[]');
+            const filteredKeys = accessKeys.filter(k => k.id !== keyId);
+            localStorage.setItem('hospital_access_keys', JSON.stringify(filteredKeys));
+            console.log("Kody w bazie po usunięciu:", localStorage.getItem('hospital_access_keys'));
             renderPending();
         }
         
