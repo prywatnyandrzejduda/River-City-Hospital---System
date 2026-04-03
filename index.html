@@ -2,6 +2,7 @@
 <html lang="pl">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Hospital System v5.35 - Firebase Patients</title>
 
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -40,8 +41,6 @@
     input, textarea, select { width:100%; padding:12px; margin:8px 0; background:#0f1113; border:1px solid #333; color:white; border-radius:6px; font-size:14px; outline:none; }
     button { padding:12px; border:none; border-radius:6px; font-weight:bold; cursor:pointer; text-transform:uppercase; font-size:10px; transition:.2s; }
 
-    .calc-box { background:rgba(0,0,0,.3); padding:15px; border-radius:8px; border:1px solid #444; margin-bottom:15px; }
-    .med-action-btn { background:#2d3136; color:white; border:1px solid #444; margin-bottom:5px; text-align:center; }
     .history-item { background:#1c1f23; padding:20px; border-left:6px solid #444; margin-top:15px; border-radius:8px; position:relative; white-space:pre-wrap; }
     .history-auth { border-left-color:var(--gold); border:1px solid rgba(241,196,15,.2); }
     .cert-box { padding:10px; border-radius:8px; text-align:center; font-weight:bold; border:1px solid #444; }
@@ -49,66 +48,73 @@
     .status-no { background:rgba(231,76,60,.2); color:var(--red); border-color:var(--red); }
     .hidden { display:none !important; }
 
-    .del-entry-btn { position:absolute; top:10px; right:10px; background:var(--red); color:white; padding:5px 10px; font-size:9px; }
-    .del-patient-btn { background:var(--red); color:white; width:40px; height:45px; margin-left:5px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:16px; }
-
     #admin-shortcut {
       position:fixed; top:14px; right:18px; z-index:2000; background:var(--cert); color:#111; text-decoration:none; font-weight:800;
       letter-spacing:.5px; padding:10px 14px; border-radius:8px; border:1px solid rgba(0,0,0,.35); box-shadow:0 8px 20px rgba(0,0,0,.35);
       text-transform:uppercase; font-size:11px;
     }
 
-    #docModalOverlay { position:fixed; inset:0; background:rgba(6,8,13,.95); backdrop-filter:blur(10px); z-index:99999; display:none; align-items:center; justify-content:center; padding:18px; }
-    #docModal { width:min(1080px,98vw); background:rgba(28,31,34,.98); border:1px solid rgba(255,255,255,.12); border-radius:16px; overflow:hidden; box-shadow:0 20px 70px rgba(0,0,0,.65); }
-    #docModalHead { padding:14px 18px; background:#141619; border-bottom:1px solid rgba(255,255,255,.10); display:flex; justify-content:space-between; align-items:center; }
-    #docModalBody { padding:18px; max-height:70vh; overflow:auto; }
-    .doc-btn { background:rgba(54,170,255,.16); border:1px solid rgba(54,170,255,.45); color:#d8f6ff; padding:12px 14px; border-radius:12px; cursor:pointer; font-weight:900; width:100%; text-transform:uppercase; }
-    .paperField { background:#0f1113; border:1px solid #333; border-radius:10px; padding:10px; }
+    /* nowy psych */
+    .risk-badge{
+      margin-top:10px; padding:12px; border-radius:10px; font-weight:900; text-align:center;
+      border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.05);
+    }
+    .risk-low{ color:#6fffb0; border-color:#2ecc71; }
+    .risk-mid{ color:#ffd479; border-color:#f1c40f; }
+    .risk-high{ color:#ffb0b8; border-color:#ff4757; }
+    .suicidal-danger{
+      border:2px solid rgba(255,71,87,.9)!important;
+      animation:pulseRed 1.2s infinite;
+      border-radius:10px;
+      padding:10px;
+      margin-top:8px;
+      background:rgba(255,71,87,.08);
+    }
+    @keyframes pulseRed{
+      0%{ box-shadow:0 0 0 rgba(255,71,87,.0);}
+      50%{ box-shadow:0 0 18px rgba(255,71,87,.5);}
+      100%{ box-shadow:0 0 0 rgba(255,71,87,.0);}
+    }
+    .quick-tags{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+    .quick-tag{
+      padding:8px 10px; border-radius:999px; border:1px solid rgba(162,155,254,.45);
+      background:rgba(162,155,254,.15); color:#e9e7ff; cursor:pointer; font-weight:700; font-size:12px;
+    }
+    .mood-row{ display:flex; gap:10px; margin-top:10px; }
+    .mood-btn{
+      flex:1; padding:10px; border-radius:10px; border:1px solid rgba(162,155,254,.5);
+      background:rgba(162,155,254,.1); color:#fff; font-size:20px; cursor:pointer;
+    }
+    .mood-btn.active{ background:rgba(162,155,254,.35); border-color:#cfc8ff; }
 
-    /* Wirtualny podgląd A4 */
+    /* podgląd wirtualnej karty */
     #previewOverlay {
       position: fixed; inset: 0; z-index: 100000;
       background: rgba(4, 6, 10, 0.95);
-      display: none; align-items: center; justify-content: center;
-      padding: 18px;
+      display: none; align-items: center; justify-content: center; padding: 18px;
     }
     #previewWrap {
-      width: min(980px, 96vw);
-      max-height: 92vh;
-      overflow: auto;
-      background: #111820;
-      border: 1px solid rgba(255,255,255,.12);
-      border-radius: 14px;
-      padding: 14px;
+      width: min(980px, 96vw); max-height: 92vh; overflow: auto;
+      background: #111820; border: 1px solid rgba(255,255,255,.12); border-radius: 14px; padding: 14px;
     }
     .a4-page {
-      width: 794px; min-height: 1123px;
-      margin: 0 auto 16px auto;
-      background: #fff; color: #111;
-      box-shadow: 0 10px 30px rgba(0,0,0,.4);
-      padding: 34px;
+      width: 794px; min-height: 1123px; margin: 0 auto 16px auto;
+      background: #fff; color: #111; box-shadow: 0 10px 30px rgba(0,0,0,.4); padding: 34px;
       font-family: Arial, sans-serif;
     }
     .a4-title { font-size: 24px; font-weight: 900; margin-bottom: 12px; }
     .a4-sub { font-size: 12px; color: #444; margin-bottom: 20px; }
     .a4-sec { margin-bottom: 16px; }
-    .a4-sec b { display: inline-block; min-width: 180px; }
     .a4-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
     .a4-table th, .a4-table td { border: 1px solid #ccc; padding: 8px; font-size: 12px; text-align: left; }
     .a4-footer-box {
-      margin-top: 780px;
-      border-top: 2px solid #bbb;
-      padding-top: 18px;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
+      margin-top: 780px; border-top: 2px solid #bbb; padding-top: 18px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
     }
     .stamp-box, .sign-box {
       height: 120px; border: 1px dashed #999; border-radius: 8px; padding: 10px;
     }
-    .stamp-box .lbl, .sign-box .lbl { font-size: 12px; color: #555; margin-bottom: 8px; font-weight: 700; }
     .sign-name { margin-top: 18px; font-size: 14px; font-weight: 700; }
-    .preview-topbar { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 10px; }
   </style>
 
   <script>
@@ -123,10 +129,21 @@
     };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+
+    function checkAdminAccess() {
+      const pin = prompt("Podaj kod dostępu dyrektorskiego:");
+      if (pin === "2807") {
+        sessionStorage.setItem("isAdminVerified", "true");
+        window.location.href = "admin.html";
+      } else {
+        alert("Błędny kod. Próba została odnotowana");
+      }
+    }
   </script>
 </head>
 <body>
-  <a id="admin-shortcut" href="admin.html">Administracja</a>
+
+  <a id="admin-shortcut" href="#" onclick="checkAdminAccess(); return false;">Administracja</a>
 
   <div id="sidebar">
     <h2 style="color:white;text-align:center;letter-spacing:2px;margin-bottom:10px;">MED-SYSTEM <span style="color:var(--accent)">v5.35</span></h2>
@@ -164,180 +181,156 @@
           <div class="tab-btn active" onclick="switchTab('tab-ogolne', this)">DASHBOARD</div>
           <div class="tab-btn" onclick="switchTab('tab-med', this)">KLINIKA & KALKULATORY</div>
           <div class="tab-btn" onclick="switchTab('tab-psych', this)" style="color:var(--psych);">🧠 ZDR. BEHAWIORALNE</div>
-          <div class="tab-btn" onclick="switchTab('tab-cert', this)" style="color:var(--cert);">📋 ORZECZNICTWO</div>
-          <div class="tab-btn" onclick="switchTab('tab-docs', this)" style="color:var(--docs);">📁 DOKUMENTACJA</div>
           <div class="tab-btn" onclick="switchTab('tab-exit', this)" style="color:var(--discharge);">🚪 WYPIS</div>
         </div>
       </div>
 
       <div id="content-area">
         <div id="tab-ogolne" class="tab-content">
-          <div style="display:grid; grid-template-columns:2fr 1fr; gap:20px;">
-            <div class="card" id="main-data-card" style="border-top:5px solid var(--accent);">
-              <span class="label">Dane Pacjenta</span>
-              <div class="grid"><input type="text" id="inp_adr" placeholder="Adres"><input type="text" id="inp_job" placeholder="Zawód"></div>
-              <div class="grid">
-                <input type="text" id="inp_ins" placeholder="Ubezpieczenie">
-                <select id="inp_blood">
-                  <option value="Nieznana">Grupa Krwi: Nieznana</option>
-                  <option>0 Rh+</option><option>0 Rh-</option><option>A Rh+</option><option>A Rh-</option><option>B Rh+</option><option>B Rh-</option><option>AB Rh+</option><option>AB Rh-</option>
-                </select>
-              </div>
-              <span class="label" style="color:var(--red)">⚠️ Alergie</span>
-              <input type="text" id="inp_alergie" style="border-color:var(--red)">
-              <span class="label">Powód Przyjęcia</span>
-              <textarea id="inp_reason" rows="3"></textarea>
+          <div class="card">
+            <span class="label">Dane pacjenta</span>
+            <div class="grid">
+              <input id="inp_adr" placeholder="Adres">
+              <input id="inp_job" placeholder="Zawód">
             </div>
-
-            <div class="card" style="background:#14171a;">
-              <span class="label">Triage & Stan</span>
-              <select id="inp_triage" onchange="updateTriageVisuals()">
-                <option value="none">STANDARD</option><option value="t-green">ZIELONY</option><option value="t-yellow">ŻÓŁTY</option><option value="t-red">CZERWONY</option>
+            <div class="grid">
+              <input id="inp_ins" placeholder="Ubezpieczenie">
+              <select id="inp_status">
+                <option>Stabilny</option><option>Ciężki</option><option>Krytyczny</option><option>Zgon</option>
               </select>
-              <select id="inp_status"><option>Stabilny</option><option>Ciężki</option><option>Krytyczny</option><option>Zgon</option></select>
-              <hr style="border:0; border-top:1px solid #333; margin:15px 0;">
-              <button class="med-action-btn" style="width:100%;" onclick="addNote('ALARM: STEMI!')">STEMI</button>
-              <button class="med-action-btn" style="width:100%;" onclick="addNote('ALARM: UDAR!')">UDAR</button>
             </div>
+            <textarea id="inp_reason" rows="3" placeholder="Powód przyjęcia"></textarea>
           </div>
         </div>
 
         <div id="tab-med" class="tab-content hidden">
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
-            <div class="card" style="border-left:5px solid var(--blue);">
-              <span class="label">Farmakologia & Dawkowanie</span>
-              <div class="calc-box">
-                <div class="grid">
-                  <input type="number" id="calc_weight" placeholder="Waga kg" oninput="calcDrug()">
-                  <input type="number" id="calc_mgkg" placeholder="mg/kg" oninput="calcDrug()">
-                </div>
-                <div id="calc_drug_res" style="text-align:center; color:var(--accent); font-weight:bold; margin-top:5px;">WYNIK: 0 mg</div>
-              </div>
-
-              <!-- dynamiczne wypełnianie z medicationDatabase -->
-              <select id="sel_lek"></select>
-
-              <div style="display:flex; gap:5px;">
-                <input type="number" id="med_dose" placeholder="Dawka" style="flex:2;">
-                <select id="med_unit" style="flex:1;"><option>mg</option><option>μg</option><option>ml</option><option>j.</option></select>
-              </div>
-              <select id="med_route"><option>IV</option><option>IM</option><option>SC</option><option>IO</option></select>
-              <button style="background:var(--blue); color:white; width:100%;" onclick="podajLek()">ZAREJESTRUJ PODANIE LEKU</button>
+          <div class="card">
+            <span class="label">Farmakologia & Dawkowanie</span>
+            <select id="sel_lek"></select>
+            <div class="grid">
+              <input id="med_dose" placeholder="Dawka">
+              <select id="med_unit"><option>mg</option><option>ml</option></select>
             </div>
-
-            <div class="card" style="border-left:5px solid #6c5ce7;">
-              <span class="label">Rejestr Badań</span>
-              <select id="exam_category" onchange="updateExamOptions()"></select>
-              <select id="exam_type"></select>
-              <input type="text" id="exam_result" placeholder="Wynik badania">
-              <textarea id="exam_comment" rows="3" placeholder="Uwagi"></textarea>
-              <button style="background:#6c5ce7; color:white; width:100%;" onclick="dodajBadanie()">DODAJ BADANIE</button>
-            </div>
+            <select id="med_route"><option>IV</option><option>IM</option><option>SC</option></select>
+            <button style="background:var(--blue);color:white;" onclick="podajLek()">Zarejestruj podanie leku</button>
           </div>
         </div>
-                <div id="tab-psych" class="tab-content hidden">
+
+        <!-- MODERN ZDROWIE BEHAWIORALNE -->
+        <div id="tab-psych" class="tab-content hidden">
           <div class="card" style="border-top:5px solid var(--psych);">
-            <h3 style="color:var(--psych); margin:0 0 15px 0;">BADANIE STANU PSYCHICZNEGO</h3>
+            <h3 style="color:var(--psych); margin:0 0 12px 0;">NOWY STANDARD - ZDROWIE BEHAWIORALNE</h3>
+
             <div class="grid">
-              <div><span class="label">Napęd</span><select id="psy_motor"><option>Norma</option><option>Spowolniony</option><option>Pobudzony</option></select></div>
-              <div><span class="label">Tok Myślenia</span><select id="psy_thought"><option>Zborny</option><option>Przyśpieszony</option><option>Rozkojarzony</option></select></div>
+              <div>
+                <span class="label">Orientacja</span>
+                <select id="psy_orientation">
+                  <option>Autopsychiczna</option>
+                  <option>Allopsychiczna</option>
+                  <option>Zaburzona</option>
+                </select>
+              </div>
+              <div>
+                <span class="label">Afekt</span>
+                <select id="psy_affect">
+                  <option>Dostosowany</option>
+                  <option>Sztywny</option>
+                  <option>Blady</option>
+                  <option>Labilny</option>
+                </select>
+              </div>
             </div>
+
             <div class="grid">
-              <div><span class="label">Nastrój</span><select id="sel_mood"><option>Wyrównany</option><option>Obniżony</option><option>Lękowy</option></select></div>
-              <div><span class="label">Kontakt</span><select id="psy_eye"><option>Prawidłowy</option><option>Unika kontaktu</option></select></div>
+              <div>
+                <span class="label">Spostrzeganie</span>
+                <select id="psy_perception">
+                  <option>Brak zaburzeń</option>
+                  <option>Omamy</option>
+                  <option>Iluzje</option>
+                </select>
+              </div>
+              <div class="suicidal-danger">
+                <span class="label" style="color:#ffb5bf;">Myśli samobójcze</span>
+                <select id="psy_suicidal">
+                  <option>Brak</option>
+                  <option>Tendencje</option>
+                  <option>Plany</option>
+                </select>
+              </div>
             </div>
-            <textarea id="psy_notes" rows="4" placeholder="Szczegóły..."></textarea>
-            <button style="background:var(--psych); color:black; width:100%;" onclick="logPsych()">ZAPISZ ANALIZĘ</button>
+
+            <button style="background:#6c5ce7; color:#fff;" onclick="ocenaRyzyka()">Ocena Agresji/Ucieczki</button>
+            <div id="risk_badge" class="risk-badge">RYZYKO: NIEOCENIONE</div>
+
+            <span class="label">Wizualizacja nastroju (1-5)</span>
+            <div class="mood-row">
+              <button class="mood-btn" onclick="setMood(1,this)">😞</button>
+              <button class="mood-btn" onclick="setMood(2,this)">🙁</button>
+              <button class="mood-btn" onclick="setMood(3,this)">😐</button>
+              <button class="mood-btn" onclick="setMood(4,this)">🙂</button>
+              <button class="mood-btn" onclick="setMood(5,this)">😄</button>
+            </div>
+            <div id="mood_info" style="font-size:12px;color:#bdb7e8;margin-top:6px;">Poziom nastroju: brak</div>
+
+            <span class="label">Szczegóły</span>
+            <textarea id="psy_notes" rows="4" placeholder="Szczegółowa obserwacja..."></textarea>
+
+            <div class="quick-tags">
+              <button class="quick-tag" onclick="addQuickTag('[Pacjent roszczeniowy]')">Pacjent roszczeniowy</button>
+              <button class="quick-tag" onclick="addQuickTag('[Odmawia leków]')">Odmawia leków</button>
+              <button class="quick-tag" onclick="addQuickTag('[Współpracujący]')">Współpracujący</button>
+              <button class="quick-tag" onclick="addQuickTag('[Lękowy]')">Lękowy</button>
+            </div>
+
+            <div class="grid">
+              <input id="inp_doc" placeholder="Podpis (auto z sesji)">
+              <input id="inp_rank" placeholder="Ranga (auto z sesji)">
+            </div>
+
+            <button style="background:var(--psych); color:black; margin-top:8px;" onclick="zapiszPsychNowy()">Zapisz analizę behawioralną</button>
           </div>
         </div>
-
-        <div id="tab-cert" class="tab-content hidden">
-          <div class="card" style="border-top:5px solid var(--cert);">
-            <h3 style="color:var(--cert); margin:0 0 15px 0;">BADANIA DOPUSZCZAJĄCE</h3>
-            <div class="grid" style="grid-template-columns:1fr 1fr 1fr;">
-              <div><span class="label">Fizyczne</span><select id="cert_phys"><option>Zdolny</option><option>Niezdolny</option></select></div>
-              <div><span class="label">Psychiczne</span><select id="cert_psych"><option>Zdolny</option><option>Niezdolny</option></select></div>
-              <div><span class="label">Werdykt</span><select id="cert_final"><option>BRAK</option><option>OK</option><option>NO</option></select></div>
-            </div>
-            <input type="text" id="cert_target" placeholder="Cel badania">
-            <button style="background:var(--cert); color:black; width:100%; margin-top:15px;" onclick="generujOrzeczenie()">WYSTAW ORZECZENIE</button>
-          </div>
-        </div>
-
-        <div id="tab-docs" class="tab-content hidden">
-          <div class="card" style="border-top:5px solid var(--docs);">
-            <span class="label">Dokumentacja - Moduły</span>
-            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
-              <button class="doc-btn" onclick="docOpen('l4')">L4 - Zwolnienie</button>
-              <button class="doc-btn" onclick="docOpen('death')" style="background:rgba(255,71,87,.16); border-color:rgba(255,71,87,.55); color:#ffc2cb;">Karta Zgonu</button>
-              <button class="doc-btn" onclick="docOpen('ref')">Skierowanie</button>
-              <button class="doc-btn" onclick="docOpen('health')" style="background:rgba(46,204,113,.16); border-color:rgba(46,204,113,.55); color:#bff7d7;">Zaświadczenie</button>
-            </div>
-          </div>
-        </div>
-
-        <div id="tab-exit" class="tab-content hidden">
+                <div id="tab-exit" class="tab-content hidden">
           <div class="card" style="border-top:5px solid var(--discharge);">
-            <h2 style="color:var(--discharge); margin:0 0 14px 0;">KARTA WYPISOWA</h2>
-            <div style="display:grid; grid-template-columns:1.2fr .8fr; gap:18px;">
-              <div>
-                <span class="label">Diagnoza (ICD-10)</span>
-                <input type="text" id="exit_diagnosis" placeholder="np. zapalenie płuc" oninput="exitSuggestICD10()"/>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                  <div><span class="label">Kod</span><input type="text" id="exit_icd_code" readonly/></div>
-                  <div><span class="label">Typ</span><input type="text" value="ICD-10" readonly /></div>
-                </div>
-                <span class="label">Przebieg leczenia</span><textarea id="exit_course" rows="4"></textarea>
-                <span class="label">Zastosowane leczenie</span><textarea id="exit_treatment" rows="3"></textarea>
-                <span class="label">Wyniki badań</span><textarea id="exit_tests" rows="3"></textarea>
-                <span class="label">Zalecenia</span><textarea id="exit_recommendations" rows="5"></textarea>
-                <span class="label">Safety Net</span>
-                <div style="display:flex; gap:10px;">
-                  <div style="flex:1;"><span class="label">Temperatura</span><input type="number" id="exit_temp_c" step="0.1" value="36.6"/></div>
-                  <div style="flex:1;"><span class="label">Ból (0-10)</span><input type="number" id="exit_pain" min="0" max="10" value="0"/></div>
-                </div>
-                <div id="exit_safety_alert" style="display:none; margin-top:10px; padding:12px; border:1px solid rgba(255,71,87,.7); background:rgba(255,71,87,.12); color:#ffc2cb; border-radius:10px; font-weight:900;"></div>
-              </div>
+            <h2 style="color:var(--discharge); margin:0 0 14px 0;">Wirtualna Karta Wypisowa</h2>
 
-              <div>
-                <span class="label">Leki</span>
-                <div class="paperField">
-                  <span class="label">Lek</span><select id="exit_drug_select"></select>
-                  <span class="label">Dawka</span><input type="text" id="exit_drug_dose" placeholder="np. 1 tabl">
-                  <span class="label">Pora</span>
-                  <select id="exit_drug_slot"><option>Rano</option><option>Południe</option><option>Wieczór</option></select>
-                  <button style="margin-top:10px; background:var(--accent); color:#032022; width:100%;" onclick="exitAddMedication()">Dodaj lek</button>
-                  <div id="exit_med_conflict" style="display:none; margin-top:10px; padding:10px; border-radius:10px; border:1px solid rgba(255,71,87,.7); background:rgba(255,71,87,.12); color:#ffc2cb; font-weight:900;"></div>
-                  <span class="label">Lista</span><div id="exit_meds_table"></div>
-                  <span class="label">Harmonogram</span><div id="exit_schedule_summary" style="white-space:pre-wrap; font-weight:900;"></div>
-                </div>
+            <div class="grid">
+              <input id="exit_diagnosis" placeholder="Diagnoza" oninput="exitSuggestICD10()">
+              <input id="exit_icd_code" placeholder="ICD-10" readonly>
+            </div>
+            <textarea id="exit_course" rows="3" placeholder="Przebieg leczenia"></textarea>
+            <textarea id="exit_recommendations" rows="4" placeholder="Zalecenia"></textarea>
 
-                <span class="label" style="margin-top:14px;">Presety zaleceń</span>
-                <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;">
-                  <button type="button" onclick="exitApplyPreset('diet')">Dieta lekkostrawna</button>
-                  <button type="button" onclick="exitApplyPreset('rehab')">Rehabilitacja</button>
-                  <button type="button" onclick="exitApplyPreset('wound')">Pielęgnacja rany</button>
-                </div>
-              </div>
+            <div class="grid">
+              <input type="number" id="exit_temp_c" step="0.1" value="36.6" placeholder="Temperatura">
+              <input type="number" id="exit_pain" min="0" max="10" value="0" placeholder="Ból">
+            </div>
+            <div id="exit_safety_alert" style="display:none; margin:8px 0; padding:10px; border:1px solid rgba(255,71,87,.7); border-radius:10px; background:rgba(255,71,87,.12); color:#ffc2cb; font-weight:900;"></div>
+
+            <div class="grid">
+              <select id="exit_drug_select"></select>
+              <input id="exit_drug_dose" placeholder="Dawka leku">
+            </div>
+            <div class="grid">
+              <select id="exit_drug_slot"><option>Rano</option><option>Południe</option><option>Wieczór</option></select>
+              <button style="background:var(--accent); color:#032022;" onclick="exitAddMedication()">Dodaj lek</button>
             </div>
 
-            <div style="margin-top:16px; display:flex; gap:12px; flex-wrap:wrap;">
-              <button style="background:#2d3136; color:white; width:100%; max-width:420px;" onclick="generujDokument()">Drukuj (podgląd cyfrowy)</button>
-              <button style="background:var(--green); color:white; width:100%; max-width:420px;" onclick="finalizujWypis()">ZAKOŃCZ HOSPITALIZACJĘ I GENERUJ WYPIS</button>
+            <div id="exit_meds_table" style="margin-top:10px;"></div>
+            <div id="exit_schedule_summary" style="white-space:pre-wrap; font-weight:900; margin-top:8px;"></div>
+
+            <div style="margin-top:14px;">
+              <button style="background:#2d3136;color:#fff;" onclick="generujDokument()">Drukuj (podgląd cyfrowy)</button>
+              <button style="background:var(--green);color:#fff;" onclick="finalizujWypis()">Zakończ hospitalizację</button>
             </div>
           </div>
         </div>
 
-        <div class="card" style="border-top:5px solid var(--green); position:sticky; top:0; z-index:1000; box-shadow:0 10px 30px rgba(0,0,0,.8);">
-          <span class="label">Wpis do karty</span>
-          <textarea id="inp_note" rows="3" placeholder="Wpisz treść..."></textarea>
-          <div class="grid">
-            <input type="text" id="inp_doc" placeholder="Podpis">
-            <select id="inp_rank" style="font-weight:700;">
-              <option>medical student</option><option>junior doctor</option><option>doctor</option><option>resident doctor</option><option>specialist doctor</option><option>chief</option><option>management</option><option>director</option>
-            </select>
-          </div>
-          <button style="background:var(--green); color:white; width:100%; margin-top:10px;" onclick="zapiszWpis()">ZATWIERDŹ I DOPISZ</button>
+        <div class="card">
+          <span class="label">Wpis do historii</span>
+          <textarea id="inp_note" rows="3" placeholder="Treść wpisu"></textarea>
+          <button style="background:var(--green); color:#fff;" onclick="zapiszWpis()">Zapisz wpis</button>
         </div>
 
         <div id="historia_kontener"></div>
@@ -345,23 +338,11 @@
     </div>
   </div>
 
-  <div id="docModalOverlay" onclick="if(event.target.id==='docModalOverlay') docClose()">
-    <div id="docModal">
-      <div id="docModalHead">
-        <div><div style="font-weight:900; text-transform:uppercase;">Dokumentacja - Podgląd</div></div>
-        <button style="background:rgba(255,92,115,.16); border:1px solid rgba(255,92,115,.45); color:#ffc2cb; padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:900;" onclick="docClose()">Zamknij</button>
-      </div>
-      <div id="docModalBody"></div>
-      <div style="padding:14px 18px; background:#141619; border-top:1px solid rgba(255,255,255,.10); display:flex; justify-content:flex-end; gap:10px;">
-        <button style="background:var(--accent); color:#032022; padding:12px 16px; border-radius:10px; font-weight:900;" onclick="generujDokument()">Drukuj</button>
-      </div>
-    </div>
-  </div>
-
+  <!-- Wirtualny podgląd -->
   <div id="previewOverlay">
     <div id="previewWrap">
-      <div class="preview-topbar">
-        <button onclick="closePreview()" style="background:#2d3136;color:#fff;">Zamknij podgląd</button>
+      <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:10px;">
+        <button style="background:#2d3136;color:#fff;" onclick="closePreview()">Zamknij podgląd</button>
       </div>
       <div id="previewPages"></div>
     </div>
@@ -373,61 +354,45 @@
     let aktywKey = null;
     let currentView = "active";
     let firebaseReady = false;
-
-    const EXAM_LIBRARY = {
-      "USG":["USG jamy brzusznej","USG tarczycy","USG nerek"],
-      "RTG":["RTG klatki piersiowej","RTG kręgosłupa","RTG kończyny"],
-      "TK":["TK głowy","TK klatki piersiowej","TK jamy brzusznej"],
-      "LAB":["Morfologia","CRP","Elektrolity","Troponina","Glukoza"]
-    };
+    let currentMood = null;
+    window.exitMeds = [];
+    window.exitDrugCatalog = [];
 
     const medicationDatabase = {
       "przeciwbólowe": [
         { key:"paracetamol", name:"Paracetamol", category:"przeciwbólowe", conflictGroup:"pain" },
         { key:"ibuprofen", name:"Ibuprofen", category:"przeciwbólowe", conflictGroup:"pain" },
-        { key:"ketoprofen", name:"Ketoprofen", category:"przeciwbólowe", conflictGroup:"pain" },
-        { key:"metamizol", name:"Metamizol", category:"przeciwbólowe", conflictGroup:"pain" }
+        { key:"ketoprofen", name:"Ketoprofen", category:"przeciwbólowe", conflictGroup:"pain" }
       ],
       "opioidy": [
         { key:"morphine", name:"Morfina", category:"opioidy", conflictGroup:"opioid" },
         { key:"fentanyl", name:"Fentanyl", category:"opioidy", conflictGroup:"opioid" },
-        { key:"oxycodone", name:"Oksykodon", category:"opioidy", conflictGroup:"opioid" },
         { key:"tramadol", name:"Tramadol", category:"opioidy", conflictGroup:"opioid" }
       ],
       "nasenne": [
         { key:"zolpidem", name:"Zolpidem", category:"nasenne", conflictGroup:"sedative" },
-        { key:"zopiclone", name:"Zopiclone", category:"nasenne", conflictGroup:"sedative" },
-        { key:"diazepam", name:"Diazepam", category:"nasenne", conflictGroup:"sedative" },
-        { key:"midazolam", name:"Midazolam", category:"nasenne", conflictGroup:"sedative" }
+        { key:"diazepam", name:"Diazepam", category:"nasenne", conflictGroup:"sedative" }
       ],
       "przeciwwymiotne": [
         { key:"ondansetron", name:"Ondansetron", category:"przeciwwymiotne", conflictGroup:"antiemetic" },
-        { key:"metoclopramide", name:"Metoklopramid", category:"przeciwwymiotne", conflictGroup:"antiemetic" },
-        { key:"dimenhydrinate", name:"Dimenhydrynat", category:"przeciwwymiotne", conflictGroup:"antiemetic" }
+        { key:"metoclopramide", name:"Metoklopramid", category:"przeciwwymiotne", conflictGroup:"antiemetic" }
       ],
       "antybiotyki": [
         { key:"amoxicillin", name:"Amoksycylina", category:"antybiotyki", conflictGroup:"antibiotic" },
-        { key:"amoxiclav", name:"Amoksycylina + kw. klawulanowy", category:"antybiotyki", conflictGroup:"antibiotic" },
         { key:"cefuroxime", name:"Cefuroksym", category:"antybiotyki", conflictGroup:"antibiotic" },
-        { key:"azithromycin", name:"Azytromycyna", category:"antybiotyki", conflictGroup:"antibiotic" },
-        { key:"ciprofloxacin", name:"Ciprofloksacyna", category:"antybiotyki", conflictGroup:"antibiotic" }
+        { key:"azithromycin", name:"Azytromycyna", category:"antybiotyki", conflictGroup:"antibiotic" }
       ],
       "przeciwalergiczne": [
         { key:"cetirizine", name:"Cetyryzyna", category:"przeciwalergiczne", conflictGroup:"allergy" },
-        { key:"loratadine", name:"Loratadyna", category:"przeciwalergiczne", conflictGroup:"allergy" },
-        { key:"clemastine", name:"Klemastyna", category:"przeciwalergiczne", conflictGroup:"allergy" },
-        { key:"hydrocortisone", name:"Hydrokortyzon", category:"przeciwalergiczne", conflictGroup:"allergy" }
+        { key:"loratadine", name:"Loratadyna", category:"przeciwalergiczne", conflictGroup:"allergy" }
       ],
       "przeciwkrwotoczne": [
         { key:"tranexamic", name:"Kwas traneksamowy", category:"przeciwkrwotoczne", conflictGroup:"bleeding" },
-        { key:"etamsylate", name:"Etamsylat", category:"przeciwkrwotoczne", conflictGroup:"bleeding" },
-        { key:"vitk", name:"Witamina K", category:"przeciwkrwotoczne", conflictGroup:"bleeding" }
+        { key:"etamsylate", name:"Etamsylat", category:"przeciwkrwotoczne", conflictGroup:"bleeding" }
       ]
     };
 
     const exitICDMap = { "grypa":"J11.1", "zapalenie płuc":"J18.9", "zapalenie pluc":"J18.9", "udar":"I64", "zawał serca":"I21.9", "zawal serca":"I21.9" };
-    window.exitMeds = [];
-    window.exitDrugCatalog = [];
 
     function esc(s){ return String(s ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;"); }
     function normalizePL(s){ return String(s||"").toLowerCase().replaceAll("ł","l").replaceAll("ą","a").replaceAll("ę","e").replaceAll("ć","c").replaceAll("ń","n").replaceAll("ó","o").replaceAll("ś","s").replaceAll("ż","z").replaceAll("ź","z").trim(); }
@@ -479,7 +444,8 @@
         if(aktywIdx !== -1 && pacjenci[aktywIdx]) odswiezDanePacjenta();
       });
     }
-        function synchronizuj(){
+
+    function synchronizuj(){
       if(!firebaseReady) return;
       const payload = {};
       pacjenci.forEach(p => {
@@ -494,8 +460,8 @@
       const n = document.getElementById("add_name").value.trim();
       if(!n) return alert("Podaj nazwisko!");
       const ob = {
-        name:n, adr:"", job:"", ins:"", insNumber:"", blood:"Nieznana", alergie:"", reason:"",
-        status:"Stabilny", triage:"none", cert:"BRAK", arch:false, role:"user", createdAt:Date.now(),
+        name:n, adr:"", job:"", ins:"", blood:"Nieznana", reason:"",
+        status:"Stabilny", triage:"none", cert:"BRAK", arch:false, createdAt:Date.now(),
         history:[{ id:Date.now(), txt:"Zarejestrowano pacjenta", doc:"SYSTEM", rank:"Automatyczny", time:new Date().toLocaleString(), ts:Date.now() }]
       };
       db.ref("patients").push(ob);
@@ -504,53 +470,22 @@
 
     function setView(v){
       currentView = v;
-      document.getElementById("btn_view_active").style.background = v==="active" ? "var(--accent)" : "#333";
-      document.getElementById("btn_view_active").style.color = v==="active" ? "#000" : "#fff";
-      document.getElementById("btn_view_arch").style.background = v==="archive" ? "var(--accent)" : "#333";
-      document.getElementById("btn_view_arch").style.color = v==="archive" ? "#000" : "#fff";
       renderLista();
     }
 
     function renderLista(){
       const l = document.getElementById("lista_pacjentow");
       l.innerHTML = "";
-      const rank = document.getElementById("inp_rank")?.value || "";
-      const canDelete = ["director","management","chief"].includes(rank);
-
       pacjenci.forEach((p,i)=>{
         if(!p) return;
         if((currentView==="active" && !p.arch) || (currentView==="archive" && p.arch)){
-          const wrap = document.createElement("div");
-          wrap.style.display = "flex";
-          wrap.style.marginBottom = "5px";
-
           const d = document.createElement("div");
           d.className = `p-item ${aktywIdx===i?'active':''} ${p.arch?'archived':''}`;
-          d.style.flex = "1";
           d.innerHTML = `<b>${esc(p.name||"Nieznany")}</b><br><small>${esc(p.status||"-")}</small>`;
           d.onclick = ()=>otworz(i);
-          wrap.appendChild(d);
-
-          if(canDelete){
-            const b = document.createElement("button");
-            b.className = "del-patient-btn";
-            b.innerHTML = "🗑️";
-            b.onclick = e => { e.stopPropagation(); usunPacjenta(i); };
-            wrap.appendChild(b);
-          }
-          l.appendChild(wrap);
+          l.appendChild(d);
         }
       });
-    }
-
-    function usunPacjenta(i){
-      if(!pacjenci[i]) return;
-      if(confirm("Czy usunąć kartotekę: "+(pacjenci[i].name||"") + "?")){
-        pacjenci.splice(i,1);
-        aktywIdx = -1; aktywKey = null;
-        document.getElementById("interface").classList.add("hidden");
-        synchronizuj();
-      }
     }
 
     function otworz(i){
@@ -568,55 +503,58 @@
       document.getElementById("inp_adr").value = p.adr || "";
       document.getElementById("inp_job").value = p.job || "";
       document.getElementById("inp_ins").value = p.ins || "";
-      document.getElementById("inp_blood").value = p.blood || "Nieznana";
-      document.getElementById("inp_alergie").value = p.alergie || "";
-      document.getElementById("inp_reason").value = p.reason || "";
       document.getElementById("inp_status").value = p.status || "Stabilny";
-      document.getElementById("inp_triage").value = p.triage || "none";
-      updateTriageVisuals();
-      updateCertVisuals(p.cert || "BRAK");
+      document.getElementById("inp_reason").value = p.reason || "";
+
+      // auto podpis + ranga z sesji
+      fillSignedUser();
+
+      // mood restore
+      currentMood = Number(p.behavioral?.moodLevel || 0) || null;
+      paintMoodButtons();
+      if (currentMood) document.getElementById("mood_info").innerText = `Poziom nastroju: ${currentMood}/5`;
+      else document.getElementById("mood_info").innerText = `Poziom nastroju: brak`;
+
       pokazHistorie();
     }
 
-    function savePatientFields(){
+    function fillSignedUser(){
+      try{
+        const raw = sessionStorage.getItem("hospital_auth") || localStorage.getItem("hospital_auth");
+        if (!raw) return;
+        const u = JSON.parse(raw);
+        const nm = u.name || u.fullName || u.login || "Lekarz";
+        const rk = u.role || u.rank || u.ranga || "doctor";
+        document.getElementById("inp_doc").value = nm;
+        document.getElementById("inp_rank").value = rk;
+      } catch {}
+    }
+        function savePatientFields(){
       if(aktywIdx===-1 || !pacjenci[aktywIdx]) return false;
       const p = pacjenci[aktywIdx];
       p.adr = document.getElementById("inp_adr").value;
       p.job = document.getElementById("inp_job").value;
       p.ins = document.getElementById("inp_ins").value;
-      p.blood = document.getElementById("inp_blood").value || "Nieznana";
-      p.alergie = document.getElementById("inp_alergie").value;
       p.reason = document.getElementById("inp_reason").value;
       p.status = document.getElementById("inp_status").value;
-      p.triage = document.getElementById("inp_triage").value;
       return true;
     }
 
     function requirePatient(){ return aktywIdx !== -1 && pacjenci[aktywIdx]; }
-    function addNote(t){ const el = document.getElementById("inp_note"); el.value += (el.value ? "\n":"") + t; }
 
     function zapiszWpis(){
       if(!savePatientFields()) return;
       const p = pacjenci[aktywIdx];
       const txt = document.getElementById("inp_note").value.trim();
       const doc = document.getElementById("inp_doc").value.trim() || "Lekarz";
-      const rank = document.getElementById("inp_rank").value;
+      const rank = document.getElementById("inp_rank").value || "doctor";
       if(txt){
         p.history = p.history || [];
         p.history.push({ id:Date.now(), txt, doc, rank, time:new Date().toLocaleString(), ts:Date.now(), auth:["director","management","chief"].includes(rank) });
         document.getElementById("inp_note").value = "";
       }
       synchronizuj();
-    }
-
-    function usunWpis(idx){
-      if(!requirePatient()) return;
-      if(!pacjenci[aktywIdx].history) return;
-      if(confirm("Usunąć wpis?")){
-        pacjenci[aktywIdx].history.splice(idx,1);
-        synchronizuj();
-        pokazHistorie();
-      }
+      pokazHistorie();
     }
 
     function pokazHistorie(){
@@ -624,20 +562,17 @@
       const p = pacjenci[aktywIdx];
       c.innerHTML = "<h3>HISTORIA MEDYCZNA</h3>";
       if(!p || !p.history || !p.history.length) return;
-      const canDelete = ["director","management","chief"].includes(document.getElementById("inp_rank").value);
-
-      p.history.slice().reverse().forEach((h,revIdx)=>{
-        const realIdx = p.history.length - 1 - revIdx;
+      p.history.slice().reverse().forEach(h=>{
         const div = document.createElement("div");
         div.className = `history-item ${h.auth ? "history-auth" : ""}`;
-        div.innerHTML = `${canDelete ? `<button class="del-entry-btn" onclick="usunWpis(${realIdx})">USUŃ</button>` : ""}<small>${esc(h.time||"")}</small>\n${esc(h.txt||"")}\n<b>${esc(h.doc||"")}</b> (${esc(h.rank||"")})`;
+        div.innerHTML = `<small>${esc(h.time||"")}</small>\n${esc(h.txt||"")}\n<b>${esc(h.doc||"")}</b> (${esc(h.rank||"")})`;
         c.appendChild(div);
       });
     }
 
     function updateStats(){
       const active = pacjenci.filter(p => p && !p.arch).length;
-      const critical = pacjenci.filter(p => p && !p.arch && (p.status==="Krytyczny" || p.triage==="t-red")).length;
+      const critical = pacjenci.filter(p => p && !p.arch && p.status==="Krytyczny").length;
       document.getElementById("count_active").innerText = active;
       document.getElementById("count_critical").innerText = critical;
     }
@@ -649,45 +584,31 @@
       b.classList.add("active");
     }
 
-    function updateExamOptions(){
-      const catSel = document.getElementById("exam_category");
-      const typeSel = document.getElementById("exam_type");
-      const tests = EXAM_LIBRARY[catSel.value] || [];
-      typeSel.innerHTML = tests.map(t=>`<option>${esc(t)}</option>`).join("");
-    }
-
-    function initExamSelects(){
-      const catSel = document.getElementById("exam_category");
-      catSel.innerHTML = Object.keys(EXAM_LIBRARY).map(cat=>`<option>${esc(cat)}</option>`).join("");
-      updateExamOptions();
-    }
-
-    function dodajBadanie(){
-      if(!requirePatient()) return;
-      const cat = document.getElementById("exam_category").value;
-      const test = document.getElementById("exam_type").value;
-      const result = document.getElementById("exam_result").value.trim() || "brak opisu";
-      const note = document.getElementById("exam_comment").value.trim();
-      addNote(`BADANIE [${cat}] ${test} | WYNIK: ${result}${note ? " | UWAGI: "+note : ""}`);
-      document.getElementById("exam_result").value = "";
-      document.getElementById("exam_comment").value = "";
-    }
-
+    // ===== Klinika -> podanie leku i sync do wypisu =====
     function getDrugByKey(key){
       return flattenMedicationDatabase().find(d => d.key === key) || null;
     }
 
     function podajLek(){
       if(!requirePatient()) return;
-
       const drugKey = document.getElementById("sel_lek").value;
       const drug = getDrugByKey(drugKey);
       const dose = `${document.getElementById("med_dose").value}${document.getElementById("med_unit").value}`;
       const route = document.getElementById("med_route").value;
+      const doc = document.getElementById("inp_doc").value.trim() || "Lekarz";
+      const rank = document.getElementById("inp_rank").value || "doctor";
 
-      addNote(`PODANO: ${(drug?.name || drugKey)} | DAWKA: ${dose} | DROGA: ${route}`);
+      const p = pacjenci[aktywIdx];
+      p.history = p.history || [];
+      p.history.push({
+        id:Date.now(),
+        txt:`PODANO: ${(drug?.name || drugKey)} | DAWKA: ${dose} | DROGA: ${route}`,
+        doc, rank,
+        time:new Date().toLocaleString(),
+        ts:Date.now()
+      });
 
-      // synchronizacja do wypisu (domyślnie "Rano")
+      // sync do listy wypisu
       if (drug && dose.replace(/\s/g, "") !== "") {
         window.exitMeds.push({
           id:"MED-"+Date.now()+"-"+Math.floor(Math.random()*9999),
@@ -700,54 +621,117 @@
         });
         exitRenderMeds();
       }
-    }
 
-    function logVitals(){
-      if(!requirePatient()) return;
-      addNote(`VITALS: BP ${document.getElementById("vit_bp").value} | HR ${document.getElementById("vit_hr").value} | SpO2 ${document.getElementById("vit_spo2").value}% | Temp ${document.getElementById("vit_temp").value}°C`);
-    }
-
-    function logPsych(){
-      if(!requirePatient()) return;
-      const txt = `MSE: Napęd=${document.getElementById("psy_motor").value}, Tok=${document.getElementById("psy_thought").value}, Nastrój=${document.getElementById("sel_mood").value}, Kontakt=${document.getElementById("psy_eye").value}. Uwagi: ${document.getElementById("psy_notes").value}`;
-      addNote(txt);
-    }
-
-    function generujOrzeczenie(){
-      if(!requirePatient()) return;
-      const f = document.getElementById("cert_final").value;
-      if(f==="BRAK") return alert("Wybierz werdykt.");
-      pacjenci[aktywIdx].cert = f;
-      addNote(`ORZECZENIE: ${f} | CEL: ${document.getElementById("cert_target").value} | FIZ:${document.getElementById("cert_phys").value} | PSY:${document.getElementById("cert_psych").value}`);
-      updateCertVisuals(f);
       synchronizuj();
+      pokazHistorie();
     }
 
-    function updateTriageVisuals(){
-      const map = { none:"#333", "t-green":"var(--green)", "t-yellow":"var(--gold)", "t-red":"var(--red)" };
-      const el = document.getElementById("main-data-card");
-      if(el) el.style.borderTopColor = map[document.getElementById("inp_triage").value] || "#333";
+    // ===== BEHAWIORALNE =====
+    function addQuickTag(tag){
+      const el = document.getElementById("psy_notes");
+      el.value = (el.value ? el.value + "\n" : "") + tag;
     }
 
-    function updateCertVisuals(s){
-      const h = document.getElementById("cert-status-header");
-      h.innerText = s==="OK" ? "DOPUSZCZONY" : (s==="NO" ? "NIEZDOLNY" : "BRAK BADAŃ");
-      h.className = "cert-box " + (s==="OK" ? "status-ok" : (s==="NO" ? "status-no" : ""));
+    function setMood(level, btn){
+      currentMood = level;
+      paintMoodButtons(btn);
+      document.getElementById("mood_info").innerText = `Poziom nastroju: ${level}/5`;
+
+      if (requirePatient()){
+        pacjenci[aktywIdx].behavioral = pacjenci[aktywIdx].behavioral || {};
+        pacjenci[aktywIdx].behavioral.moodLevel = level;
+        pacjenci[aktywIdx].behavioral.moodTs = Date.now();
+        synchronizuj();
+      }
     }
 
-    function calcGCS(){
-      const e = parseInt(document.getElementById("gcs_e").value,10);
-      const v = parseInt(document.getElementById("gcs_v").value,10);
-      const m = parseInt(document.getElementById("gcs_m").value,10);
-      document.getElementById("gcs_res").innerText = `SUMA: ${e+v+m} GCS`;
+    function paintMoodButtons(activeBtn){
+      document.querySelectorAll(".mood-btn").forEach(b => b.classList.remove("active"));
+      if (activeBtn) activeBtn.classList.add("active");
+      if (!activeBtn && currentMood){
+        const idx = currentMood - 1;
+        const arr = document.querySelectorAll(".mood-btn");
+        if (arr[idx]) arr[idx].classList.add("active");
+      }
     }
 
-    function calcDrug(){
-      const w = parseFloat(document.getElementById("calc_weight").value) || 0;
-      const mk = parseFloat(document.getElementById("calc_mgkg").value) || 0;
-      document.getElementById("calc_drug_res").innerText = `WYNIK: ${(w*mk).toFixed(2)} mg`;
+    function ocenaRyzyka(){
+      const orientation = document.getElementById("psy_orientation").value;
+      const affect = document.getElementById("psy_affect").value;
+      const perception = document.getElementById("psy_perception").value;
+      const suicidal = document.getElementById("psy_suicidal").value;
+      let score = 0;
+
+      if (orientation === "Zaburzona") score += 2;
+      if (["Sztywny","Blady","Labilny"].includes(affect)) score += 1;
+      if (perception !== "Brak zaburzeń") score += 2;
+      if (suicidal === "Tendencje") score += 2;
+      if (suicidal === "Plany") score += 4;
+
+      let label = "NISKIE RYZYKO";
+      let cls = "risk-badge risk-low";
+      if (score >= 3 && score < 6){ label = "ŚREDNIE RYZYKO"; cls = "risk-badge risk-mid"; }
+      if (score >= 6){ label = "WYSOKIE RYZYKO"; cls = "risk-badge risk-high"; }
+
+      const badge = document.getElementById("risk_badge");
+      badge.className = cls;
+      badge.innerText = "RYZYKO: " + label;
     }
 
+    function zapiszPsychNowy(){
+      if(!requirePatient()) return;
+      const p = pacjenci[aktywIdx];
+      const doc = document.getElementById("inp_doc").value.trim() || "Lekarz";
+      const rank = (document.getElementById("inp_rank").value || "doctor").trim();
+
+      const orientation = document.getElementById("psy_orientation").value;
+      const affect = document.getElementById("psy_affect").value;
+      const perception = document.getElementById("psy_perception").value;
+      const suicidal = document.getElementById("psy_suicidal").value;
+      const notes = document.getElementById("psy_notes").value.trim();
+      const risk = document.getElementById("risk_badge").innerText.replace("RYZYKO: ","").trim();
+
+      let txt =
+`BEHAWIORALNE:
+- Orientacja: ${orientation}
+- Afekt: ${affect}
+- Spostrzeganie: ${perception}
+- Myśli samobójcze: ${suicidal}
+- Safety score: ${risk || "nieocenione"}
+- Nastrój (1-5): ${currentMood || "brak"}
+- Notatka: ${notes || "-"}`;
+
+      if (rank === "medical student") {
+        txt += `\n[Do zatwierdzenia przez lekarza prowadzącego]`;
+      }
+
+      p.behavioral = p.behavioral || {};
+      p.behavioral.orientation = orientation;
+      p.behavioral.affect = affect;
+      p.behavioral.perception = perception;
+      p.behavioral.suicidal = suicidal;
+      p.behavioral.notes = notes;
+      p.behavioral.risk = risk || "nieocenione";
+      p.behavioral.moodLevel = currentMood || null;
+      p.behavioral.updatedAt = Date.now();
+
+      p.history = p.history || [];
+      p.history.push({
+        id:Date.now(),
+        txt,
+        doc,
+        rank,
+        time:new Date().toLocaleString(),
+        ts:Date.now(),
+        auth:["director","management","chief","specialist doctor","doctor"].includes(rank)
+      });
+
+      synchronizuj();
+      pokazHistorie();
+      alert("Zapisano moduł zdrowia behawioralnego.");
+    }
+
+    // ===== WYPIS / dokument =====
     function exitSuggestICD10(){
       const d = normalizePL(document.getElementById("exit_diagnosis").value);
       let code = "";
@@ -792,44 +776,18 @@
       exitRenderMeds();
     }
 
-    function exitRemoveMedication(id){
-      window.exitMeds = window.exitMeds.filter(m => String(m.id)!==String(id));
-      exitRenderMeds();
-    }
-
     function exitRenderMeds(){
       const table = document.getElementById("exit_meds_table");
       const summary = document.getElementById("exit_schedule_summary");
-      const conflictEl = document.getElementById("exit_med_conflict");
       const bySlot = { "Rano":[], "Południe":[], "Wieczór":[] };
       window.exitMeds.forEach(m => bySlot[m.slot]?.push(m));
 
       table.innerHTML = window.exitMeds.length ? window.exitMeds.map(m => `
         <div style="display:flex; justify-content:space-between; gap:10px; padding:8px 0; border-bottom:1px solid rgba(255,255,255,.08);">
           <div><div style="font-weight:900;">${esc(m.name)}</div><div style="font-size:12px; color:#cfd7e3;">${esc(m.dose)} | ${esc(m.slot)} | ${esc(m.category || "-")}</div></div>
-          <button onclick="exitRemoveMedication('${esc(m.id)}')" style="background:rgba(255,71,87,.18); border:1px solid rgba(255,71,87,.55); color:#ffc2cb; padding:8px 10px; border-radius:10px; font-weight:900;">Usuń</button>
         </div>`).join("") : `<div style="color:#9ca8ba; font-weight:800;">Brak leków.</div>`;
 
       summary.innerText = ["Rano","Południe","Wieczór"].map(slot => `${slot}: ${bySlot[slot].length ? bySlot[slot].map(x=>`${x.name} (${x.dose})`).join(", ") : "Brak"}`).join("\n");
-
-      let warn = "";
-      ["Rano","Południe","Wieczór"].forEach(slot => {
-        const arr = bySlot[slot];
-        for(let i=0;i<arr.length;i++) for(let j=i+1;j<arr.length;j++){
-          if(arr[i].conflictGroup && arr[i].conflictGroup === arr[j].conflictGroup) warn = `Uwaga: potencjalna interakcja (${arr[i].conflictGroup}) w slocie ${slot}.`;
-        }
-      });
-      if(warn){ conflictEl.style.display="block"; conflictEl.innerText = warn; } else { conflictEl.style.display="none"; conflictEl.innerText=""; }
-    }
-
-    function exitApplyPreset(type){
-      const el = document.getElementById("exit_recommendations");
-      const map = {
-        diet: "Dieta lekkostrawna: małe porcje 4-5x dziennie, unikać tłustych i smażonych potraw.",
-        rehab: "Rehabilitacja ruchowa: spacery 5-10 min 2-3x dziennie, stopniowe zwiększanie aktywności.",
-        wound: "Pielęgnacja rany: jałowa zmiana opatrunku, obserwacja zaczerwienienia i wydzieliny."
-      };
-      el.value = map[type] || "";
     }
 
     function exitUpdateSafetyUI(){
@@ -860,15 +818,8 @@
     function pokazPodgladDokumentu(payload) {
       const pages = document.getElementById("previewPages");
       const overlay = document.getElementById("previewOverlay");
-      if (!pages || !overlay) return;
-
       const medsRows = (payload.meds || []).map(m => `
-        <tr>
-          <td>${esc(m.name || "-")}</td>
-          <td>${esc(m.dose || "-")}</td>
-          <td>${esc(m.slot || "-")}</td>
-          <td>${esc(m.category || "-")}</td>
-        </tr>
+        <tr><td>${esc(m.name || "-")}</td><td>${esc(m.dose || "-")}</td><td>${esc(m.slot || "-")}</td><td>${esc(m.category || "-")}</td></tr>
       `).join("") || `<tr><td colspan="4">Brak leków</td></tr>`;
 
       pages.innerHTML = `
@@ -878,25 +829,19 @@
           <div class="a4-sec"><b>Pacjent:</b> ${esc(payload.patientName)}</div>
           <div class="a4-sec"><b>Diagnoza:</b> ${esc(payload.diagnosis)} (${esc(payload.icdCode || "brak")})</div>
           <div class="a4-sec"><b>Przebieg:</b> ${esc(payload.course || "-")}</div>
-
-          <div class="a4-sec">
-            <b>Tabela leków:</b>
-            <table class="a4-table">
-              <thead><tr><th>Lek</th><th>Dawka</th><th>Pora</th><th>Kategoria</th></tr></thead>
-              <tbody>${medsRows}</tbody>
-            </table>
-          </div>
+          <table class="a4-table">
+            <thead><tr><th>Lek</th><th>Dawka</th><th>Pora</th><th>Kategoria</th></tr></thead>
+            <tbody>${medsRows}</tbody>
+          </table>
         </div>
 
         <div class="a4-page">
           <div class="a4-title">RIVER CITY HOSPITAL - STRONA 2</div>
-          <div class="a4-sub">Kontynuacja dokumentu</div>
           <div class="a4-sec"><b>Zalecenia:</b><br>${esc(payload.recommendations || "-")}</div>
           <div class="a4-sec"><b>Safety Net:</b><br>${esc(payload.safetyText || "-")}</div>
-
           <div class="a4-footer-box">
-            <div class="stamp-box"><div class="lbl">Miejsce na pieczątkę nagłówkową</div></div>
-            <div class="sign-box"><div class="lbl">Podpis elektroniczny lekarza</div><div class="sign-name">${esc(payload.doctorName)} (${esc(payload.doctorRank)})</div></div>
+            <div class="stamp-box">Miejsce na pieczątkę nagłówkową</div>
+            <div class="sign-box">Podpis elektroniczny lekarza<br><div class="sign-name">${esc(payload.doctorName)} (${esc(payload.doctorRank)})</div></div>
           </div>
         </div>
       `;
@@ -909,18 +854,13 @@
     }
 
     async function generujDokument() {
-      const { p, key } = getActivePatientSafe();
-      if (!p || !key) return alert("Wybierz pacjenta.");
+      const p = pacjenci[aktywIdx];
+      if (!p || !p.firebaseKey) return alert("Wybierz pacjenta.");
 
       const sessionDoc = getDoctorFromSession();
-      const date = new Date();
-      const dateText = date.toLocaleString("pl-PL");
+      const dateText = new Date().toLocaleString("pl-PL");
 
-      const meds = (window.exitMeds || []).map(m => {
-        const full = (window.exitDrugCatalog || []).find(d => d.key === m.key) || {};
-        return { ...m, category: m.category || full.category || "-" };
-      });
-
+      const meds = (window.exitMeds || []).map(m => ({ ...m }));
       const safety = [];
       const temp = Number(document.getElementById("exit_temp_c")?.value || 0);
       const pain = Number(document.getElementById("exit_pain")?.value || 0);
@@ -943,7 +883,6 @@
 
       pokazPodgladDokumentu(payload);
 
-      // zapis do historii w chmurze
       const historyEntry = {
         id: Date.now(),
         type: "WYPIS",
@@ -967,58 +906,35 @@
       synchronizuj();
 
       try {
-        await db.ref(`patients/${key}/history`).push(historyEntry);
+        await db.ref(`patients/${p.firebaseKey}/history`).push(historyEntry);
       } catch(e) {}
     }
 
     function finalizujWypis(){
-      if(!savePatientFields()) return;
       if(!requirePatient()) return;
-
       const p = pacjenci[aktywIdx];
-      const doc = document.getElementById("inp_doc").value.trim() || "Lekarz";
-      const rank = document.getElementById("inp_rank").value;
-
       p.status = "Wypisany";
       p.arch = true;
-      p.history = p.history || [];
-      p.history.push({
-        id:Date.now(),
-        txt:"Pacjent wypisany i przeniesiony do archiwum.",
-        doc,
-        rank,
-        time:new Date().toLocaleString(),
-        ts:Date.now(),
-        auth:["director","management","chief"].includes(rank)
-      });
-
       synchronizuj();
       setView("archive");
       renderLista();
-      pokazHistorie();
-      alert("Pacjent wypisany i przeniesiony do archiwum.");
+      alert("Pacjent wypisany.");
     }
-
-    // Modal docs (minimum)
-    let docType = null;
-    function getActivePatientSafe(){ const p = pacjenci[aktywIdx] || null; const key = aktywKey || p?.firebaseKey || null; return { p, key }; }
-    function docOpen(type){ docType = type; const { p } = getActivePatientSafe(); if(!p) return alert("Wybierz pacjenta."); document.getElementById("docModalOverlay").style.display = "flex"; document.getElementById("docModalBody").innerHTML = `<div class="paperField">Tryb dokumentu: <b>${esc(type)}</b><br>Pacjent: <b>${esc(p.name || "-")}</b><br><small>Użyj przycisku "Drukuj" aby wygenerować podgląd cyfrowy.</small></div>`; }
-    function docClose(){ document.getElementById("docModalOverlay").style.display = "none"; docType = null; }
 
     // init
     initClinicalDrugSelect();
-    initExamSelects();
+    initExamSelects?.();
     listenToPatients();
     exitLoadDrugs();
     exitRenderMeds();
     exitUpdateSafetyUI();
+    fillSignedUser();
 
     document.getElementById("exit_temp_c").addEventListener("input", exitUpdateSafetyUI);
     document.getElementById("exit_pain").addEventListener("input", exitUpdateSafetyUI);
-    document.getElementById("inp_rank").addEventListener("change", () => { renderLista(); if(aktywIdx !== -1) pokazHistorie(); });
-
-    ["inp_adr","inp_job","inp_ins","inp_blood","inp_alergie","inp_reason","inp_status","inp_triage"].forEach(id=>{
-      document.getElementById(id).addEventListener("change", ()=>{ if(savePatientFields()) synchronizuj(); });
+    ["inp_adr","inp_job","inp_ins","inp_status","inp_reason"].forEach(id=>{
+      const el = document.getElementById(id);
+      if(el) el.addEventListener("change", ()=>{ if(savePatientFields()) synchronizuj(); });
     });
 
     // Informacje medyczne generowane przez AI mają charakter poglądowy.
