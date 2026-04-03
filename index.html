@@ -1,64 +1,8 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
     <title>Hospital System v5.35 - Admin Edition</title>
-    
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
-    <script>
-    // Inicjalizacja danych na samym początku - UPORZĄDKOWANA STRUKTURA
-    let pacjenci = JSON.parse(localStorage.getItem('hosp_v545')) || [];
-    let currentUser = JSON.parse(localStorage.getItem('currentUser')) || JSON.parse(localStorage.getItem('hospital_auth')) || null;
-    let aktywIdx = -1;
-    let currentView = 'active';
-    
-    console.log("🔧 DEBUG: Zmienne globalne zainicjalizowane");
-    console.log("🔧 DEBUG: pacjenci count:", pacjenci.length);
-    console.log("🔧 DEBUG: currentUser:", currentUser);
-    
-    // Sprawdzenie currentUser - DEBUG MODE NA ŻYWO z opóźnieniem
-    window.onload = function() {
-        console.log("🔍 DEBUG: Strona załadowana, sprawdzam currentUser...");
-        console.log("🔍 DEBUG: currentUser raw:", localStorage.getItem('currentUser'));
-        
-        try {
-            const user = JSON.parse(localStorage.getItem('currentUser'));
-            console.log("🔍 DEBUG: Parsed user:", user);
-            console.log("🔍 DEBUG: user.role:", user?.role);
-            
-            if (!user) {
-                console.error("❌ DEBUG: Brak obiektu user!");
-                // window.location.replace('portal.html'); // WYŁĄCZONE
-                return;
-            }
-            
-            if (user.role !== 'admin' && user.role !== 'doctor') {
-                console.error("❌ DEBUG: Zła rola! Oczekiwano 'admin' lub 'doctor', mam:", user.role);
-                // window.location.replace('portal.html'); // WYŁĄCZONE
-                return;
-            }
-            
-            console.log("✅ DEBUG: Sesja OK! Użytkownik:", user.name, "rola:", user.role);
-            
-            // Ukryj przyciski admina dla lekarzy
-            if (user.role === 'doctor') {
-                const adminShortcut = document.getElementById('admin-shortcut');
-                if (adminShortcut) {
-                    adminShortcut.style.display = 'none';
-                    console.log('🔒 Ukryto przycisk administracji dla lekarza');
-                }
-            }
-            
-        } catch(e) {
-            console.error("❌ DEBUG: Błąd parsowania sesji:", e);
-            console.error("❌ DEBUG: currentUser value:", localStorage.getItem('currentUser'));
-            // window.location.replace('portal.html'); // WYŁĄCZONE
-        }
-    };
-    </script>
     <style>
         :root {
             --accent: #00d2d3; --psych: #a29bfe; --bg: #0b0c0d; --card: #1c1f22;
@@ -133,7 +77,7 @@
 </head>
 <body>
 
-<a id="admin-shortcut" href="admin_analyzed.html">Administracja</a>
+<a id="admin-shortcut" href="admin.html">Administracja</a>
 
 <div id="sidebar">
     <h2 style="color: white; text-align: center; letter-spacing: 2px; margin-bottom: 10px;">MED-SYSTEM <span style="color:var(--accent)">v5.35</span></h2>
@@ -171,7 +115,6 @@
                 <div class="tab-btn" onclick="switchTab('tab-psych', this)" style="color:var(--psych);">🧠 ZDR. BEHAWIORALNE</div>
                 <div class="tab-btn" onclick="switchTab('tab-cert', this)" style="color:var(--cert);">📋 ORZECZNICTWO</div>
                 <div class="tab-btn" onclick="switchTab('tab-docs', this)" style="color:var(--docs);">📁 DOKUMENTACJA</div>
-                <div class="tab-btn" onclick="switchTab('tab-schedule', this)" style="color:var(--accent);">📅 MÓJ GRAFIK</div>
                 <div class="tab-btn" onclick="switchTab('tab-exit', this)" style="color:var(--discharge);">🚪 WYPIS</div>
             </div>
         </div>
@@ -241,7 +184,7 @@
                         <div class="calc-box">
                             <select id="gcs_e" onchange="calcGCS()"><option value="4">Oczy: 4 (Spontanicznie)</option><option value="3">3 (Na polecenie)</option><option value="2">2 (Na ból)</option><option value="1">1 (Brak)</option></select>
                             <select id="gcs_v" onchange="calcGCS()"><option value="5">Mowa: 5 (Zorientowana)</option><option value="4">4 (Splątana)</option><option value="3">3 (Niewłaściwa)</option><option value="2">2 (Dźwięki)</option><option value="1">1 (Brak)</option></select>
-                            <select id="gcs_m" onchange="calcGCS()"><option value="6">Ruch: 6 (Polecenia)</option><option value="5">5 (Lokalizuje ból)</option><option value="4">4 (Ucieczka od bólu)</option><option value="3">3 (Zgięcie patol.)</option><option value="2">2">Wyprost patol.)</option><option value="1">1 (Brak)</option></select>
+                            <select id="gcs_m" onchange="calcGCS()"><option value="6">Ruch: 6 (Polecenia)</option><option value="5">5 (Lokalizuje ból)</option><option value="4">4 (Ucieczka od bólu)</option><option value="3">3 (Zgięcie patol.)</option><option value="2">2 (Wyprost patol.)</option><option value="1">1 (Brak)</option></select>
                             <div id="gcs_res" style="text-align:center; font-size:18px; color:var(--gold); font-weight:bold; margin-top:5px;">SUMA: 15 GCS</div>
                         </div>
                         <div class="grid"><input type="text" id="vit_bp" placeholder="BP (np. 120/80)"><input type="text" id="vit_hr" placeholder="HR"></div>
@@ -296,11 +239,6 @@
                 </div>
             </div>
 
-            <div id="tab-schedule" class="tab-content hidden">
-                <div class="card">
-                    <div id="schedule-content"></div>
-                </div>
-            </div>
             <div id="tab-exit" class="tab-content hidden">
                 <div class="card" style="border-top: 5px solid var(--discharge);">
                     <h2 style="color:var(--discharge); margin:0 0 15px 0;">KARTA WYPISOWA</h2>
@@ -311,18 +249,14 @@
             </div>
 
             <div class="card" style="border-top: 5px solid var(--green); position: sticky; top: 0; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.8);">
-                <!-- Widget zalogowanego użytkownika -->
-                <div style="position: absolute; top: 10px; right: 10px; background: var(--accent); color: #032022; padding: 8px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; z-index: 1001;">
-                    Zalogowany jako: <span id="logged_user_info">-</span>
-                    <button onclick="logoutUser()" style="background: var(--err); color: white; border: none; padding: 4px 8px; margin-left: 8px; border-radius: 4px; font-size: 10px; cursor: pointer;">WYLOGUJ</button>
-                </div>
-                
                 <span class="label">Wpis do karty</span>
                 <textarea id="inp_note" rows="3" placeholder="Wpisz treść wpisu..."></textarea>
-                <div class="grid" style="display: none;">
-                    <input type="text" id="inp_doc" placeholder="Podpis" readonly>
-                    <select id="inp_rank" style="display: none;">
-                        <option value="" selected></option>
+                <div class="grid">
+                    <input type="text" id="inp_doc" placeholder="Podpis">
+                    <select id="inp_rank">
+                        <optgroup label="Służba Medyczna"><option>Student Medycyny</option><option>Młodszy Ratownik</option><option>Ratownik Medyczny</option><option>Lekarz Rezydent</option><option>Lekarz Specjalista</option></optgroup>
+                        <optgroup label="Kadra Kierownicza"><option>Zastępca Ordynatora</option><option>Ordynator</option></optgroup>
+                        <optgroup label="Dyrekcja"><option>Zarząd Szpitala</option><option>Dyrektor Szpitala</option></optgroup>
                     </select>
                 </div>
                 <button style="background:var(--green); color:white; width:100%; margin-top:10px;" onclick="zapiszWpis()">ZATWIERDŹ I DOPISZ DO HISTORII</button>
@@ -336,111 +270,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
 <script>
-    function readLS(key, fallback) { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } }
-    function writeLS(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
-    function uid(prefix) { return prefix + "-" + Date.now().toString(36).toUpperCase() + "-" + Math.floor(Math.random() * 9999).toString().padStart(4, "0"); }
-    function esc(s) { return String(s ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;"); }
-    
-    // Uniwersalna funkcja zapisu/odczytu bazy pacjentów
-    function saveToHospitalDB(data) {
-        if (!data || !Array.isArray(data)) {
-            console.error("❌ BŁĄD: Próba zapisu nieprawidłowych danych:", data);
-            return false;
-        }
-        try {
-            localStorage.setItem('hosp_v545', JSON.stringify(data));
-            console.log('✅ Baza pacjentów zapisana:', data.length, 'rekordów');
-            return true;
-        } catch (error) {
-            console.error("❌ BŁĄD ZAPISU DO LOCALSTORAGE:", error);
-            return false;
-        }
-    }
-    
-    // Uniwersalna funkcja odczytu bazy pacjentów
-    function loadFromHospitalDB() {
-        try {
-            const data = localStorage.getItem('hosp_v545');
-            if (!data) {
-                console.log("⚠️ Baza pacjentów jest pusta");
-                return [];
-            }
-            const parsed = JSON.parse(data);
-            if (!Array.isArray(parsed)) {
-                console.error("❌ BŁĄD: Baza pacjentów jest uszkodzona - resetowanie...");
-                localStorage.setItem('hosp_v545', '[]');
-                return [];
-            }
-            console.log('✅ Baza pacjentów wczytana:', parsed.length, 'rekordów');
-            return parsed;
-        } catch (error) {
-            console.error("❌ BŁĄD ODCZYTU Z LOCALSTORAGE:", error);
-            return [];
-        }
-    }
-    function logSystem(type, action, details) {
-        const logs = readLS("system_logs", []);
-        logs.push({ id: uid("LOG"), ts: Date.now(), type, action, details: details || {} });
-        writeLS("system_logs", logs.slice(-900));
-    }
-
-    // Weryfikacja currentUser z nowego systemu - DEBUG MODE
-    try {
-        const currentUserData = JSON.parse(localStorage.getItem('currentUser') || 'null');
-        console.log("🔍 DEBUG: currentUser (druga weryfikacja):", currentUserData);
-        
-        if (!currentUserData || (currentUserData.role !== 'doctor' && currentUserData.role !== 'admin')) {
-            console.log("❌ DEBUG: Odmowa dostępu dla roli (druga weryfikacja):", currentUserData?.role || 'brak sesji');
-            // window.location.href = 'portal.html'; // WYŁĄCZONE DO DEBUGOWANIA
-        } else {
-            console.log("✅ DEBUG: Druga weryfikacja sesji potwierdzona:", currentUserData.name, "rola:", currentUserData.role);
-        }
-    } catch(e) {
-        console.error("❌ DEBUG: Błąd parsowania sesji (druga weryfikacja):", e);
-        // window.location.href = 'portal.html'; // WYŁĄCZONE DO DEBUGOWANIA
-    }
-
-    // Pobierz dane z sesji
-    const sessionUser = {
-        name: currentUserData.name,
-        rank: currentUserData.ranga,
-        imie: currentUserData.imie,
-        nazwisko: currentUserData.nazwisko,
-        id: currentUserData.id
-    };
-
-    // Inicjalizuj pola z danymi sesji - DEBUG MODE
-    function initializeSessionFields() {
-        // Sprawdź czy użytkownik jest zalogowany
-        try {
-            const autor = JSON.parse(localStorage.getItem('currentUser'));
-            console.log("🔍 DEBUG: initializeSessionFields autor:", autor);
-            
-            if (!autor || (autor.role !== 'doctor' && autor.role !== 'admin')) {
-                console.log("❌ DEBUG: Odmowa dostępu dla roli w initializeSessionFields:", autor?.role || 'brak sesji');
-                // window.location.href = 'portal.html'; // WYŁĄCZONE DO DEBUGOWANIA
-                return;
-            }
-            
-            console.log("✅ DEBUG: Sesja potwierdzona w initializeSessionFields:", autor.name, "rola:", autor.role);
-            
-            // Inicjalizuj pola formularza danymi z sesji
-            const pacjenci = readLS("hosp_v545", []);
-            const aktywny = pacjenci.findIndex(p => p.id === autor.activePatient);
-            if (aktywny !== -1) {
-                aktywnyIdx = aktywny;
-                aktualizujPola();
-            }
-        } catch(e) {
-            console.error("❌ DEBUG: Błąd parsowania sesji w initializeSessionFields:", e);
-            // window.location.href = 'portal.html'; // WYŁĄCZONE DO DEBUGOWANIA
-        }
-        
-        // Ukryte pola formularza - przeniesione do wewnątrz try
-        document.getElementById('inp_doc').value = `${autor.imie} ${autor.nazwisko}`;
-        document.getElementById('inp_rank').value = autor.ranga;
-    }
-
     const firebaseConfig = {
         apiKey: "AIzaSyC5MioZo7CMVGopaZANfglS12Gy_TMPzEw",
         authDomain: "baza-danych-cd445.firebaseapp.com",
@@ -454,11 +283,9 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    // Zmienne już zadeklarowane na początku skryptu
-    let lokalnePacjenci = [];
-    // let pacjenci = []; // USUNIĘTE - duplikat
-    // let aktywIdx = -1; // USUNIĘTE - duplikat  
-    // let currentView = 'active'; // USUNIĘTE - duplikat
+    let pacjenci = [];
+    let aktywIdx = -1;
+    let currentView = 'active';
 
     const EXAM_LIBRARY = {
         "USG": ["USG jamy brzusznej", "USG tarczycy", "USG nerek", "USG Doppler kończyn", "USG FAST urazowe"],
@@ -492,89 +319,10 @@
         return true;
     }
 
-    // Synchronizacja Firebase z localStorage
-    function synchronizujZFirebase() {
+    function synchronizuj() {
         const cleanData = pacjenci.filter(p => p !== null);
         db.ref('pacjenci').set(cleanData);
-        
-        // Synchronizuj też z localStorage dla patient_portal
-        const hospData = cleanData.map(p => ({
-            patientLinkId: p.id || p.patientLinkId,
-            name: (p.firstName && p.lastName) ? `${p.firstName} ${p.lastName}` : (p.name || ""),
-            adr: p.address || p.adr || "",
-            job: p.job || "",
-            ins: p.insured === "TAK" ? (p.insNumber || "TAK") : (p.ins || "NIE"),
-            blood: p.blood || "Nieznana",
-            alergie: p.alergie || "",
-            reason: p.reason || "",
-            status: p.status || "Stabilny",
-            triage: p.triage || "none",
-            cert: p.cert || "BRAK",
-            arch: p.arch || false,
-            history: p.history || []
-        }));
-        
-        writeLS("hosp_v545", hospData);
     }
-
-    function synchronizuj() {
-        synchronizujZFirebase();
-    }
-
-    // Live Refresh - nasłuchuj zmian w localStorage
-    window.addEventListener('storage', (e) => {
-        if (e.key === 'hosp_v545') {
-            const noweDane = JSON.parse(e.newValue || '[]');
-            // Konwertuj dane z hosp_v545 do formatu Firebase
-            pacjenci = noweDane.map(p => ({
-                id: p.id,
-                name: p.name,
-                firstName: p.imie || p.name?.split(' ')[0] || "",
-                lastName: p.nazwisko || p.name?.split(' ')[1] || "",
-                age: p.age,
-                gender: p.gender,
-                blood: p.blood,
-                alergie: p.alergie,
-                status: p.status,
-                triage: p.triage,
-                reason: p.reason,
-                history: p.history || [],
-                arch: p.arch || false,
-                createdAt: p.createdAt
-            }));
-            updateStats();
-            renderLista();
-            if (aktywIdx !== -1 && pacjenci[aktywIdx]) odswiezDanePacjenta();
-        }
-    });
-
-    // Sprawdzaj zmiany co 2 sekundy (fallback)
-    setInterval(() => {
-        const currentHosp = JSON.parse(localStorage.getItem('hosp_v545') || '[]');
-        if (JSON.stringify(currentHosp) !== JSON.stringify(lokalnePacjenci)) {
-            lokalnePacjenci = [...currentHosp];
-            // Konwertuj i odśwież
-            pacjenci = currentHosp.map(p => ({
-                id: p.id,
-                name: p.name,
-                firstName: p.imie || p.name?.split(' ')[0] || "",
-                lastName: p.nazwisko || p.name?.split(' ')[1] || "",
-                age: p.age,
-                gender: p.gender,
-                blood: p.blood,
-                alergie: p.alergie,
-                status: p.status,
-                triage: p.triage,
-                reason: p.reason,
-                history: p.history,
-                arch: p.arch,
-                createdAt: p.createdAt
-            }));
-            updateStats();
-            renderLista();
-            if (aktywIdx !== -1 && pacjenci[aktywIdx]) odswiezDanePacjenta();
-        }
-    }, 2000);
 
     function updateStats() {
         let active = pacjenci.filter(p => p && !p.arch).length;
@@ -584,103 +332,36 @@
     }
 
     function nowyPacjent() {
-        console.log("🔧 DEBUG: Rozpoczynam dodawanie pacjenta...");
-        
-        // Pobierz aktualną listę z użyciem uniwersalnej funkcji
-        let currentData = loadFromHospitalDB();
-        if (!currentData || !Array.isArray(currentData)) {
-            console.error("❌ BŁĄD: Nie można odczytać bazę pacjentów");
-            alert("Błąd bazy danych! Spróbuj odświeżyć stronę.");
-            return;
-        }
-        
         let n = document.getElementById('add_name').value.trim();
-        if (!n) {
-            alert("Podaj nazwisko!");
-            return;
-        }
-        
-        // Tworzenie nowego pacjenta z pełną walidacją
-        const nowy = {
-            id: "PAT-" + Math.random().toString(36).substr(2, 9).toUpperCase(),
-            name: n || 'Nieznany pacjent',
-            imie: n ? n.split(' ')[0] : 'Nieznane',
-            nazwisko: n ? n.split(' ')[1] || n : 'Nieznane',
-            adr: "",
-            job: "",
-            ins: "",
-            blood: "Nieznana",
-            alergie: "",
-            reason: "",
-            status: "Stabilny",
-            triage: "none",
-            cert: "BRAK",
-            role: 'user', // KLUCZOWE: dodaj rolę 'user' dla pacjentów
-            arch: false,
-            history: [{ 
-                id: Date.now(), 
-                txt: "Zarejestrowano pacjenta", 
-                doc: "SYSTEM", 
-                rank: "Automatyczny", 
-                time: new Date().toLocaleString() 
-            }]
-        };
-        
-        // Dodaj pacjenta do listy z użyciem uniwersalnej funkcji
-        currentData.push(nowy);
-        
-        // Zapisz z użyciem uniwersalnej funkcji
-        if (!saveToHospitalDB(currentData)) {
-            alert("Błąd zapisu pacjenta do bazy!");
-            return;
-        }
-        
-        // Czyść pole i odśwież listę
+        if (!n) return alert("Podaj nazwisko!");
+        pacjenci.push({
+            name: n, adr: "", job: "", ins: "", blood: "Nieznana", alergie: "",
+            reason: "", status: "Stabilny", triage: "none", cert: "BRAK",
+            arch: false, history: [{ id: Date.now(), txt: "Zarejestrowano pacjenta", doc: "SYSTEM", rank: "Automatyczny", time: new Date().toLocaleString() }]
+        });
         document.getElementById('add_name').value = "";
-        
-        console.log("✅ DEBUG: Dodano pacjenta:", nowy.name, "ID:", nowy.id, "rola:", nowy.role);
-        alert('Pacjent dodany pomyślnie!');
-        
-        // Odśwież listę
-        renderPatientsTable();
+        synchronizuj();
     }
 
-    function renderPatientsTable() {
-        console.log("🔧 DEBUG: Rozpoczynam renderowanie tabeli pacjentów...");
-        
-        // Pobierz dane z użyciem uniwersalnej funkcji
-        let currentData = loadFromHospitalDB();
-        if (!currentData || !Array.isArray(currentData)) {
-            console.error("❌ BŁĄD: Nie można odczytać bazy pacjentów");
-            document.getElementById('lista_pacjentow').innerHTML = '<div style="color: red;">Błąd bazy danych!</div>';
-            return;
-        }
-        
-        let l = document.getElementById('lista_pacjentow'); 
-        l.innerHTML = ""; // Czyść kontener przed renderowaniem
+    function renderLista() {
+        let l = document.getElementById('lista_pacjentow'); l.innerHTML = "";
         let currentRank = document.getElementById('inp_rank').value;
         let isAdmin = (currentRank === "Dyrektor Szpitala" || currentRank === "Zarząd Szpitala");
-        
-        console.log("🔧 DEBUG: Renderuję", currentData.length, "pacjentów");
-        
-        currentData.forEach((p, i) => {
-            if (!p) {
-                console.warn("⚠️ Pomijam pustego pacjenta na indeksie:", i);
-                return;
-            }
-            
+
+        pacjenci.forEach((p, i) => {
+            if (!p) return;
             if ((currentView === 'active' && !p.arch) || (currentView === 'archive' && p.arch)) {
                 let wrap = document.createElement('div');
                 wrap.style.display = "flex";
                 wrap.style.marginBottom = "5px";
-                
+
                 let d = document.createElement('div');
                 d.className = `p-item ${aktywIdx === i ? 'active' : ''} ${p.arch ? 'archived' : ''}`;
                 d.style.flex = "1";
-                d.innerHTML = `<b>${p.name || 'Nieznany pacjent'}</b><br><small>Status: ${p.status || 'Nieznany'}</small>`;
+                d.innerHTML = `<b>${p.name}</b><br><small>${p.status}</small>`;
                 d.onclick = () => otworz(i);
                 wrap.appendChild(d);
-                
+
                 if (isAdmin) {
                     let del = document.createElement('button');
                     del.className = "del-patient-btn";
@@ -688,46 +369,18 @@
                     del.onclick = (e) => { e.stopPropagation(); usunPacjenta(i); };
                     wrap.appendChild(del);
                 }
-                
                 l.appendChild(wrap);
             }
         });
-        
-        console.log("✅ DEBUG: Tabela pacjentów wyrenderowana");
     }
 
     function usunPacjenta(i) {
-        console.log("🗑️ DEBUG: Usuwam pacjenta:", i);
-        
-        // Pobierz dane z użyciem uniwersalnej funkcji
-        let currentData = loadFromHospitalDB();
-        if (!currentData || !Array.isArray(currentData)) {
-            console.error("❌ BŁĄD: Nie można odczytać bazy pacjentów");
-            alert("Błąd bazy danych!");
-            return;
-        }
-        
-        if (!currentData[i]) {
-            console.warn("⚠️ Pacjent o indeksie", i, "nie istnieje");
-            return;
-        }
-        
-        if (confirm("Czy trwale USUNĄĆ kartotekę pacjenta: " + currentData[i].name + "?")) {
-            currentData.splice(i, 1);
+        if (!pacjenci[i]) return;
+        if (confirm("Czy trwale USUNĄĆ kartotekę pacjenta: " + pacjenci[i].name + "?")) {
+            pacjenci.splice(i, 1);
             aktywIdx = -1;
             document.getElementById('interface').classList.add('hidden');
-            
-            // Zapisz z użyciem uniwersalnej funkcji
-            if (!saveToHospitalDB(currentData)) {
-                alert("Błąd zapisu po usunięciu pacjenta!");
-                return;
-            }
-            
-            console.log("✅ DEBUG: Usunięto pacjenta:", currentData[i].name);
-            alert("Pacjent usunięty!");
-            
-            // Odśwież listę
-            renderPatientsTable();
+            synchronizuj();
         }
     }
 
@@ -735,23 +388,24 @@
         aktywIdx = i;
         odswiezDanePacjenta();
         document.getElementById('interface').classList.remove('hidden');
-        renderPatientsTable(); // Poprawna nazwa funkcji
+        renderLista();
     }
 
     function odswiezDanePacjenta() {
-        if (aktywIdx >= 0 && aktywIdx < pacjenci.length) {
-            const p = pacjenci[aktywIdx];
-            document.getElementById('inp_name').value = p.name || '';
-            document.getElementById('inp_adr').value = p.adr || '';
-            document.getElementById('inp_job').value = p.job || '';
-            document.getElementById('inp_ins').value = p.ins || '';
-            document.getElementById('inp_blood').value = p.blood || 'Nieznana';
-            document.getElementById('inp_alergie').value = p.alergie || '';
-            document.getElementById('inp_reason').value = p.reason || '';
-            document.getElementById('inp_status').value = p.status || 'Stabilny';
-            document.getElementById('inp_triage').value = p.triage || 'none';
-            document.getElementById('inp_cert').value = p.cert || 'BRAK';
-        }
+        let p = pacjenci[aktywIdx];
+        if (!p) return;
+        document.getElementById('disp_name').innerText = p.name;
+        document.getElementById('inp_adr').value = p.adr || "";
+        document.getElementById('inp_job').value = p.job || "";
+        document.getElementById('inp_ins').value = p.ins || "";
+        document.getElementById('inp_blood').value = p.blood || "Nieznana";
+        document.getElementById('inp_alergie').value = p.alergie || "";
+        document.getElementById('inp_reason').value = p.reason || "";
+        document.getElementById('inp_status').value = p.status || "Stabilny";
+        document.getElementById('inp_triage').value = p.triage || "none";
+        updateTriageVisuals();
+        updateCertVisuals(p.cert || "BRAK");
+        pokazHistorie();
     }
 
     function savePatientFields() {
@@ -769,54 +423,25 @@
     }
 
     function zapiszWpis() {
-        // Sprawdź czy użytkownik jest zalogowany - DEBUG MODE
-        try {
-            const autor = JSON.parse(localStorage.getItem('hospital_auth'));
-            console.log("🔍 DEBUG: zapiszWpis autor:", autor);
-            
-            if (!autor || (autor.type !== 'doctor' && autor.type !== 'admin')) {
-                console.log("❌ DEBUG: Odmowa dostępu dla roli w zapiszWpis:", autor?.type || 'brak sesji');
-                // window.location.href = "portal.html"; // WYŁĄCZONE DO DEBUGOWANIA
-                return;
-            }
-            console.log("✅ DEBUG: Sesja potwierdzona w zapiszWpis:", autor.name, "typ:", autor.type);
-            
-            if (!savePatientFields()) return;
-            let p = pacjenci[aktywIdx];
-            let txt = document.getElementById('inp_note').value.trim();
-            
-            // Pobierz dane z sesji
-            const timestamp = new Date().toLocaleString('pl-PL');
-            
-            // Dodaj automatyczny podpis z danych sesji
-            const signatureLine = `\n\n--- Podpisano elektronicznie ---\n[${autor.ranga}] ${autor.imie} ${autor.nazwisko}\nData: ${timestamp}`;
-            const fullText = txt + signatureLine;
+        if (!savePatientFields()) return;
+        let p = pacjenci[aktywIdx];
+        let txt = document.getElementById('inp_note').value.trim();
+        let doc = document.getElementById('inp_doc').value.trim();
+        let r = document.getElementById('inp_rank').value;
 
-            if (txt) {
-                if (!p.history) p.history = [];
-                p.history.push({
-                    id: Date.now(), 
-                    note: fullText, 
-                    doctor: `${autor.imie} ${autor.nazwisko}`, 
-                    rank: autor.ranga,
-                    ts: Date.now(),
-                    time: timestamp,
-                    auth: (autor.ranga.includes("Dyrektor") || autor.ranga.includes("Zarząd") || autor.ranga.includes("Ordynator"))
-                });
-                document.getElementById('inp_note').value = "";
-            }
+        if (!doc) return alert("Podpisz się!");
 
-            synchronizuj();
-        } catch(e) {
-            console.error("❌ DEBUG: Błąd parsowania sesji w zapiszWpis:", e);
-            // window.location.href = "portal.html"; // WYŁĄCZONE DO DEBUGOWANIA
+        if (txt) {
+            if (!p.history) p.history = [];
+            p.history.push({
+                id: Date.now(), txt: txt, doc: doc, rank: r,
+                time: new Date().toLocaleString(),
+                auth: (r.includes("Dyrektor") || r.includes("Zarząd") || r.includes("Ordynator"))
+            });
+            document.getElementById('inp_note').value = "";
         }
-    }
-    
-    function logoutUser() {
-        localStorage.removeItem('hospital_auth');
-        localStorage.removeItem('current_doctor_session');
-        window.location.href = "portal.html";
+
+        synchronizuj();
     }
 
     function usunWpis(idx) {
@@ -832,83 +457,21 @@
     function pokazHistorie() {
         let c = document.getElementById('historia_kontener'), p = pacjenci[aktywIdx];
         c.innerHTML = "<h3>HISTORIA MEDYCZNA</h3>";
-        if (!p || !p.history || !p.history.length) {
-            c.innerHTML += '<div style="color: var(--muted); text-align: center; padding: 20px;">Brak historii medycznej</div>';
-            return;
-        }
+        if (!p || !p.history) return;
 
         let r = document.getElementById('inp_rank').value;
         let canDelete = ["Dyrektor Szpitala", "Zastępca Ordynatora", "Zarząd Szpitala", "Ordynator"].includes(r);
 
-        // Timeline - Glassmorphism
-        const timelineContainer = document.createElement('div');
-        timelineContainer.style.cssText = 'position: relative; padding-left: 30px;';
-
         p.history.slice().reverse().forEach((h, revIdx) => {
             let realIdx = p.history.length - 1 - revIdx;
-            
-            // Sprawdź czy wpis ma treść
-            if (!h.note && !h.txt) return;
-            
-            const entryDate = h.time || new Date(h.ts).toLocaleString('pl-PL');
-            const isValidDate = entryDate && entryDate !== 'Invalid Date';
-            
-            const timelineItem = document.createElement('div');
-            timelineItem.className = 'timeline-item';
-            timelineItem.style.cssText = `
-                position: relative;
-                margin-bottom: 20px;
-                padding-left: 20px;
-            `;
-            
-            // Zielona kropka na osi czasu
-            const dot = document.createElement('div');
-            dot.style.cssText = `
-                position: absolute;
-                left: -25px;
-                top: 8px;
-                width: 12px;
-                height: 12px;
-                background: var(--accent);
-                border-radius: 50%;
-                box-shadow: 0 0 10px rgba(0, 210, 211, 0.5);
-            `;
-            
-            // Szklana karta
-            const card = document.createElement('div');
-            card.className = 'glass-card';
-            card.style.cssText = `
-                background: rgba(255, 255, 255, 0.03);
-                backdrop-filter: blur(20px);
-                -webkit-backdrop-filter: blur(20px);
-                border: 1px solid rgba(0, 210, 211, 0.2);
-                border-radius: 12px;
-                padding: 16px;
-                position: relative;
-                overflow: hidden;
-            `;
-            
-            const delBtn = canDelete ? `<button class="del-entry-btn" onclick="usunWpis(${realIdx})" style="position: absolute; top: 10px; right: 10px; background: var(--red); color: white; padding: 4px 8px; font-size: 10px; border: none; border-radius: 4px; cursor: pointer;">USUŃ</button>` : "";
-            
-            card.innerHTML = `
-                ${delBtn}
-                <div style="color: var(--accent); font-size: 11px; margin-bottom: 8px;">
-                    ${isValidDate ? entryDate : 'Data nieznana'}
-                </div>
-                <div style="color: var(--text); font-size: 14px; line-height: 1.5; margin-bottom: 12px; white-space: pre-wrap;">
-                    ${h.note || h.txt || 'Brak opisu'}
-                </div>
-                <div style="color: var(--muted); font-size: 12px;">
-                    <strong>${h.doctor || h.doc}</strong> (${h.rank || h.r})
-                </div>
-            `;
-            
-            timelineItem.appendChild(dot);
-            timelineItem.appendChild(card);
-            timelineContainer.appendChild(timelineItem);
+            let div = document.createElement('div');
+            div.className = `history-item ${h.auth ? 'history-auth' : ''}`;
+
+            let delBtn = canDelete ? `<button class="del-entry-btn" onclick="usunWpis(${realIdx})">USUŃ</button>` : "";
+
+            div.innerHTML = `${delBtn}<small>${h.time}</small><p style="white-space:pre-wrap;">${h.txt}</p><b>${h.doc}</b> (${h.rank})`;
+            c.appendChild(div);
         });
-        
-        c.appendChild(timelineContainer);
     }
 
     function updateExamOptions() {
@@ -967,94 +530,11 @@
         h.className = 'cert-box ' + (s === 'OK' ? 'status-ok' : (s === 'NO' ? 'status-no' : ''));
     }
 
-    function renderSchedule() {
-        const schedule = readLS("hospital_schedule", []);
-        const container = document.getElementById('schedule-content');
-        
-        if (!container) return;
-        
-        if (!schedule.length) {
-            container.innerHTML = '<div style="color: var(--muted); text-align: center; padding: 40px;">Brak dyżurów</div>';
-            return;
-        }
-        
-        // Filtrowanie po lekarzu (aktualnie zalogowany)
-        const session = readLS("current_doctor_session", null);
-        const mySchedule = session ? schedule.filter(s => s.doctorId === session.doctorId) : schedule;
-        
-        container.innerHTML = `
-            <div style="margin-bottom: 20px;">
-                <h3 style="color: var(--accent); margin: 0 0 16px 0;">📅 Mój Grafik Dyżurów</h3>
-            </div>
-            <div style="position: relative; padding-left: 30px;">
-                ${mySchedule.sort((a, b) => a.date - b.date).map(shift => {
-                    const date = new Date(shift.date);
-                    const dateStr = date.toLocaleString('pl-PL');
-                    const isToday = new Date().toDateString() === date.toDateString();
-                    const isPast = date < new Date();
-                    
-                    return `
-                        <div style="position: relative; margin-bottom: 20px; padding-left: 20px;">
-                            <div style="
-                                position: absolute;
-                                left: -25px;
-                                top: 8px;
-                                width: 12px;
-                                height: 12px;
-                                background: ${isPast ? 'var(--muted)' : 'var(--accent)'};
-                                border-radius: 50%;
-                                box-shadow: 0 0 10px ${isPast ? 'rgba(149, 160, 175, 0.5)' : 'rgba(0, 210, 211, 0.5)'};
-                            "></div>
-                            <div style="
-                                background: rgba(255, 255, 255, 0.03);
-                                backdrop-filter: blur(20px);
-                                -webkit-backdrop-filter: blur(20px);
-                                border: 1px solid rgba(0, 210, 211, 0.2);
-                                border-radius: 12px;
-                                padding: 16px;
-                                position: relative;
-                                overflow: hidden;
-                            ">
-                                <div style="
-                                    position: absolute;
-                                    top: 10px;
-                                    right: 10px;
-                                    font-size: 14px;
-                                    color: var(--accent);
-                                ">📅</div>
-                                <div style="color: var(--accent); font-size: 11px; margin-bottom: 8px; font-weight: bold;">
-                                    ${isToday ? 'DZISIAJ' : ''} ${dateStr}
-                                </div>
-                                <div style="color: var(--text); font-size: 14px; margin-bottom: 8px;">
-                                    <strong>Dyżur</strong> - ${shift.rank || 'Lekarz'}
-                                </div>
-                                ${isPast ? `
-                                    <div style="color: var(--muted); font-size: 12px; font-style: italic;">
-                                        Zakończony
-                                    </div>
-                                ` : `
-                                    <div style="color: var(--ok); font-size: 12px; font-weight: bold;">
-                                        Nadchodzący
-                                    </div>
-                                `}
-                            </div>
-                        </div>
-                    `;
-                }).join('')}
-            </div>
-        `;
-    }
-
     function switchTab(id, b) {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         document.getElementById(id).classList.remove('hidden');
         b.classList.add('active');
-        
-        // Renderuj harmonogram gdy zakładka jest aktywna
-        if (id === 'tab-schedule') {
-            renderSchedule();
-        }
     }
 
     function podajLek() {
@@ -1100,12 +580,6 @@
     }
 
     initExamSelects();
-    
-    // Inicjalizuj pola z danymi sesji
-    initializeSessionFields();
-    
-    // Odśwież stronę po załadowaniu danych pacjentów
-    renderPatientsTable(); // Użycie poprawnej nazwy funkcji
 </script>
 </body>
 </html>
