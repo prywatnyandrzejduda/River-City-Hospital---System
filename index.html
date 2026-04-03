@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <title>Hospital System v5.35 - Firebase Patients</title>
-
   <style>
     :root {
       --accent: #00d2d3; --psych: #a29bfe; --bg: #0b0c0d; --card: #1c1f22;
@@ -63,12 +62,10 @@
     .exam-box { border-left: 5px solid #6c5ce7; }
   </style>
 
-  <!-- Firebase compat scripts (HEAD) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
   <script>
-    // Twój config Firebase (compat)
     const firebaseConfig = {
       apiKey: "AIzaSyC5MioZo7CMVGopaZANfglS12Gy_TMPzEw",
       authDomain: "baza-danych-cd445.firebaseapp.com",
@@ -79,9 +76,7 @@
       appId: "1:234044597162:web:f46e383b858a363aea01d3"
     };
 
-    if (!firebase.apps.length) {
-      firebase.initializeApp(firebaseConfig);
-    }
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
   </script>
 </head>
@@ -91,9 +86,7 @@
   <a id="admin-shortcut" href="admin.html">Administracja</a>
 
   <div id="sidebar">
-    <h2 style="color: white; text-align: center; letter-spacing: 2px; margin-bottom: 10px;">
-      MED-SYSTEM <span style="color:var(--accent)">v5.35</span>
-    </h2>
+    <h2 style="color: white; text-align: center; letter-spacing: 2px; margin-bottom: 10px;">MED-SYSTEM <span style="color:var(--accent)">v5.35</span></h2>
 
     <div class="sor-stats">
       <div class="stat-badge">
@@ -130,7 +123,6 @@
           <div class="tab-btn" onclick="switchTab('tab-psych', this)" style="color:var(--psych);">🧠 ZDR. BEHAWIORALNE</div>
           <div class="tab-btn" onclick="switchTab('tab-cert', this)" style="color:var(--cert);">📋 ORZECZNICTWO</div>
           <div class="tab-btn" onclick="switchTab('tab-docs', this)" style="color:var(--docs);">📁 DOKUMENTACJA</div>
-          <div class="tab-btn" onclick="switchTab('tab-schedule', this)" style="color:var(--accent);">📅 MÓJ GRAFIK</div>
           <div class="tab-btn" onclick="switchTab('tab-exit', this)" style="color:var(--discharge);">🚪 WYPIS</div>
         </div>
       </div>
@@ -233,30 +225,9 @@
             <div class="card" style="border-left: 5px solid var(--gold);">
               <span class="label">Kalkulator GCS & Parametry</span>
               <div class="calc-box">
-                <select id="gcs_e" onchange="calcGCS()">
-                  <option value="4">Oczy: 4 (Spontanicznie)</option>
-                  <option value="3">3 (Na polecenie)</option>
-                  <option value="2">2 (Na ból)</option>
-                  <option value="1">1 (Brak)</option>
-                </select>
-
-                <select id="gcs_v" onchange="calcGCS()">
-                  <option value="5">Mowa: 5 (Zorientowana)</option>
-                  <option value="4">4 (Splątana)</option>
-                  <option value="3">3 (Niewłaściwa)</option>
-                  <option value="2">2 (Dźwięki)</option>
-                  <option value="1">1 (Brak)</option>
-                </select>
-
-                <select id="gcs_m" onchange="calcGCS()">
-                  <option value="6">Ruch: 6 (Polecenia)</option>
-                  <option value="5">5 (Lokalizuje ból)</option>
-                  <option value="4">4 (Ucieczka od bólu)</option>
-                  <option value="3">3 (Zgięcie patol.)</option>
-                  <option value="2">2 (Wyprost patol.)</option>
-                  <option value="1">1 (Brak)</option>
-                </select>
-
+                <select id="gcs_e" onchange="calcGCS()"><option value="4">Oczy: 4 (Spontanicznie)</option><option value="3">3 (Na polecenie)</option><option value="2">2 (Na ból)</option><option value="1">1 (Brak)</option></select>
+                <select id="gcs_v" onchange="calcGCS()"><option value="5">Mowa: 5 (Zorientowana)</option><option value="4">4 (Splątana)</option><option value="3">3 (Niewłaściwa)</option><option value="2">2 (Dźwięki)</option><option value="1">1 (Brak)</option></select>
+                <select id="gcs_m" onchange="calcGCS()"><option value="6">Ruch: 6 (Polecenia)</option><option value="5">5 (Lokalizuje ból)</option><option value="4">4 (Ucieczka od bólu)</option><option value="3">3 (Zgięcie patol.)</option><option value="2">2 (Wyprost patol.)</option><option value="1">1 (Brak)</option></select>
                 <div id="gcs_res" style="text-align:center; font-size:18px; color:var(--gold); font-weight:bold; margin-top:5px;">SUMA: 15 GCS</div>
               </div>
 
@@ -317,7 +288,6 @@
               <option value="trans">Karta Przekazania (EMS)</option>
               <option value="death">Karta Zgonu</option>
             </select>
-
             <textarea id="doc_details" rows="4" placeholder="Treść dokumentu..."></textarea>
             <input type="text" id="doc_days" placeholder="Termin / Okres ważności">
             <button style="background:var(--docs); color:white; width:100%;" onclick="wystawDokument()">WYSTAW DOKUMENT</button>
@@ -373,6 +343,9 @@
     let aktywKey = null;
     let currentView = 'active';
 
+    // KLUCZOWE: nie nadpisuj Firebase pustą listą zanim przyjdzie pierwszy odczyt
+    let firebaseReady = false;
+
     const EXAM_LIBRARY = {
       "USG": ["USG jamy brzusznej", "USG tarczycy", "USG nerek", "USG Doppler kończyn", "USG FAST urazowe"],
       "RTG": ["RTG klatki piersiowej", "RTG kręgosłupa", "RTG kończyny", "RTG zatok", "RTG miednicy"],
@@ -396,27 +369,23 @@
     function normalizePatients(snapshotVal) {
       if (!snapshotVal) return [];
 
-      // snapshotVal może być tablicą albo obiektem (z push keys)
       if (Array.isArray(snapshotVal)) {
         return snapshotVal.map((v, i) => ({ ...(v || {}), firebaseKey: v?.firebaseKey || String(i) }));
       }
 
-      const arr = Object.entries(snapshotVal).map(([key, v]) => ({
+      return Object.entries(snapshotVal).map(([key, v]) => ({
         firebaseKey: key,
         ...(v || {}),
       }));
-
-      // Kolejność wg createdAt jeśli masz
-      arr.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
-      return arr;
     }
 
-    // ====== Auto-refresh tabeli po zmianach w Firebase ======
     function listenToPatients() {
       db.ref('patients').on('value', (snapshot) => {
+        // ustawiamy gotowość po pierwszym odczycie
+        if (!firebaseReady) firebaseReady = true;
+
         pacjenci = normalizePatients(snapshot.val());
 
-        // utrzymaj aktywnego pacjenta po zmianach
         if (aktywKey) {
           const newIdx = pacjenci.findIndex(p => p.firebaseKey === aktywKey);
           if (newIdx !== -1) {
@@ -449,18 +418,18 @@
       renderLista();
     }
 
-    // ====== Zapis całej listy patients (przy zachowaniu keys) ======
     function synchronizuj() {
+      if (!firebaseReady) return;
+
       const payload = {};
       pacjenci.forEach(p => {
         if (!p || !p.firebaseKey) return;
-        const { firebaseKey, ...rest } = p; // nie zapisujemy klucza jako pola
+        const { firebaseKey, ...rest } = p;
         payload[p.firebaseKey] = rest;
       });
       db.ref('patients').set(payload);
     }
 
-    // ====== nowyPacjent() -> push do /patients ======
     function nowyPacjent() {
       const n = document.getElementById('add_name').value.trim();
       if (!n) return alert("Podaj nazwisko!");
@@ -490,28 +459,27 @@
         }]
       };
 
-      // push -> listenToPatients() sam odświeży UI
       db.ref('patients').push(nowyObiekt);
-
       document.getElementById('add_name').value = "";
     }
 
     function renderLista() {
-      let l = document.getElementById('lista_pacjentow');
+      const l = document.getElementById('lista_pacjentow');
       if (!l) return;
 
       l.innerHTML = "";
-      let currentRank = document.getElementById('inp_rank')?.value || "";
-      let isAdmin = (currentRank === "Dyrektor Szpitala" || currentRank === "Zarząd Szpitala");
+      const currentRank = document.getElementById('inp_rank')?.value || "";
+      const isAdmin = (currentRank === "Dyrektor Szpitala" || currentRank === "Zarząd Szpitala");
 
       pacjenci.forEach((p, i) => {
         if (!p) return;
+
         if ((currentView === 'active' && !p.arch) || (currentView === 'archive' && p.arch)) {
-          let wrap = document.createElement('div');
+          const wrap = document.createElement('div');
           wrap.style.display = "flex";
           wrap.style.marginBottom = "5px";
 
-          let d = document.createElement('div');
+          const d = document.createElement('div');
           d.className = `p-item ${aktywIdx === i ? 'active' : ''} ${p.arch ? 'archived' : ''}`;
           d.style.flex = "1";
           d.innerHTML = `<b>${esc(p.name || 'Nieznany pacjent')}</b><br><small>${esc(p.status || '-')}</small>`;
@@ -519,7 +487,7 @@
           wrap.appendChild(d);
 
           if (isAdmin) {
-            let del = document.createElement('button');
+            const del = document.createElement('button');
             del.className = "del-patient-btn";
             del.innerHTML = "🗑️";
             del.onclick = (e) => { e.stopPropagation(); usunPacjenta(i); };
@@ -533,11 +501,10 @@
 
     function usunPacjenta(i) {
       if (!pacjenci[i]) return;
+
       if (confirm("Czy trwale USUNĄĆ kartotekę pacjenta: " + pacjenci[i].name + "?")) {
-        // usuń lokalnie i odśwież Firebase
         pacjenci.splice(i, 1);
 
-        // skasuj aktywne
         aktywIdx = -1;
         aktywKey = null;
         document.getElementById('interface')?.classList.add('hidden');
@@ -558,7 +525,7 @@
     function odswiezDanePacjenta() {
       if (aktywIdx === -1 || !pacjenci[aktywIdx]) return;
 
-      let p = pacjenci[aktywIdx];
+      const p = pacjenci[aktywIdx];
 
       document.getElementById('disp_name').innerText = p.name || '';
       document.getElementById('inp_adr').value = p.adr || "";
@@ -578,7 +545,7 @@
     function savePatientFields() {
       if (aktywIdx === -1 || !pacjenci[aktywIdx]) return false;
 
-      let p = pacjenci[aktywIdx];
+      const p = pacjenci[aktywIdx];
       p.adr = document.getElementById('inp_adr').value;
       p.job = document.getElementById('inp_job').value;
       p.ins = document.getElementById('inp_ins').value;
@@ -603,21 +570,20 @@
     function zapiszWpis() {
       if (!savePatientFields()) return;
 
-      let p = pacjenci[aktywIdx];
-      let txt = document.getElementById('inp_note').value.trim();
+      const p = pacjenci[aktywIdx];
+      const txt = document.getElementById('inp_note').value.trim();
 
       let doc = document.getElementById('inp_doc').value.trim();
-      let r = document.getElementById('inp_rank').value;
+      const r = document.getElementById('inp_rank').value;
 
-      // Jeżeli masz puste podpisy, nie blokujemy zapisu medycznego
       doc = doc || "Lekarz";
 
       if (txt) {
         if (!p.history) p.history = [];
         p.history.push({
           id: Date.now(),
-          txt: txt,
-          doc: doc,
+          txt,
+          doc,
           rank: r,
           time: new Date().toLocaleString(),
           ts: Date.now(),
@@ -641,23 +607,23 @@
     }
 
     function pokazHistorie() {
-      let c = document.getElementById('historia_kontener');
-      let p = pacjenci[aktywIdx];
+      const c = document.getElementById('historia_kontener');
+      const p = pacjenci[aktywIdx];
       if (!c) return;
 
       c.innerHTML = "<h3>HISTORIA MEDYCZNA</h3>";
       if (!p || !p.history || !p.history.length) return;
 
-      let r = document.getElementById('inp_rank').value;
-      let canDelete = ["Dyrektor Szpitala", "Zastępca Ordynatora", "Zarząd Szpitala", "Ordynator"].includes(r);
+      const r = document.getElementById('inp_rank').value;
+      const canDelete = ["Dyrektor Szpitala", "Zastępca Ordynatora", "Zarząd Szpitala", "Ordynator"].includes(r);
 
       p.history.slice().reverse().forEach((h, revIdx) => {
-        let realIdx = p.history.length - 1 - revIdx;
+        const realIdx = p.history.length - 1 - revIdx;
 
-        let div = document.createElement('div');
+        const div = document.createElement('div');
         div.className = `history-item ${h.auth ? 'history-auth' : ''}`;
 
-        let delBtn = canDelete ? `<button class="del-entry-btn" onclick="usunWpis(${realIdx})">USUŃ</button>` : "";
+        const delBtn = canDelete ? `<button class="del-entry-btn" onclick="usunWpis(${realIdx})">USUŃ</button>` : "";
 
         div.innerHTML = `
           ${delBtn}
@@ -719,7 +685,6 @@
 
     function logPsych() {
       if (!requirePatient()) return;
-
       const txt = `MSE: Napęd=${document.getElementById('psy_motor').value}, Tok=${document.getElementById('psy_thought').value}, Nastrój=${document.getElementById('sel_mood').value}, Kontakt=${document.getElementById('psy_eye').value}. Uwagi: ${document.getElementById('psy_notes').value}`;
       addNote(txt);
     }
@@ -727,7 +692,7 @@
     function generujOrzeczenie() {
       if (!requirePatient()) return;
 
-      let f = document.getElementById('cert_final').value;
+      const f = document.getElementById('cert_final').value;
       if (f === 'BRAK') return alert("Wybierz werdykt.");
 
       pacjenci[aktywIdx].cert = f;
@@ -745,7 +710,7 @@
     }
 
     function updateCertVisuals(s) {
-      let h = document.getElementById('cert-status-header');
+      const h = document.getElementById('cert-status-header');
       if (!h) return;
       h.innerText = s === 'OK' ? 'DOPUSZCZONY' : (s === 'NO' ? 'NIEZDOLNY' : 'BRAK BADAŃ');
       h.className = 'cert-box ' + (s === 'OK' ? 'status-ok' : (s === 'NO' ? 'status-no' : ''));
@@ -771,23 +736,21 @@
     }
 
     function calcGCS() {
-      let e = parseInt(document.getElementById('gcs_e').value, 10);
-      let v = parseInt(document.getElementById('gcs_v').value, 10);
-      let m = parseInt(document.getElementById('gcs_m').value, 10);
+      const e = parseInt(document.getElementById('gcs_e').value, 10);
+      const v = parseInt(document.getElementById('gcs_v').value, 10);
+      const m = parseInt(document.getElementById('gcs_m').value, 10);
       document.getElementById('gcs_res').innerText = `SUMA: ${e + v + m} GCS`;
     }
 
     function calcDrug() {
-      let w = parseFloat(document.getElementById('calc_weight').value) || 0;
-      let mk = parseFloat(document.getElementById('calc_mgkg').value) || 0;
+      const w = parseFloat(document.getElementById('calc_weight').value) || 0;
+      const mk = parseFloat(document.getElementById('calc_mgkg').value) || 0;
       document.getElementById('calc_drug_res').innerText = `WYNIK: ${(w * mk).toFixed(2)} mg`;
     }
 
-    // Start: listener + inicjalizacja
     initExamSelects();
     listenToPatients();
 
-    // Zmiana rangi podmienia UI/Historia w zależności od uprawnień (jak w Twoim kodzie)
     document.getElementById('inp_rank')?.addEventListener('change', () => {
       renderLista();
       if (aktywIdx !== -1) pokazHistorie();
