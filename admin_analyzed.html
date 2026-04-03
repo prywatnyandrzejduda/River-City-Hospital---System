@@ -9,8 +9,103 @@
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
     <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC5MioZo7CMVGopaZANfglS12Gy_TMPzEw",
+            authDomain: "baza-danych-cd445.firebaseapp.com",
+            databaseURL: "https://baza-danych-cd445-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "baza-danych-cd445",
+            storageBucket: "baza-danych-cd445.firebasestorage.app",
+            messagingSenderId: "234044597162",
+            appId: "1:234044597162:web:f46e383b858a363aea01d3"
+        };
+        
+        // Inicjalizacja Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        
+        console.log("🔥 Firebase zainicjalizowany w admin_analyzed.html");
+        
+        // Firebase Functions
+        function saveToFirebase(path, data) {
+            return db.ref(path).set(data)
+                .then(() => {
+                    console.log("✅ Firebase: Zapisano", path, data);
+                })
+                .catch((error) => {
+                    console.error("❌ Firebase: Błąd zapisu", error);
+                });
+        }
+        
+        function loadFromFirebase(path) {
+            return db.ref(path).once('value')
+                .then((snapshot) => {
+                    const data = snapshot.val();
+                    console.log("🔥 Firebase: Wczytano", path, data);
+                    return data;
+                })
+                .catch((error) => {
+                    console.error("❌ Firebase: Błąd odczytu", error);
+                    return null;
+                });
+        }
+        
+        function saveUsersToFirebase(users) {
+            return saveToFirebase('users/', users);
+        }
+        
+        function loadUsersFromFirebase() {
+            return loadFromFirebase('users/');
+        }
+        
+        function savePatientsToFirebase(patients) {
+            return saveToFirebase('patients/', patients);
+        }
+        
+        function loadPatientsFromFirebase() {
+            return loadFromFirebase('patients/');
+        }
+    </script>
+    <script>
         // "Pancerny" skrypt weryfikacji sesji - opóźniony do załadowania DOM
         document.addEventListener('DOMContentLoaded', function() {
+            // Synchronizacja danych z Firebase
+            console.log("🔥 Rozpoczynam synchronizację z Firebase...");
+            
+            // Synchronizuj access_keys
+            loadFromFirebase('access_keys/').then(data => {
+                if (data) {
+                    localStorage.setItem('firebase_cache_hospital_access_keys', JSON.stringify(data));
+                    console.log("✅ Zsynchronizowano access_keys z Firebase");
+                }
+            });
+            
+            // Synchronizuj pending_codes  
+            loadFromFirebase('pending_codes/').then(data => {
+                if (data) {
+                    localStorage.setItem('firebase_cache_pending_codes', JSON.stringify(data));
+                    console.log("✅ Zsynchronizowano pending_codes z Firebase");
+                }
+            });
+            
+            // Nasłuchuj na zmiany w Firebase w czasie rzeczywistym
+            db.ref('access_keys/').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    localStorage.setItem('firebase_cache_hospital_access_keys', JSON.stringify(data));
+                    console.log("🔄 Aktualizacja access_keys z Firebase");
+                    renderPending();
+                }
+            });
+            
+            db.ref('pending_codes/').on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    localStorage.setItem('firebase_cache_pending_codes', JSON.stringify(data));
+                    console.log("🔄 Aktualizacja pending_codes z Firebase");
+                }
+            });
+            
             let auth = localStorage.getItem('hospital_auth');
             if (auth) {
                 try {
@@ -243,16 +338,36 @@
         }
 
         function readLS(key, def) {
-            try {
-                const v = localStorage.getItem(key);
-                return v ? JSON.parse(v) : def;
-            } catch(e) { 
-                return def; 
+            // Czytaj z Firebase dla niektórych kluczy
+            if (key === 'hospital_access_keys' || key === 'pending_codes') {
+                // Synchroniczne odczytywanie z Firebase - użyj cache
+                const cacheKey = 'firebase_cache_' + key;
+                try {
+                    const cached = localStorage.getItem(cacheKey);
+                    if (cached) return JSON.parse(cached);
+                } catch(e) {}
+                return def;
+            } else {
+                try {
+                    const v = localStorage.getItem(key);
+                    return v ? JSON.parse(v) : def;
+                } catch(e) { 
+                    return def; 
+                }
             }
         }
 
         function writeLS(key, val) {
-            localStorage.setItem(key, JSON.stringify(val));
+            // Zapisuj do Firebase zamiast localStorage
+            if (key === 'hospital_access_keys') {
+                saveToFirebase('access_keys/', val);
+            } else if (key === 'pending_codes') {
+                saveToFirebase('pending_codes/', val);
+            } else if (key === 'hospital_auth') {
+                localStorage.setItem(key, JSON.stringify(val)); // Sesja trzyma w localStorage
+            } else {
+                localStorage.setItem(key, JSON.stringify(val));
+            }
         }
 
         function adminLogin() {
@@ -287,7 +402,9 @@
         function createSecureCode(type, rank) {
             try {
                 console.log("createSecureCode called with type:", type, "rank:", rank);
-                const accessKeys = JSON.parse(localStorage.getItem('hospital_access_keys') || '[]');
+                
+                // Pobierz z Firebase cache
+                const accessKeys = JSON.parse(localStorage.getItem('firebase_cache_hospital_access_keys') || '[]');
                 console.log("Current accessKeys before adding:", accessKeys);
                 
                 const newCode = {
@@ -299,8 +416,12 @@
                 };
                 
                 accessKeys.push(newCode);
-                localStorage.setItem('hospital_access_keys', JSON.stringify(accessKeys));
-                console.log("Kody w bazie po dodaniu:", localStorage.getItem('hospital_access_keys'));
+                
+                // Zapisz do Firebase i cache
+                saveToFirebase('access_keys/', accessKeys);
+                localStorage.setItem('firebase_cache_hospital_access_keys', JSON.stringify(accessKeys));
+                
+                console.log("Kody w bazie po dodaniu:", accessKeys);
                 console.log("New code created:", newCode);
                 return newCode;
             } catch(error) {
@@ -341,16 +462,24 @@
 
         function clearAllCodes() {
             if (!confirm("Czy na pewno wyczyścić WSZYSTKIE kody dostępu?")) return;
-            localStorage.setItem('hospital_access_keys', JSON.stringify([]));
-            localStorage.setItem('pending_codes', JSON.stringify([]));
+            
+            // Wyczyść w Firebase
+            saveToFirebase('access_keys/', []);
+            saveToFirebase('pending_codes/', []);
+            
+            // Wyczyść cache
+            localStorage.setItem('firebase_cache_hospital_access_keys', JSON.stringify([]));
+            localStorage.setItem('firebase_cache_pending_codes', JSON.stringify([]));
+            
             renderPending();
             document.getElementById("genMsg").className = "msg ok";
             document.getElementById("genMsg").textContent = "Wszystkie kody zostały wyczyszczone.";
-            console.log("Kody w bazie po wyczyszczeniu:", localStorage.getItem('hospital_access_keys'));
+            console.log("Kody w bazie po wyczyszczeniu:", []);
         }
 
         function renderPending() {
-            const accessKeys = JSON.parse(localStorage.getItem('hospital_access_keys') || '[]');
+            // Użyj Firebase cache zamiast localStorage
+            const accessKeys = JSON.parse(localStorage.getItem('firebase_cache_hospital_access_keys') || '[]');
             const table = document.getElementById("pendingTable");
             console.log("renderPending() called, accessKeys:", accessKeys);
             console.log("table element:", table);
@@ -377,10 +506,16 @@
 
         function removeAccessKey(keyId) {
             if (!confirm("Usunąć ten kod?")) return;
-            const accessKeys = JSON.parse(localStorage.getItem('hospital_access_keys') || '[]');
+            
+            // Pobierz z Firebase cache
+            const accessKeys = JSON.parse(localStorage.getItem('firebase_cache_hospital_access_keys') || '[]');
             const filteredKeys = accessKeys.filter(k => k.id !== keyId);
-            localStorage.setItem('hospital_access_keys', JSON.stringify(filteredKeys));
-            console.log("Kody w bazie po usunięciu:", localStorage.getItem('hospital_access_keys'));
+            
+            // Zapisz do Firebase i cache
+            saveToFirebase('access_keys/', filteredKeys);
+            localStorage.setItem('firebase_cache_hospital_access_keys', JSON.stringify(filteredKeys));
+            
+            console.log("Kody w bazie po usunięciu:", filteredKeys);
             renderPending();
         }
 
