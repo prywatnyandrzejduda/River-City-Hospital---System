@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel Dyrektora - River City Hospital</title>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+  <style>
+    :root{
+      --bg:#0c1118;
+      --sidebar:#0a0f15;
+      --card:#ffffff;
+      --text:#152032;
+      --muted:#6b768a;
+      --line:#e6ebf3;
+      --gold:#d4af37;
+      --blue:#1d3557;
+      --red:#d7263d;
+      --green:#20a96b;
+      --shadow:0 10px 24px rgba(11,22,40,.12);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter,Segoe UI,Arial,sans-serif;
+      background:linear-gradient(140deg,#0b1017,#121c28);
+      color:#fff;
+      display:flex;
+      min-height:100vh;
+    }
+    .sidebar{
+      width:270px;
+      background:var(--sidebar);
+      border-right:1px solid rgba(255,255,255,.08);
+      padding:20px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .brand{
+      font-weight:900;
+      font-size:18px;
+      letter-spacing:.5px;
+      color:#fff;
+    }
+    .brand span{ color:var(--gold); }
+    .nav-btn{
+      width:100%;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.04);
+      color:#fff;
+      padding:12px;
+      border-radius:10px;
+      font-weight:700;
+      cursor:pointer;
+      text-align:left;
+    }
+    .nav-btn.active{
+      background:rgba(212,175,55,.2);
+      border-color:rgba(212,175,55,.6);
+      color:#ffe9ab;
+    }
+    .sidebar small{ color:#9aa8bf; line-height:1.4; }
+
+    .main{
+      flex:1;
+      padding:22px;
+      overflow:auto;
+    }
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:18px;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .topbar h1{
+      margin:0;
+      font-size:24px;
+      color:#fff;
+    }
+    .topbar .actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .btn{
+      border:none;
+      padding:10px 14px;
+      border-radius:10px;
+      cursor:pointer;
+      font-weight:700;
+    }
+    .btn-gold{ background:var(--gold); color:#1f1700; }
+    .btn-blue{ background:#2b4d7e; color:#fff; }
+    .btn-red{ background:var(--red); color:#fff; }
+    .btn-green{ background:var(--green); color:#fff; }
+
+    .kpi-grid{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(160px,1fr));
+      gap:14px;
+      margin-bottom:18px;
+    }
+    .kpi{
+      background:var(--card);
+      color:var(--text);
+      border-radius:14px;
+      padding:14px;
+      box-shadow:var(--shadow);
+      border:1px solid var(--line);
+    }
+    .kpi .label{
+      color:var(--muted);
+      font-size:12px;
+      text-transform:uppercase;
+      font-weight:700;
+    }
+    .kpi .value{
+      margin-top:8px;
+      font-size:28px;
+      font-weight:900;
+      color:var(--blue);
+    }
+
+    .panel{
+      display:none;
+      gap:14px;
+      grid-template-columns:1fr;
+    }
+    .panel.active{ display:grid; }
+
+    .card{
+      background:var(--card);
+      color:var(--text);
+      border-radius:14px;
+      padding:16px;
+      border:1px solid var(--line);
+      box-shadow:var(--shadow);
+    }
+    .card h2{
+      margin:0 0 12px 0;
+      font-size:18px;
+      color:#1a2840;
+    }
+    .muted{ color:var(--muted); }
+
+    .grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+    .grid-3{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:10px;
+    }
+    input,select,textarea{
+      width:100%;
+      padding:10px;
+      border-radius:10px;
+      border:1px solid #ccd5e3;
+      background:#fff;
+      color:#1b2a42;
+      font-size:14px;
+    }
+    textarea{ min-height:90px; resize:vertical; }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:13px;
+    }
+    th,td{
+      border-bottom:1px solid #e4e9f2;
+      padding:10px 8px;
+      text-align:left;
+      vertical-align:top;
+    }
+    th{
+      background:#f6f8fc;
+      color:#34445f;
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.4px;
+    }
+    .table-wrap{ overflow:auto; }
+
+    .activity-list{
+      max-height:360px;
+      overflow:auto;
+      border:1px solid #e4e9f2;
+      border-radius:10px;
+    }
+    .activity-item{
+      padding:10px 12px;
+      border-bottom:1px solid #edf1f7;
+    }
+    .activity-item:last-child{ border-bottom:none; }
+    .tag{
+      display:inline-block;
+      padding:3px 8px;
+      font-size:11px;
+      border-radius:999px;
+      background:#edf2ff;
+      color:#2b4d7e;
+      font-weight:700;
+    }
+
+    @media (max-width:1100px){
+      .kpi-grid{ grid-template-columns:repeat(2,minmax(140px,1fr)); }
+      .grid,.grid-3{ grid-template-columns:1fr; }
+      .sidebar{ width:220px; }
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand">RIVER CITY <span>DIRECTOR</span></div>
+    <small>Panel zarządczy dyrektora placówki. Uprawnienia najwyższego poziomu.</small>
+
+    <button class="nav-btn active" onclick="showPanel('staff', this)">👥 Zarządzanie Kadrą</button>
+    <button class="nav-btn" onclick="showPanel('reports', this)">📊 Raporty i Archiwum</button>
+    <button class="nav-btn" onclick="showPanel('facility', this)">🏥 Ustawienia Placówki</button>
+    <button class="nav-btn" onclick="showPanel('security', this)">🛡 Ostatnie działania</button>
+
+    <button class="nav-btn" style="margin-top:auto;" onclick="location.href='index.html'">← Powrót do panelu lekarskiego</button>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <h1>Panel Dyrektora</h1>
+      <div class="actions">
+        <button class="btn btn-blue" onclick="refreshAll()">Odśwież dane</button>
+        <button class="btn btn-gold" onclick="generateDailyReport()">Generuj Raport Dobowy</button>
+      </div>
+    </div>
+
+    <section class="kpi-grid">
+      <article class="kpi"><div class="label">Aktywni pacjenci</div><div class="value" id="kpi_active_patients">0</div></article>
+      <article class="kpi"><div class="label">Personel łącznie</div><div class="value" id="kpi_staff_total">0</div></article>
+      <article class="kpi"><div class="label">Personel na zmianie</div><div class="value" id="kpi_staff_shift">0</div></article>
+      <article class="kpi"><div class="label">Dzisiejsze wypisy</div><div class="value" id="kpi_today_discharges">0</div></article>
+    </section>
+
+    <!-- STAFF -->
+    <section id="panel_staff" class="panel active">
+      <article class="card">
+        <h2>Rejestracja Nowego Lekarza</h2>
+        <div class="grid-3">
+          <input id="s_name" placeholder="Imię">
+          <input id="s_surname" placeholder="Nazwisko">
+          <input id="s_pwz" placeholder="Numer PWZ">
+        </div>
+        <div class="grid-3">
+          <input id="s_login" placeholder="Login">
+          <input id="s_password" placeholder="Hasło">
+          <select id="s_role">
+            <option>medical student</option>
+            <option>junior doctor</option>
+            <option>doctor</option>
+            <option>resident doctor</option>
+            <option>specialist doctor</option>
+            <option>chief</option>
+            <option>management</option>
+            <option>director</option>
+          </select>
+        </div>
+        <div class="grid">
+          <input id="s_specialization" placeholder="Specjalizacja (np. chirurgia)">
+          <select id="s_on_shift">
+            <option value="true">Na zmianie: TAK</option>
+            <option value="false">Na zmianie: NIE</option>
+          </select>
+        </div>
+        <button class="btn btn-green" onclick="addStaff()">Dodaj personel</button>
+      </article>
+
+      <article class="card">
+        <h2>Lista Personelu (/staff)</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Imię i nazwisko</th>
+                <th>PWZ</th>
+                <th>Login</th>
+                <th>Rola</th>
+                <th>Specjalizacja</th>
+                <th>Zmiana</th>
+                <th>Ostatnia akcja</th>
+                <th>Akcje</th>
+              </tr>
+            </thead>
+            <tbody id="staff_tbody"></tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+
+    <!-- REPORTS -->
+    <section id="panel_reports" class="panel">
+      <article class="card">
+        <h2>Archiwum Wszystkich Dokumentów</h2>
+        <p class="muted">Podgląd globalny: L4, Karty Zgonu, Wypisy i inne dokumenty z całej bazy pacjentów.</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Pacjent</th>
+                <th>Typ</th>
+                <th>Autor</th>
+                <th>Podgląd</th>
+              </tr>
+            </thead>
+            <tbody id="docs_tbody"></tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+
+    <!-- FACILITY -->
+    <section id="panel_facility" class="panel">
+      <article class="card">
+        <h2>Ustawienia Placówki</h2>
+        <div class="grid">
+          <input id="f_hospital_name" placeholder="Nazwa szpitala">
+          <input id="f_phone" placeholder="Telefon kontaktowy">
+        </div>
+        <input id="f_address" placeholder="Adres">
+        <textarea id="f_email" placeholder="E-mail / dane kontaktowe"></textarea>
+        <button class="btn btn-blue" onclick="saveFacility()">Zapisz ustawienia</button>
+      </article>
+    </section>
+
+    <!-- SECURITY -->
+    <section id="panel_security" class="panel">
+      <article class="card">
+        <h2>Ostatnie działania w systemie</h2>
+        <div class="activity-list" id="activity_list"></div>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyC5MioZo7CMVGopaZANfglS12Gy_TMPzEw",
+      authDomain: "baza-danych-cd445.firebaseapp.com",
+      databaseURL: "https://baza-danych-cd445-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "baza-danych-cd445",
+      storageBucket: "baza-danych-cd445.firebasestorage.app",
+      messagingSenderId: "234044597162",
+      appId: "1:234044597162:web:f46e383b858a363aea01d3"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let staff = [];
+    let patients = [];
+    let docsGlobal = [];
+    let activityGlobal = [];
+
+    // ===== Security gate =====
+    (function guardDirectorAccess(){
+      let auth = null;
+      try {
+        auth = JSON.parse(sessionStorage.getItem("hospital_auth") || localStorage.getItem("hospital_auth") || "null");
+      } catch {}
+      const role = (auth?.userRole || auth?.role || auth?.ranga || "").toLowerCase();
+      const allowed = ["admin","director"];
+      if (!allowed.includes(role)) {
+        alert("Brak uprawnień dyrektorskich");
+        location.href = "index.html";
+      }
+    })();
+
+    function showPanel(id, btn){
+      document.querySelectorAll(".panel").forEach(p => p.classList.remove("active"));
+      document.getElementById("panel_" + id).classList.add("active");
+      document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+      if (btn) btn.classList.add("active");
+    }
+
+    function esc(s){ return String(s ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;"); }
+
+    function relativeTime(ts){
+      const diff = Math.floor((Date.now() - Number(ts || 0))/60000);
+      if (!isFinite(diff) || diff < 1) return "przed chwilą";
+      if (diff < 60) return `${diff} min temu`;
+      const h = Math.floor(diff/60);
+      if (h < 24) return `${h} godz. temu`;
+      const d = Math.floor(h/24);
+      return `${d} dni temu`;
+    }
+
+    function formatDate(ts){
+      if (!ts) return "-";
+      return new Date(Number(ts)).toLocaleString("pl-PL");
+    }
+
+    async function refreshAll(){
+      await Promise.all([loadStaff(), loadPatientsAndDerived(), loadFacility()]);
+      renderStaffTable();
+      renderDocsTable();
+      renderActivity();
+      updateKpi();
+    }
+
+    async function loadStaff(){
+      const snap = await db.ref("staff").once("value");
+      const val = snap.val() || {};
+      staff = Object.entries(val).map(([k,v]) => ({ key:k, ...(v||{}) }));
+    }
+
+    async function loadPatientsAndDerived(){
+      const snap = await db.ref("patients").once("value");
+      const val = snap.val() || {};
+      patients = Object.entries(val).map(([k,v]) => ({ key:k, ...(v||{}) }));
+
+      docsGlobal = [];
+      activityGlobal = [];
+
+      patients.forEach(p => {
+        const pName = p.name || "Nieznany pacjent";
+
+        const docs = p.documents ? Object.values(p.documents) : [];
+        docs.forEach(d => {
+          docsGlobal.push({
+            ts: d.createdAt || Date.now(),
+            patient: pName,
+            type: d.type || "Dokument",
+            author: d?.data?.doc || d?.payload?.doctorName || "-"
+          });
+        });
+
+        const hist = Array.isArray(p.history) ? p.history : Object.values(p.history || {});
+        hist.forEach(h => {
+          activityGlobal.push({
+            ts: h.ts || h.createdAt || Date.now(),
+            patient: pName,
+            txt: h.txt || h.type || "Akcja",
+            doc: h.doc || h.author || "System"
+          });
+
+          const text = (h.txt || "").toLowerCase();
+          if (text.includes("wypis")) {
+            docsGlobal.push({
+              ts: h.ts || Date.now(),
+              patient: pName,
+              type: "WYPIS",
+              author: h.doc || "Lekarz"
+            });
+          }
+        });
+      });
+
+      docsGlobal.sort((a,b) => (b.ts||0) - (a.ts||0));
+      activityGlobal.sort((a,b) => (b.ts||0) - (a.ts||0));
+    }
+
+    function updateKpi(){
+      const activePatients = patients.filter(p => !p.arch).length;
+      const staffTotal = staff.length;
+      const onShift = staff.filter(s => !!s.onShift).length;
+
+      const start = new Date();
+      start.setHours(0,0,0,0);
+      const dayStart = start.getTime();
+
+      const todayDischarges = patients.filter(p => {
+        const h = Array.isArray(p.history) ? p.history : Object.values(p.history || {});
+        return h.some(x => {
+          const txt = (x.txt || "").toLowerCase();
+          return (x.ts || 0) >= dayStart && txt.includes("wypis");
+        });
+      }).length;
+
+      document.getElementById("kpi_active_patients").innerText = activePatients;
+      document.getElementById("kpi_staff_total").innerText = staffTotal;
+      document.getElementById("kpi_staff_shift").innerText = onShift;
+      document.getElementById("kpi_today_discharges").innerText = todayDischarges;
+    }
+
+    function inferLastActionForDoctor(login){
+      const row = activityGlobal.find(a => (a.doc || "").toLowerCase().includes((login || "").toLowerCase()));
+      if (!row) return "Brak danych";
+      return `${row.txt} - ${relativeTime(row.ts)}`;
+    }
+
+    function renderStaffTable(){
+      const tbody = document.getElementById("staff_tbody");
+      tbody.innerHTML = "";
+      if (!staff.length){
+        tbody.innerHTML = `<tr><td colspan="8" class="muted">Brak personelu.</td></tr>`;
+        return;
+      }
+
+      staff.forEach(s => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${esc((s.name || "") + " " + (s.surname || ""))}</td>
+          <td>${esc(s.pwz || "-")}</td>
+          <td>${esc(s.login || "-")}</td>
+          <td><span class="tag">${esc(s.role || "-")}</span></td>
+          <td>${esc(s.specialization || "-")}</td>
+          <td>${s.onShift ? "TAK" : "NIE"}</td>
+          <td>${esc(inferLastActionForDoctor(s.login))}</td>
+          <td>
+            <button class="btn btn-red" onclick="removeStaff('${s.key}')">Usuń</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function addStaff(){
+      const name = document.getElementById("s_name").value.trim();
+      const surname = document.getElementById("s_surname").value.trim();
+      const pwz = document.getElementById("s_pwz").value.trim();
+      const login = document.getElementById("s_login").value.trim();
+      const password = document.getElementById("s_password").value.trim();
+      const role = document.getElementById("s_role").value;
+      const specialization = document.getElementById("s_specialization").value.trim();
+      const onShift = document.getElementById("s_on_shift").value === "true";
+
+      if (!name || !surname || !pwz || !login || !password || !role) {
+        return alert("Uzupełnij wszystkie wymagane pola personelu.");
+      }
+
+      const payload = {
+        name, surname, pwz, login, password, role, specialization, onShift,
+        createdAt: Date.now()
+      };
+
+      await db.ref("staff").push(payload);
+      await loadStaff();
+      renderStaffTable();
+      updateKpi();
+
+      ["s_name","s_surname","s_pwz","s_login","s_password","s_specialization"].forEach(id => {
+        document.getElementById(id).value = "";
+      });
+    }
+
+    async function removeStaff(key){
+      if (!confirm("Usunąć pracownika z bazy personelu?")) return;
+      await db.ref("staff/" + key).remove();
+      await loadStaff();
+      renderStaffTable();
+      updateKpi();
+    }
+
+    function renderDocsTable(){
+      const tbody = document.getElementById("docs_tbody");
+      tbody.innerHTML = "";
+      if (!docsGlobal.length){
+        tbody.innerHTML = `<tr><td colspan="5" class="muted">Brak dokumentów w archiwum.</td></tr>`;
+        return;
+      }
+
+      docsGlobal.slice(0,300).forEach(d => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${formatDate(d.ts)}</td>
+          <td>${esc(d.patient)}</td>
+          <td><span class="tag">${esc(d.type)}</span></td>
+          <td>${esc(d.author || "-")}</td>
+          <td>${esc("Wpis w bazie systemowej")}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderActivity(){
+      const wrap = document.getElementById("activity_list");
+      wrap.innerHTML = "";
+      if (!activityGlobal.length){
+        wrap.innerHTML = `<div class="activity-item muted">Brak aktywności.</div>`;
+        return;
+      }
+
+      activityGlobal.slice(0,200).forEach(a => {
+        const div = document.createElement("div");
+        div.className = "activity-item";
+        div.innerHTML = `
+          <div><b>${esc(a.doc)}</b>: ${esc(a.txt)}</div>
+          <div class="muted">${esc(a.patient)} • ${relativeTime(a.ts)}</div>
+        `;
+        wrap.appendChild(div);
+      });
+    }
+
+    async function loadFacility(){
+      const snap = await db.ref("facilityProfile").once("value");
+      const v = snap.val() || {};
+      document.getElementById("f_hospital_name").value = v.hospitalName || "River City Hospital";
+      document.getElementById("f_address").value = v.address || "";
+      document.getElementById("f_phone").value = v.phone || "";
+      document.getElementById("f_email").value = v.contact || "";
+    }
+
+    async function saveFacility(){
+      const payload = {
+        hospitalName: document.getElementById("f_hospital_name").value.trim(),
+        address: document.getElementById("f_address").value.trim(),
+        phone: document.getElementById("f_phone").value.trim(),
+        contact: document.getElementById("f_email").value.trim(),
+        updatedAt: Date.now()
+      };
+      await db.ref("facilityProfile").set(payload);
+      alert("Ustawienia placówki zapisane.");
+    }
+
+    function generateDailyReport(){
+      const today = new Date();
+      const dateLabel = today.toLocaleDateString("pl-PL");
+
+      const activePatients = patients.filter(p => !p.arch).length;
+      const staffTotal = staff.length;
+      const onShift = staff.filter(s => !!s.onShift).length;
+
+      const start = new Date();
+      start.setHours(0,0,0,0);
+      const dayStart = start.getTime();
+
+      const todaysActivities = activityGlobal.filter(a => (a.ts || 0) >= dayStart).length;
+      const todaysDocs = docsGlobal.filter(d => (d.ts || 0) >= dayStart).length;
+
+      const report = [
+        "RAPORT DOBOWY - PANEL DYREKTORA",
+        "Data: " + dateLabel,
+        "",
+        "Aktywni pacjenci: " + activePatients,
+        "Personel łącznie: " + staffTotal,
+        "Personel na zmianie: " + onShift,
+        "Dzisiejsze aktywności: " + todaysActivities,
+        "Dzisiejsze dokumenty: " + todaysDocs,
+        "",
+        "Top 20 aktywności:",
+        ...activityGlobal.slice(0,20).map((a,i)=>`${i+1}. [${formatDate(a.ts)}] ${a.doc}: ${a.txt} (${a.patient})`)
+      ].join("\n");
+
+      const blob = new Blob([report], { type: "text/plain;charset=utf-8" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `Raport_Dobowy_${dateLabel.replace(/\./g,"-")}.txt`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    refreshAll();
+  </script>
+</body>
+</html>
