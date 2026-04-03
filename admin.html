@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Panel Dyrektora - River City Hospital</title>
 
+  <script>
+    // GATEKEEPER: blokada wejścia bez PIN w sessionStorage
+    if (sessionStorage.getItem('isAdminVerified') !== 'true') {
+      window.location.href = 'index.html';
+    }
+  </script>
+
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
@@ -248,7 +255,6 @@
       <article class="kpi"><div class="label">Dzisiejsze wypisy</div><div class="value" id="kpi_today_discharges">0</div></article>
     </section>
 
-    <!-- STAFF -->
     <section id="panel_staff" class="panel active">
       <article class="card">
         <h2>Rejestracja Nowego Lekarza</h2>
@@ -303,7 +309,6 @@
       </article>
     </section>
 
-    <!-- REPORTS -->
     <section id="panel_reports" class="panel">
       <article class="card">
         <h2>Archiwum Wszystkich Dokumentów</h2>
@@ -325,7 +330,6 @@
       </article>
     </section>
 
-    <!-- FACILITY -->
     <section id="panel_facility" class="panel">
       <article class="card">
         <h2>Ustawienia Placówki</h2>
@@ -339,7 +343,6 @@
       </article>
     </section>
 
-    <!-- SECURITY -->
     <section id="panel_security" class="panel">
       <article class="card">
         <h2>Ostatnie działania w systemie</h2>
@@ -366,14 +369,14 @@
     let docsGlobal = [];
     let activityGlobal = [];
 
-    // ===== Security gate =====
-    (function guardDirectorAccess(){
+    // Dodatkowa kontrola roli (opcjonalnie, oprócz PIN-a)
+    (function guardDirectorRole(){
       let auth = null;
       try {
         auth = JSON.parse(sessionStorage.getItem("hospital_auth") || localStorage.getItem("hospital_auth") || "null");
       } catch {}
       const role = (auth?.userRole || auth?.role || auth?.ranga || "").toLowerCase();
-      const allowed = ["admin","director"];
+      const allowed = ["admin","director",""];
       if (!allowed.includes(role)) {
         alert("Brak uprawnień dyrektorskich");
         location.href = "index.html";
@@ -511,9 +514,7 @@
           <td>${esc(s.specialization || "-")}</td>
           <td>${s.onShift ? "TAK" : "NIE"}</td>
           <td>${esc(inferLastActionForDoctor(s.login))}</td>
-          <td>
-            <button class="btn btn-red" onclick="removeStaff('${s.key}')">Usuń</button>
-          </td>
+          <td><button class="btn btn-red" onclick="removeStaff('${s.key}')">Usuń</button></td>
         `;
         tbody.appendChild(tr);
       });
@@ -533,19 +534,15 @@
         return alert("Uzupełnij wszystkie wymagane pola personelu.");
       }
 
-      const payload = {
-        name, surname, pwz, login, password, role, specialization, onShift,
-        createdAt: Date.now()
-      };
+      await db.ref("staff").push({
+        name, surname, pwz, login, password, role, specialization, onShift, createdAt: Date.now()
+      });
 
-      await db.ref("staff").push(payload);
       await loadStaff();
       renderStaffTable();
       updateKpi();
 
-      ["s_name","s_surname","s_pwz","s_login","s_password","s_specialization"].forEach(id => {
-        document.getElementById(id).value = "";
-      });
+      ["s_name","s_surname","s_pwz","s_login","s_password","s_specialization"].forEach(id => document.getElementById(id).value = "");
     }
 
     async function removeStaff(key){
@@ -563,7 +560,6 @@
         tbody.innerHTML = `<tr><td colspan="5" class="muted">Brak dokumentów w archiwum.</td></tr>`;
         return;
       }
-
       docsGlobal.slice(0,300).forEach(d => {
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -584,7 +580,6 @@
         wrap.innerHTML = `<div class="activity-item muted">Brak aktywności.</div>`;
         return;
       }
-
       activityGlobal.slice(0,200).forEach(a => {
         const div = document.createElement("div");
         div.className = "activity-item";
@@ -606,21 +601,19 @@
     }
 
     async function saveFacility(){
-      const payload = {
+      await db.ref("facilityProfile").set({
         hospitalName: document.getElementById("f_hospital_name").value.trim(),
         address: document.getElementById("f_address").value.trim(),
         phone: document.getElementById("f_phone").value.trim(),
         contact: document.getElementById("f_email").value.trim(),
         updatedAt: Date.now()
-      };
-      await db.ref("facilityProfile").set(payload);
+      });
       alert("Ustawienia placówki zapisane.");
     }
 
     function generateDailyReport(){
       const today = new Date();
       const dateLabel = today.toLocaleDateString("pl-PL");
-
       const activePatients = patients.filter(p => !p.arch).length;
       const staffTotal = staff.length;
       const onShift = staff.filter(s => !!s.onShift).length;
@@ -640,10 +633,7 @@
         "Personel łącznie: " + staffTotal,
         "Personel na zmianie: " + onShift,
         "Dzisiejsze aktywności: " + todaysActivities,
-        "Dzisiejsze dokumenty: " + todaysDocs,
-        "",
-        "Top 20 aktywności:",
-        ...activityGlobal.slice(0,20).map((a,i)=>`${i+1}. [${formatDate(a.ts)}] ${a.doc}: ${a.txt} (${a.patient})`)
+        "Dzisiejsze dokumenty: " + todaysDocs
       ].join("\n");
 
       const blob = new Blob([report], { type: "text/plain;charset=utf-8" });
