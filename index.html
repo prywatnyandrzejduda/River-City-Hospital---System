@@ -3,11 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <title>Hospital System v5.35 - Firebase Patients</title>
-
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-
   <style>
     :root {
       --accent:#00d2d3; --psych:#a29bfe; --bg:#0b0c0d; --card:#1c1f22;
@@ -15,60 +13,95 @@
     }
     * { box-sizing:border-box; font-family:'Inter','Segoe UI',sans-serif; }
     body { background:var(--bg); color:#e0e0e0; margin:0; display:flex; height:100vh; overflow:hidden; }
-
     #sidebar { width:320px; background:#141619; border-right:2px solid #333; padding:20px; display:flex; flex-direction:column; height:100vh; flex-shrink:0; }
     #lista_pacjentow { overflow-y:auto; flex-grow:1; margin-top:15px; border-top:1px solid #333; }
     .p-item { padding:15px; border-bottom:1px solid #222; cursor:pointer; border-left:4px solid transparent; transition:.2s; background:rgba(255,255,255,.02); margin-bottom:5px; }
     .p-item.active { background:#23272b; border-left-color:var(--accent); }
     .p-item.archived { opacity:.55; border-left-color:#555; }
-
     .sor-stats { display:flex; gap:10px; margin-bottom:15px; }
     .stat-badge { flex:1; padding:10px; border-radius:8px; text-align:center; background:#1c1f22; border:1px solid #333; }
     .stat-val { display:block; font-size:20px; font-weight:900; }
     .stat-lbl { font-size:9px; text-transform:uppercase; color:#777; }
-
     #main { flex:1; display:flex; flex-direction:column; height:100vh; overflow:hidden; }
     #header-fixed { flex-shrink:0; background:#141619; border-bottom:2px solid #333; z-index:100; }
     .tabs-nav { display:flex; padding:0 10px; overflow-x:auto; background:#0b0c0d; }
     .tab-btn { padding:15px 20px; color:#777; cursor:pointer; font-weight:800; font-size:11px; text-transform:uppercase; border-bottom:3px solid transparent; white-space:nowrap; }
     .tab-btn.active { color:var(--accent); border-bottom-color:var(--accent); }
-
     #content-area { flex:1; overflow-y:auto; padding:25px; height:100%; }
     .card { background:var(--card); padding:20px; border-radius:12px; border:1px solid #2d3136; margin-bottom:20px; }
     .grid { display:grid; grid-template-columns:1fr 1fr; gap:15px; }
     .label { font-size:10px; color:var(--accent); font-weight:900; text-transform:uppercase; display:block; margin-top:10px; letter-spacing:1px; }
-
     input, textarea, select { width:100%; padding:12px; margin:8px 0; background:#0f1113; border:1px solid #333; color:white; border-radius:6px; font-size:14px; outline:none; }
     button { padding:12px; border:none; border-radius:6px; font-weight:bold; cursor:pointer; text-transform:uppercase; font-size:10px; transition:.2s; }
-
     .calc-box { background:rgba(0,0,0,.3); padding:15px; border-radius:8px; border:1px solid #444; margin-bottom:15px; }
     .med-action-btn { background:#2d3136; color:white; border:1px solid #444; margin-bottom:5px; text-align:center; }
     .med-action-btn:hover { background:var(--blue); }
-
     .history-item { background:#1c1f23; padding:20px; border-left:6px solid #444; margin-top:15px; border-radius:8px; position:relative; white-space:pre-wrap; }
     .history-auth { border-left-color:var(--gold); border:1px solid rgba(241,196,15,.2); }
     .cert-box { padding:10px; border-radius:8px; text-align:center; font-weight:bold; border:1px solid #444; }
     .status-ok { background:rgba(46,204,113,.2); color:var(--green); border-color:var(--green); }
     .status-no { background:rgba(231,76,60,.2); color:var(--red); border-color:var(--red); }
     .hidden { display:none !important; }
-
     .del-entry-btn { position:absolute; top:10px; right:10px; background:var(--red); color:white; padding:5px 10px; font-size:9px; }
     .del-patient-btn { background:var(--red); color:white; width:40px; height:45px; margin-left:5px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:16px; }
-
     #admin-shortcut {
       position:fixed; top:14px; right:18px; z-index:2000; background:var(--cert); color:#111; text-decoration:none; font-weight:800;
       letter-spacing:.5px; padding:10px 14px; border-radius:8px; border:1px solid rgba(0,0,0,.35); box-shadow:0 8px 20px rgba(0,0,0,.35);
       text-transform:uppercase; font-size:11px;
     }
-
     #docModalOverlay { position:fixed; inset:0; background:rgba(6,8,13,.95); backdrop-filter:blur(10px); z-index:99999; display:none; align-items:center; justify-content:center; padding:18px; }
     #docModal { width:min(1080px,98vw); background:rgba(28,31,34,.98); border:1px solid rgba(255,255,255,.12); border-radius:16px; overflow:hidden; box-shadow:0 20px 70px rgba(0,0,0,.65); }
     #docModalHead { padding:14px 18px; background:#141619; border-bottom:1px solid rgba(255,255,255,.10); display:flex; justify-content:space-between; align-items:center; }
     #docModalBody { padding:18px; max-height:70vh; overflow:auto; }
     .doc-btn { background:rgba(54,170,255,.16); border:1px solid rgba(54,170,255,.45); color:#d8f6ff; padding:12px 14px; border-radius:12px; cursor:pointer; font-weight:900; width:100%; text-transform:uppercase; }
     .paperField { background:#0f1113; border:1px solid #333; border-radius:10px; padding:10px; }
+    /* ===== A4 preview overlay ===== */
+    #previewOverlay {
+      position: fixed; inset: 0; z-index: 100000;
+      background: rgba(4, 6, 10, 0.95);
+      display: none; align-items: center; justify-content: center;
+      padding: 18px;
+    }
+    #previewWrap {
+      width: min(980px, 96vw);
+      max-height: 92vh;
+      overflow: auto;
+      background: #111820;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 14px;
+      padding: 14px;
+    }
+    .a4-page {
+      width: 794px; min-height: 1123px;
+      margin: 0 auto 16px auto;
+      background: #fff; color: #111;
+      box-shadow: 0 10px 30px rgba(0,0,0,.4);
+      padding: 34px;
+      font-family: Arial, sans-serif;
+    }
+    .a4-title { font-size: 24px; font-weight: 900; margin-bottom: 12px; }
+    .a4-sub { font-size: 12px; color: #444; margin-bottom: 20px; }
+    .a4-sec { margin-bottom: 16px; }
+    .a4-sec b { display: inline-block; min-width: 180px; }
+    .a4-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    .a4-table th, .a4-table td { border: 1px solid #ccc; padding: 8px; font-size: 12px; text-align: left; }
+    .a4-footer-box {
+      margin-top: 780px;
+      border-top: 2px solid #bbb;
+      padding-top: 18px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .stamp-box, .sign-box {
+      height: 120px; border: 1px dashed #999; border-radius: 8px; padding: 10px;
+    }
+    .stamp-box .lbl, .sign-box .lbl { font-size: 12px; color: #555; margin-bottom: 8px; font-weight: 700; }
+    .sign-name { margin-top: 18px; font-size: 14px; font-weight: 700; }
+    .preview-topbar {
+      display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 10px;
+    }
   </style>
-
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyC5MioZo7CMVGopaZANfglS12Gy_TMPzEw",
@@ -84,12 +117,9 @@
   </script>
 </head>
 <body>
-
   <a id="admin-shortcut" href="admin.html">Administracja</a>
-
   <div id="sidebar">
     <h2 style="color:white;text-align:center;letter-spacing:2px;margin-bottom:10px;">MED-SYSTEM <span style="color:var(--accent)">v5.35</span></h2>
-
     <div class="sor-stats">
       <div class="stat-badge">
         <span class="stat-val" id="count_active" style="color:var(--accent);">0</span>
@@ -100,17 +130,14 @@
         <span class="stat-lbl">Krytyczni</span>
       </div>
     </div>
-
     <div style="display:flex; gap:5px; margin-bottom:15px;">
       <button id="btn_view_active" style="flex:1; background:var(--accent); color:black;" onclick="setView('active')">AKTYWNI</button>
       <button id="btn_view_arch" style="flex:1; background:#333; color:white;" onclick="setView('archive')">ARCHIWUM</button>
     </div>
-
     <input type="text" id="add_name" placeholder="IMIĘ I NAZWISKO">
     <button style="background:var(--accent); color:black; width:100%;" onclick="nowyPacjent()">REJESTRUJ PACJENTA</button>
     <div id="lista_pacjentow"></div>
   </div>
-
   <div id="main">
     <div id="interface" class="hidden" style="display:flex; flex-direction:column; height:100%;">
       <div id="header-fixed">
@@ -118,7 +145,6 @@
           <h1 id="disp_name" style="margin:0; color:white; font-size:24px; font-weight:900;"></h1>
           <div id="cert-status-header" class="cert-box" style="margin:0; font-size:11px; min-width:180px;">BRAK BADAŃ</div>
         </div>
-
         <div class="tabs-nav">
           <div class="tab-btn active" onclick="switchTab('tab-ogolne', this)">DASHBOARD</div>
           <div class="tab-btn" onclick="switchTab('tab-med', this)">KLINIKA & KALKULATORY</div>
@@ -128,7 +154,6 @@
           <div class="tab-btn" onclick="switchTab('tab-exit', this)" style="color:var(--discharge);">🚪 WYPIS</div>
         </div>
       </div>
-
       <div id="content-area">
         <div id="tab-ogolne" class="tab-content">
           <div style="display:grid; grid-template-columns:2fr 1fr; gap:20px;">
@@ -147,7 +172,6 @@
               <span class="label">Powód Przyjęcia</span>
               <textarea id="inp_reason" rows="3"></textarea>
             </div>
-
             <div class="card" style="background:#14171a;">
               <span class="label">Triage & Stan</span>
               <select id="inp_triage" onchange="updateTriageVisuals()">
@@ -160,7 +184,6 @@
             </div>
           </div>
         </div>
-
         <div id="tab-med" class="tab-content hidden">
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
             <div class="card" style="border-left:5px solid var(--blue);">
@@ -184,7 +207,6 @@
               <select id="med_route"><option>IV</option><option>IM</option><option>SC</option><option>IO</option></select>
               <button style="background:var(--blue); color:white; width:100%;" onclick="podajLek()">ZAREJESTRUJ PODANIE LEKU</button>
             </div>
-
             <div class="card" style="border-left:5px solid #6c5ce7;">
               <span class="label">Rejestr Badań</span>
               <select id="exam_category" onchange="updateExamOptions()"></select>
@@ -195,8 +217,7 @@
             </div>
           </div>
         </div>
-
-        <div id="tab-psych" class="tab-content hidden">
+                <div id="tab-psych" class="tab-content hidden">
           <div class="card" style="border-top:5px solid var(--psych);">
             <h3 style="color:var(--psych); margin:0 0 15px 0;">BADANIE STANU PSYCHICZNEGO</h3>
             <div class="grid">
@@ -224,7 +245,8 @@
             <button style="background:var(--cert); color:black; width:100%; margin-top:15px;" onclick="generujOrzeczenie()">WYSTAW ORZECZENIE</button>
           </div>
         </div>
-                <div id="tab-docs" class="tab-content hidden">
+
+        <div id="tab-docs" class="tab-content hidden">
           <div class="card" style="border-top:5px solid var(--docs);">
             <span class="label">Dokumentacja - Moduły</span>
             <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
@@ -313,8 +335,18 @@
       </div>
       <div id="docModalBody"></div>
       <div style="padding:14px 18px; background:#141619; border-top:1px solid rgba(255,255,255,.10); display:flex; justify-content:flex-end; gap:10px;">
-        <button style="background:var(--accent); color:#032022; padding:12px 16px; border-radius:10px; font-weight:900;" onclick="docGenerateAndPrint()">Drukuj</button>
+        <button style="background:var(--accent); color:#032022; padding:12px 16px; border-radius:10px; font-weight:900;" onclick="generujDokument()">Drukuj</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Podgląd dokumentu A4 -->
+  <div id="previewOverlay">
+    <div id="previewWrap">
+      <div class="preview-topbar">
+        <button onclick="closePreview()" style="background:#2d3136;color:#fff;">Zamknij podgląd</button>
+      </div>
+      <div id="previewPages"></div>
     </div>
   </div>
 
@@ -425,8 +457,7 @@
         }
       });
     }
-
-    function usunPacjenta(i){
+        function usunPacjenta(i){
       if(!pacjenci[i]) return;
       if(confirm("Czy usunąć kartotekę: "+(pacjenci[i].name||"") + "?")){
         pacjenci.splice(i,1);
@@ -517,7 +548,8 @@
         c.appendChild(div);
       });
     }
-        function updateStats(){
+
+    function updateStats(){
       const active = pacjenci.filter(p => p && !p.arch).length;
       const critical = pacjenci.filter(p => p && !p.arch && (p.status==="Krytyczny" || p.triage==="t-red")).length;
       document.getElementById("count_active").innerText = active;
@@ -614,37 +646,65 @@
       document.getElementById("exit_icd_code").value = code;
     }
 
-    function exitLoadDrugs(){
+    function exitLoadDrugs() {
       const select = document.getElementById("exit_drug_select");
-      const fallback = [
-        { key:"amox", name:"Amoksycylina", conflictGroup:"antibiotic" },
-        { key:"ibu", name:"Ibuprofen", conflictGroup:"pain" },
-        { key:"parac", name:"Paracetamol", conflictGroup:"pain" },
-        { key:"metron", name:"Metronidazol", conflictGroup:"antibiotic" }
+
+      const fullDrugDb = [
+        { key:"paracetamol", name:"Paracetamol", category:"przeciwbólowe", conflictGroup:"pain" },
+        { key:"ibuprofen", name:"Ibuprofen", category:"przeciwbólowe", conflictGroup:"pain" },
+        { key:"ketoprofen", name:"Ketoprofen", category:"przeciwbólowe", conflictGroup:"pain" },
+        { key:"metamizol", name:"Metamizol", category:"przeciwbólowe", conflictGroup:"pain" },
+
+        { key:"morphine", name:"Morfina", category:"opioidy", conflictGroup:"opioid" },
+        { key:"fentanyl", name:"Fentanyl", category:"opioidy", conflictGroup:"opioid" },
+        { key:"oxycodone", name:"Oksykodon", category:"opioidy", conflictGroup:"opioid" },
+        { key:"tramadol", name:"Tramadol", category:"opioidy", conflictGroup:"opioid" },
+
+        { key:"zolpidem", name:"Zolpidem", category:"nasenne", conflictGroup:"sedative" },
+        { key:"zopiclone", name:"Zopiclone", category:"nasenne", conflictGroup:"sedative" },
+        { key:"diazepam", name:"Diazepam", category:"nasenne", conflictGroup:"sedative" },
+        { key:"midazolam", name:"Midazolam", category:"nasenne", conflictGroup:"sedative" },
+
+        { key:"ondansetron", name:"Ondansetron", category:"przeciwwymiotne", conflictGroup:"antiemetic" },
+        { key:"metoclopramide", name:"Metoklopramid", category:"przeciwwymiotne", conflictGroup:"antiemetic" },
+        { key:"dimenhydrinate", name:"Dimenhydrynat", category:"przeciwwymiotne", conflictGroup:"antiemetic" },
+
+        { key:"amoxicillin", name:"Amoksycylina", category:"antybiotyki", conflictGroup:"antibiotic" },
+        { key:"amoxiclav", name:"Amoksycylina + kw. klawulanowy", category:"antybiotyki", conflictGroup:"antibiotic" },
+        { key:"cefuroxime", name:"Cefuroksym", category:"antybiotyki", conflictGroup:"antibiotic" },
+        { key:"azithromycin", name:"Azytromycyna", category:"antybiotyki", conflictGroup:"antibiotic" },
+        { key:"ciprofloxacin", name:"Ciprofloksacyna", category:"antybiotyki", conflictGroup:"antibiotic" },
+
+        { key:"cetirizine", name:"Cetyryzyna", category:"przeciwalergiczne", conflictGroup:"allergy" },
+        { key:"loratadine", name:"Loratadyna", category:"przeciwalergiczne", conflictGroup:"allergy" },
+        { key:"clemastine", name:"Klemastyna", category:"przeciwalergiczne", conflictGroup:"allergy" },
+        { key:"hydrocortisone", name:"Hydrokortyzon", category:"przeciwalergiczne", conflictGroup:"allergy" },
+
+        { key:"tranexamic", name:"Kwas traneksamowy", category:"przeciwkrwotoczne", conflictGroup:"bleeding" },
+        { key:"etamsylate", name:"Etamsylat", category:"przeciwkrwotoczne", conflictGroup:"bleeding" },
+        { key:"vitk", name:"Witamina K", category:"przeciwkrwotoczne", conflictGroup:"bleeding" }
       ];
-      const paths = ["drugs","drug_catalog","lek_catalog","meds","medications"];
 
-      function fill(list){
-        window.exitDrugCatalog = list || [];
-        select.innerHTML = window.exitDrugCatalog.map(d=>`<option value="${esc(d.key)}">${esc(d.name || d.key)}</option>`).join("");
-      }
+      window.exitDrugCatalog = fullDrugDb;
 
-      async function readPath(path){
-        try{
-          const v = (await db.ref(path).once("value")).val();
-          if(!v) return null;
-          if(Array.isArray(v)) return v.filter(Boolean).map((x,i)=>({ ...(x||{}), key:x.key || x.id || String(i) }));
-          return Object.entries(v).map(([k,x])=>({ ...(x||{}), key:x.key || k }));
-        } catch { return null; }
-      }
+      const groups = {};
+      fullDrugDb.forEach(d => {
+        if (!groups[d.category]) groups[d.category] = [];
+        groups[d.category].push(d);
+      });
 
-      (async ()=>{
-        for(const p of paths){
-          const r = await readPath(p);
-          if(r && r.length){ fill(r); return; }
-        }
-        fill(fallback);
-      })();
+      select.innerHTML = "";
+      Object.keys(groups).forEach(cat => {
+        const og = document.createElement("optgroup");
+        og.label = cat.toUpperCase();
+        groups[cat].forEach(d => {
+          const opt = document.createElement("option");
+          opt.value = d.key;
+          opt.textContent = d.name;
+          og.appendChild(opt);
+        });
+        select.appendChild(og);
+      });
     }
 
     function exitGetDrugByKey(key){ return (window.exitDrugCatalog || []).find(d => String(d.key)===String(key)) || null; }
@@ -655,7 +715,7 @@
       const slot = document.getElementById("exit_drug_slot").value;
       if(!drug) return alert("Wybierz lek.");
       if(!dose) return alert("Podaj dawkę.");
-      window.exitMeds.push({ id:"MED-"+Date.now()+"-"+Math.floor(Math.random()*9999), key:drug.key, name:drug.name||drug.key, dose, slot, conflictGroup:drug.conflictGroup||"" });
+      window.exitMeds.push({ id:"MED-"+Date.now()+"-"+Math.floor(Math.random()*9999), key:drug.key, name:drug.name||drug.key, dose, slot, conflictGroup:drug.conflictGroup||"", category:drug.category || "-" });
       document.getElementById("exit_drug_dose").value = "";
       exitRenderMeds();
     }
@@ -674,7 +734,7 @@
 
       table.innerHTML = window.exitMeds.length ? window.exitMeds.map(m => `
         <div style="display:flex; justify-content:space-between; gap:10px; padding:8px 0; border-bottom:1px solid rgba(255,255,255,.08);">
-          <div><div style="font-weight:900;">${esc(m.name)}</div><div style="font-size:12px; color:#cfd7e3;">${esc(m.dose)} | ${esc(m.slot)}</div></div>
+          <div><div style="font-weight:900;">${esc(m.name)}</div><div style="font-size:12px; color:#cfd7e3;">${esc(m.dose)} | ${esc(m.slot)} | ${esc(m.category || "-")}</div></div>
           <button onclick="exitRemoveMedication('${esc(m.id)}')" style="background:rgba(255,71,87,.18); border:1px solid rgba(255,71,87,.55); color:#ffc2cb; padding:8px 10px; border-radius:10px; font-weight:900;">Usuń</button>
         </div>`).join("") : `<div style="color:#9ca8ba; font-weight:800;">Brak leków.</div>`;
 
@@ -712,33 +772,14 @@
     }
 
     function exitGeneratePDF(){
+      // stara szybka opcja zostaje
       const { jsPDF } = window.jspdf || {};
       if(!jsPDF) return alert("Brak biblioteki jsPDF.");
       const p = pacjenci[aktywIdx];
       if(!p) return alert("Wybierz pacjenta.");
-
-      const text = `
-KARTA WYPISOWA
-Data: ${new Date().toLocaleString("pl-PL")}
-Pacjent: ${p.name || "-"}
-
-Diagnoza: ${document.getElementById("exit_diagnosis").value || "-"} (${document.getElementById("exit_icd_code").value || "brak ICD"})
-Przebieg: ${document.getElementById("exit_course").value || "-"}
-Leczenie: ${document.getElementById("exit_treatment").value || "-"}
-Badania: ${document.getElementById("exit_tests").value || "-"}
-
-Leki:
-${window.exitMeds.map(m=>`- ${m.name}: ${m.dose} (${m.slot})`).join("\n") || "-"}
-
-Zalecenia:
-${document.getElementById("exit_recommendations").value || "-"}
-
-Podpis: ${(document.getElementById("inp_doc").value || "Lekarz")}
-      `.trim();
-
+      const text = `KARTA WYPISOWA\nData: ${new Date().toLocaleString("pl-PL")}\nPacjent: ${p.name || "-"}\nDiagnoza: ${document.getElementById("exit_diagnosis").value || "-"} (${document.getElementById("exit_icd_code").value || "brak ICD"})`;
       const doc = new jsPDF({ format:"a4" });
-      let y = 12;
-      text.split("\n").forEach(line => { doc.text(line, 12, y); y += 6; if(y>280){ doc.addPage(); y = 12; } });
+      doc.text(text, 12, 12);
       doc.save("wypis.pdf");
     }
 
@@ -792,7 +833,7 @@ Podpis: ${(document.getElementById("inp_doc").value || "Lekarz")}
       alert("Pacjent wypisany i przeniesiony do archiwum.");
     }
 
-    // ===== DOKUMENTACJA =====
+    // ===== DOKUMENTACJA + GENERATOR DOKUMENTU BEZ window.print =====
     let docType = null;
     let __docCito = false;
 
@@ -904,78 +945,178 @@ Podpis: ${(document.getElementById("inp_doc").value || "Lekarz")}
     }
 
     function docInitRef(){ __docCito = false; }
-    function docToggleCito(){
-      __docCito = !__docCito;
-      const b = document.getElementById("ref_cito_btn");
-      b.textContent = `Cito: ${__docCito ? "TAK" : "NIE"}`;
-    }
-    function docRefApplyPhrase(){
-      const sel = document.getElementById("ref_phrase");
-      document.getElementById("ref_reason").value = sel.value || "";
-    }
+    function docToggleCito(){ __docCito = !__docCito; document.getElementById("ref_cito_btn").textContent = `Cito: ${__docCito ? "TAK" : "NIE"}`; }
+    function docRefApplyPhrase(){ const sel = document.getElementById("ref_phrase"); document.getElementById("ref_reason").value = sel.value || ""; }
 
-    function docSaveToFirebase(type, html, data){
-      const { key } = getActivePatientSafe();
-      if(!key) return Promise.resolve(false);
-      return db.ref(`patients/${key}/documents`).push({ type, createdAt:Date.now(), previewHTML:html, data:data || {} }).then(()=>true).catch(()=>false);
-    }
-
-    function docPrintNow(html){
-      const w = window.open("", "_blank");
-      w.document.write(html);
-      w.document.close();
-      w.focus();
-      w.print();
-    }
-
-    function docWrapPrint(title, content){
-      return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${esc(title)}</title>
-      <style>body{font-family:Arial,sans-serif;padding:24px;color:#111}h2{margin:0 0 12px 0}.muted{color:#555}.line{margin:8px 0}</style>
-      </head><body><h2>RIVER CITY HOSPITAL</h2><div class="muted">${esc(title)} | ${new Date().toLocaleString("pl-PL")}</div><hr>${content}</body></html>`;
-    }
-
-    async function docGenerateAndPrint(){
-      const { p } = getActivePatientSafe();
-      if(!p || !docType) return;
-
-      let title = "", data = {}, content = "";
-
-      if(docType==="l4"){
-        title = "L4 - Zwolnienie Lekarskie";
-        data = {
-          patient:p.name || "-", pesel:document.getElementById("l4_pesel").value, addr:document.getElementById("l4_addr").value,
-          diag:document.getElementById("l4_diag").value, icd:document.getElementById("l4_icd").value, from:document.getElementById("l4_from").value,
-          days:document.getElementById("l4_days").value, to:document.getElementById("l4_to").value, walk:document.getElementById("l4_walk").checked,
-          doc:document.getElementById("l4_doc").value, rank:document.getElementById("l4_rank").value
+    function getDoctorFromSession() {
+      try {
+        const raw = sessionStorage.getItem("hospital_auth") || localStorage.getItem("hospital_auth");
+        if (!raw) return { name: (document.getElementById("inp_doc")?.value || "Lekarz"), rank: (document.getElementById("inp_rank")?.value || "doctor") };
+        const s = JSON.parse(raw);
+        return {
+          name: s.name || s.fullName || s.login || s.code || (document.getElementById("inp_doc")?.value || "Lekarz"),
+          rank: s.rank || s.ranga || (document.getElementById("inp_rank")?.value || "doctor")
         };
-        content = `<div class="line"><b>Pacjent:</b> ${esc(data.patient)}</div><div class="line"><b>PESEL:</b> ${esc(data.pesel)}</div><div class="line"><b>Adres:</b> ${esc(data.addr)}</div><div class="line"><b>Diagnoza:</b> ${esc(data.diag)} (${esc(data.icd)})</div><div class="line"><b>Okres:</b> ${esc(data.from)} - ${esc(data.to)} (${esc(data.days)} dni)</div><div class="line"><b>Chory może chodzić:</b> ${data.walk ? "TAK":"NIE"}</div><div class="line"><b>Podpis:</b> ${esc(data.doc)} (${esc(data.rank)})</div>`;
-      } else if(docType==="death"){
-        title = "Karta Zgonu";
-        data = {
-          patient:p.name || "-", dt:document.getElementById("death_dt").value, direct:document.getElementById("death_direct").value,
-          secondary:document.getElementById("death_secondary").value, origin:document.getElementById("death_origin").value,
-          doc:document.getElementById("death_doc").value, rank:document.getElementById("death_rank").value
-        };
-        content = `<div class="line"><b>Pacjent:</b> ${esc(data.patient)}</div><div class="line"><b>Data/godzina:</b> ${esc(data.dt)}</div><div class="line"><b>Przyczyna bezpośrednia:</b> ${esc(data.direct)}</div><div class="line"><b>Przyczyna wtórna:</b> ${esc(data.secondary)}</div><div class="line"><b>Przyczyna wyjściowa:</b> ${esc(data.origin)}</div><div class="line"><b>Podpis:</b> ${esc(data.doc)} (${esc(data.rank)})</div>`;
-      } else if(docType==="ref"){
-        title = "Skierowanie";
-        data = {
-          patient:p.name || "-", target:document.getElementById("ref_target").value, cito:__docCito, reason:document.getElementById("ref_reason").value,
-          doc:document.getElementById("ref_doc").value, rank:document.getElementById("ref_rank").value
-        };
-        content = `<div class="line"><b>Pacjent:</b> ${esc(data.patient)}</div><div class="line"><b>Cel:</b> ${esc(data.target)}</div><div class="line"><b>Cito:</b> ${data.cito ? "TAK":"NIE"}</div><div class="line"><b>Uzasadnienie:</b> ${esc(data.reason)}</div><div class="line"><b>Podpis:</b> ${esc(data.doc)} (${esc(data.rank)})</div>`;
-      } else {
-        title = "Zaświadczenie o Stanie Zdrowia";
-        data = {
-          patient:p.name || "-", template:document.getElementById("health_template").value, extra:document.getElementById("health_extra").value,
-          doc:document.getElementById("health_doc").value, rank:document.getElementById("health_rank").value
-        };
-        content = `<div class="line"><b>Pacjent:</b> ${esc(data.patient)}</div><div class="line"><b>Treść:</b> ${esc(data.template)}</div><div class="line"><b>Uwagi:</b> ${esc(data.extra)}</div><div class="line"><b>Podpis:</b> ${esc(data.doc)} (${esc(data.rank)})</div>`;
+      } catch {
+        return { name: (document.getElementById("inp_doc")?.value || "Lekarz"), rank: (document.getElementById("inp_rank")?.value || "doctor") };
       }
+    }
 
-      const printHTML = docWrapPrint(title, content);
-      await docSaveToFirebase(title, printHTML, data);
-      docPrintNow(printHTML);
+    function renderPreviewA4(payload) {
+      const pages = document.getElementById("previewPages");
+      const overlay = document.getElementById("previewOverlay");
+      if (!pages || !overlay) return;
+
+      const medsRows = (payload.meds || []).map(m => `
+        <tr>
+          <td>${esc(m.name || "-")}</td>
+          <td>${esc(m.dose || "-")}</td>
+          <td>${esc(m.slot || "-")}</td>
+          <td>${esc(m.category || "-")}</td>
+        </tr>
+      `).join("") || `<tr><td colspan="4">Brak leków</td></tr>`;
+
+      pages.innerHTML = `
+        <div class="a4-page">
+          <div class="a4-title">WYPIS SZPITALNY</div>
+          <div class="a4-sub">Data: ${esc(payload.dateText)}</div>
+          <div class="a4-sec"><b>Pacjent:</b> ${esc(payload.patientName)}</div>
+          <div class="a4-sec"><b>Diagnoza:</b> ${esc(payload.diagnosis)} (${esc(payload.icdCode || "brak")})</div>
+          <div class="a4-sec"><b>Przebieg:</b> ${esc(payload.course || "-")}</div>
+
+          <div class="a4-sec">
+            <b>Tabela leków:</b>
+            <table class="a4-table">
+              <thead><tr><th>Lek</th><th>Dawka</th><th>Pora</th><th>Kategoria</th></tr></thead>
+              <tbody>${medsRows}</tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="a4-page">
+          <div class="a4-title">WYPIS SZPITALNY — STRONA 2</div>
+          <div class="a4-sub">Kontynuacja dokumentu</div>
+          <div class="a4-sec"><b>Zalecenia:</b><br>${esc(payload.recommendations || "-")}</div>
+          <div class="a4-sec"><b>Safety Net:</b><br>${esc(payload.safetyText || "-")}</div>
+
+          <div class="a4-footer-box">
+            <div class="stamp-box"><div class="lbl">Miejsce na pieczątkę nagłówkową</div></div>
+            <div class="sign-box"><div class="lbl">Podpis lekarza</div><div class="sign-name">${esc(payload.doctorName)} (${esc(payload.doctorRank)})</div></div>
+          </div>
+        </div>
+      `;
+      overlay.style.display = "flex";
+    }
+
+    function closePreview() {
+      const overlay = document.getElementById("previewOverlay");
+      if (overlay) overlay.style.display = "none";
+    }
+
+    function downloadWypisPdf(payload) {
+      const { jsPDF } = window.jspdf || {};
+      if (!jsPDF) return alert("Brak jsPDF");
+
+      const doc = new jsPDF("p", "pt", "a4");
+      doc.setFontSize(18);
+      doc.text("WYPIS SZPITALNY", 50, 50);
+      doc.setFontSize(11);
+      doc.text(`Data: ${payload.dateText}`, 50, 72);
+      doc.text(`Pacjent: ${payload.patientName}`, 50, 92);
+      doc.text(`Diagnoza: ${payload.diagnosis} (${payload.icdCode || "brak"})`, 50, 112);
+      doc.text(`Przebieg: ${payload.course || "-"}`, 50, 132);
+      doc.text("Leki:", 50, 162);
+
+      let y = 180;
+      (payload.meds || []).forEach((m, i) => {
+        doc.text(`${i + 1}. ${m.name} | ${m.dose} | ${m.slot} | ${m.category || "-"}`, 55, y);
+        y += 18;
+        if (y > 760) { doc.addPage(); y = 50; }
+      });
+      if (!(payload.meds || []).length) doc.text("Brak leków", 55, y);
+
+      doc.addPage();
+      doc.setFontSize(18);
+      doc.text("WYPIS SZPITALNY - STRONA 2", 50, 50);
+      doc.setFontSize(11);
+
+      const recLines = doc.splitTextToSize(`Zalecenia:\n${payload.recommendations || "-"}`, 500);
+      doc.text(recLines, 50, 90);
+
+      const safetyLines = doc.splitTextToSize(`Safety Net:\n${payload.safetyText || "-"}`, 500);
+      doc.text(safetyLines, 50, 250);
+
+      doc.rect(50, 670, 220, 100);
+      doc.text("Miejsce na pieczątkę", 60, 690);
+
+      doc.rect(320, 670, 220, 100);
+      doc.text("Podpis lekarza", 330, 690);
+      doc.text(`${payload.doctorName} (${payload.doctorRank})`, 330, 725);
+
+      const safeSurname = (payload.patientName || "Pacjent").split(" ").slice(-1)[0].replace(/[^\w\-ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]/g, "_");
+      const fileDate = payload.fileDate;
+      doc.save(`Wypis_${safeSurname}_${fileDate}.pdf`);
+    }
+
+    async function generujDokument() {
+      const { p, key } = getActivePatientSafe();
+      if (!p || !key) return alert("Wybierz pacjenta.");
+
+      const sessionDoc = getDoctorFromSession();
+      const date = new Date();
+      const dateText = date.toLocaleString("pl-PL");
+      const fileDate = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
+
+      const meds = (window.exitMeds || []).map(m => {
+        const full = (window.exitDrugCatalog || []).find(d => d.key === m.key) || {};
+        return { ...m, category: full.category || "-" };
+      });
+
+      const safety = [];
+      const temp = Number(document.getElementById("exit_temp_c")?.value || 0);
+      const pain = Number(document.getElementById("exit_pain")?.value || 0);
+      if (temp > 39) safety.push("Gorączka >39°C — pilny kontakt z SOR.");
+      if (pain >= 8) safety.push("Ból >=8/10 — pilny kontakt z SOR.");
+      if (!safety.length) safety.push("Brak sygnałów alarmowych.");
+
+      const payload = {
+        patientName: p.name || "-",
+        diagnosis: document.getElementById("exit_diagnosis")?.value || "-",
+        icdCode: document.getElementById("exit_icd_code")?.value || "",
+        course: document.getElementById("exit_course")?.value || "",
+        recommendations: document.getElementById("exit_recommendations")?.value || "",
+        meds,
+        safetyText: safety.join(" "),
+        doctorName: sessionDoc.name,
+        doctorRank: sessionDoc.rank,
+        dateText,
+        fileDate
+      };
+
+      renderPreviewA4(payload);
+      downloadWypisPdf(payload);
+
+      const histEntry = {
+        id: Date.now(),
+        time: dateText,
+        ts: Date.now(),
+        doc: sessionDoc.name,
+        rank: sessionDoc.rank,
+        txt: `Wygenerowano dokument wypisowy PDF.\nDiagnoza: ${payload.diagnosis} (${payload.icdCode || "brak"})\nLeki:\n${meds.map(m => `- ${m.name} | ${m.dose} | ${m.slot}`).join("\n") || "-"}`,
+        generatedPdf: true
+      };
+
+      p.history = p.history || [];
+      p.history.push(histEntry);
+      synchronizuj();
+
+      try {
+        await db.ref(`patients/${key}/history`).push({
+          type: "generated_document_pdf",
+          createdAt: Date.now(),
+          payload
+        });
+      } catch(e) {}
     }
 
     // init
