@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <title>Hospital System v5.35 - Firebase Patients</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
   <style>
     :root {
       --accent:#00d2d3; --psych:#a29bfe; --bg:#0b0c0d; --card:#1c1f22;
@@ -13,49 +14,58 @@
     }
     * { box-sizing:border-box; font-family:'Inter','Segoe UI',sans-serif; }
     body { background:var(--bg); color:#e0e0e0; margin:0; display:flex; height:100vh; overflow:hidden; }
+
     #sidebar { width:320px; background:#141619; border-right:2px solid #333; padding:20px; display:flex; flex-direction:column; height:100vh; flex-shrink:0; }
     #lista_pacjentow { overflow-y:auto; flex-grow:1; margin-top:15px; border-top:1px solid #333; }
     .p-item { padding:15px; border-bottom:1px solid #222; cursor:pointer; border-left:4px solid transparent; transition:.2s; background:rgba(255,255,255,.02); margin-bottom:5px; }
     .p-item.active { background:#23272b; border-left-color:var(--accent); }
     .p-item.archived { opacity:.55; border-left-color:#555; }
+
     .sor-stats { display:flex; gap:10px; margin-bottom:15px; }
     .stat-badge { flex:1; padding:10px; border-radius:8px; text-align:center; background:#1c1f22; border:1px solid #333; }
     .stat-val { display:block; font-size:20px; font-weight:900; }
     .stat-lbl { font-size:9px; text-transform:uppercase; color:#777; }
+
     #main { flex:1; display:flex; flex-direction:column; height:100vh; overflow:hidden; }
     #header-fixed { flex-shrink:0; background:#141619; border-bottom:2px solid #333; z-index:100; }
     .tabs-nav { display:flex; padding:0 10px; overflow-x:auto; background:#0b0c0d; }
     .tab-btn { padding:15px 20px; color:#777; cursor:pointer; font-weight:800; font-size:11px; text-transform:uppercase; border-bottom:3px solid transparent; white-space:nowrap; }
     .tab-btn.active { color:var(--accent); border-bottom-color:var(--accent); }
+
     #content-area { flex:1; overflow-y:auto; padding:25px; height:100%; }
     .card { background:var(--card); padding:20px; border-radius:12px; border:1px solid #2d3136; margin-bottom:20px; }
     .grid { display:grid; grid-template-columns:1fr 1fr; gap:15px; }
     .label { font-size:10px; color:var(--accent); font-weight:900; text-transform:uppercase; display:block; margin-top:10px; letter-spacing:1px; }
+
     input, textarea, select { width:100%; padding:12px; margin:8px 0; background:#0f1113; border:1px solid #333; color:white; border-radius:6px; font-size:14px; outline:none; }
     button { padding:12px; border:none; border-radius:6px; font-weight:bold; cursor:pointer; text-transform:uppercase; font-size:10px; transition:.2s; }
+
     .calc-box { background:rgba(0,0,0,.3); padding:15px; border-radius:8px; border:1px solid #444; margin-bottom:15px; }
     .med-action-btn { background:#2d3136; color:white; border:1px solid #444; margin-bottom:5px; text-align:center; }
-    .med-action-btn:hover { background:var(--blue); }
     .history-item { background:#1c1f23; padding:20px; border-left:6px solid #444; margin-top:15px; border-radius:8px; position:relative; white-space:pre-wrap; }
     .history-auth { border-left-color:var(--gold); border:1px solid rgba(241,196,15,.2); }
     .cert-box { padding:10px; border-radius:8px; text-align:center; font-weight:bold; border:1px solid #444; }
     .status-ok { background:rgba(46,204,113,.2); color:var(--green); border-color:var(--green); }
     .status-no { background:rgba(231,76,60,.2); color:var(--red); border-color:var(--red); }
     .hidden { display:none !important; }
+
     .del-entry-btn { position:absolute; top:10px; right:10px; background:var(--red); color:white; padding:5px 10px; font-size:9px; }
     .del-patient-btn { background:var(--red); color:white; width:40px; height:45px; margin-left:5px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:16px; }
+
     #admin-shortcut {
       position:fixed; top:14px; right:18px; z-index:2000; background:var(--cert); color:#111; text-decoration:none; font-weight:800;
       letter-spacing:.5px; padding:10px 14px; border-radius:8px; border:1px solid rgba(0,0,0,.35); box-shadow:0 8px 20px rgba(0,0,0,.35);
       text-transform:uppercase; font-size:11px;
     }
+
     #docModalOverlay { position:fixed; inset:0; background:rgba(6,8,13,.95); backdrop-filter:blur(10px); z-index:99999; display:none; align-items:center; justify-content:center; padding:18px; }
     #docModal { width:min(1080px,98vw); background:rgba(28,31,34,.98); border:1px solid rgba(255,255,255,.12); border-radius:16px; overflow:hidden; box-shadow:0 20px 70px rgba(0,0,0,.65); }
     #docModalHead { padding:14px 18px; background:#141619; border-bottom:1px solid rgba(255,255,255,.10); display:flex; justify-content:space-between; align-items:center; }
     #docModalBody { padding:18px; max-height:70vh; overflow:auto; }
     .doc-btn { background:rgba(54,170,255,.16); border:1px solid rgba(54,170,255,.45); color:#d8f6ff; padding:12px 14px; border-radius:12px; cursor:pointer; font-weight:900; width:100%; text-transform:uppercase; }
     .paperField { background:#0f1113; border:1px solid #333; border-radius:10px; padding:10px; }
-    /* ===== A4 preview overlay ===== */
+
+    /* Wirtualny podgląd A4 */
     #previewOverlay {
       position: fixed; inset: 0; z-index: 100000;
       background: rgba(4, 6, 10, 0.95);
@@ -98,10 +108,9 @@
     }
     .stamp-box .lbl, .sign-box .lbl { font-size: 12px; color: #555; margin-bottom: 8px; font-weight: 700; }
     .sign-name { margin-top: 18px; font-size: 14px; font-weight: 700; }
-    .preview-topbar {
-      display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 10px;
-    }
+    .preview-topbar { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 10px; }
   </style>
+
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyC5MioZo7CMVGopaZANfglS12Gy_TMPzEw",
@@ -118,8 +127,10 @@
 </head>
 <body>
   <a id="admin-shortcut" href="admin.html">Administracja</a>
+
   <div id="sidebar">
     <h2 style="color:white;text-align:center;letter-spacing:2px;margin-bottom:10px;">MED-SYSTEM <span style="color:var(--accent)">v5.35</span></h2>
+
     <div class="sor-stats">
       <div class="stat-badge">
         <span class="stat-val" id="count_active" style="color:var(--accent);">0</span>
@@ -130,14 +141,17 @@
         <span class="stat-lbl">Krytyczni</span>
       </div>
     </div>
+
     <div style="display:flex; gap:5px; margin-bottom:15px;">
       <button id="btn_view_active" style="flex:1; background:var(--accent); color:black;" onclick="setView('active')">AKTYWNI</button>
       <button id="btn_view_arch" style="flex:1; background:#333; color:white;" onclick="setView('archive')">ARCHIWUM</button>
     </div>
+
     <input type="text" id="add_name" placeholder="IMIĘ I NAZWISKO">
     <button style="background:var(--accent); color:black; width:100%;" onclick="nowyPacjent()">REJESTRUJ PACJENTA</button>
     <div id="lista_pacjentow"></div>
   </div>
+
   <div id="main">
     <div id="interface" class="hidden" style="display:flex; flex-direction:column; height:100%;">
       <div id="header-fixed">
@@ -145,6 +159,7 @@
           <h1 id="disp_name" style="margin:0; color:white; font-size:24px; font-weight:900;"></h1>
           <div id="cert-status-header" class="cert-box" style="margin:0; font-size:11px; min-width:180px;">BRAK BADAŃ</div>
         </div>
+
         <div class="tabs-nav">
           <div class="tab-btn active" onclick="switchTab('tab-ogolne', this)">DASHBOARD</div>
           <div class="tab-btn" onclick="switchTab('tab-med', this)">KLINIKA & KALKULATORY</div>
@@ -154,6 +169,7 @@
           <div class="tab-btn" onclick="switchTab('tab-exit', this)" style="color:var(--discharge);">🚪 WYPIS</div>
         </div>
       </div>
+
       <div id="content-area">
         <div id="tab-ogolne" class="tab-content">
           <div style="display:grid; grid-template-columns:2fr 1fr; gap:20px;">
@@ -172,6 +188,7 @@
               <span class="label">Powód Przyjęcia</span>
               <textarea id="inp_reason" rows="3"></textarea>
             </div>
+
             <div class="card" style="background:#14171a;">
               <span class="label">Triage & Stan</span>
               <select id="inp_triage" onchange="updateTriageVisuals()">
@@ -184,6 +201,7 @@
             </div>
           </div>
         </div>
+
         <div id="tab-med" class="tab-content hidden">
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
             <div class="card" style="border-left:5px solid var(--blue);">
@@ -195,11 +213,10 @@
                 </div>
                 <div id="calc_drug_res" style="text-align:center; color:var(--accent); font-weight:bold; margin-top:5px;">WYNIK: 0 mg</div>
               </div>
-              <select id="sel_lek">
-                <option value="">-- Wybierz Lek --</option>
-                <option>Morfina</option><option>Fentanyl</option><option>Ketamina</option><option>Paracetamol IV</option>
-                <option>Adrenalina</option><option>Atropina</option><option>Amiodaron</option><option>Dopamina</option>
-              </select>
+
+              <!-- dynamiczne wypełnianie z medicationDatabase -->
+              <select id="sel_lek"></select>
+
               <div style="display:flex; gap:5px;">
                 <input type="number" id="med_dose" placeholder="Dawka" style="flex:2;">
                 <select id="med_unit" style="flex:1;"><option>mg</option><option>μg</option><option>ml</option><option>j.</option></select>
@@ -207,6 +224,7 @@
               <select id="med_route"><option>IV</option><option>IM</option><option>SC</option><option>IO</option></select>
               <button style="background:var(--blue); color:white; width:100%;" onclick="podajLek()">ZAREJESTRUJ PODANIE LEKU</button>
             </div>
+
             <div class="card" style="border-left:5px solid #6c5ce7;">
               <span class="label">Rejestr Badań</span>
               <select id="exam_category" onchange="updateExamOptions()"></select>
@@ -304,7 +322,7 @@
             </div>
 
             <div style="margin-top:16px; display:flex; gap:12px; flex-wrap:wrap;">
-              <button style="background:#2d3136; color:white; width:100%; max-width:220px;" onclick="exitGeneratePDF()">Generuj PDF</button>
+              <button style="background:#2d3136; color:white; width:100%; max-width:420px;" onclick="generujDokument()">Drukuj (podgląd cyfrowy)</button>
               <button style="background:var(--green); color:white; width:100%; max-width:420px;" onclick="finalizujWypis()">ZAKOŃCZ HOSPITALIZACJĘ I GENERUJ WYPIS</button>
             </div>
           </div>
@@ -330,7 +348,7 @@
   <div id="docModalOverlay" onclick="if(event.target.id==='docModalOverlay') docClose()">
     <div id="docModal">
       <div id="docModalHead">
-        <div><div style="font-weight:900; text-transform:uppercase;">Dokumentacja - Wydruk</div></div>
+        <div><div style="font-weight:900; text-transform:uppercase;">Dokumentacja - Podgląd</div></div>
         <button style="background:rgba(255,92,115,.16); border:1px solid rgba(255,92,115,.45); color:#ffc2cb; padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:900;" onclick="docClose()">Zamknij</button>
       </div>
       <div id="docModalBody"></div>
@@ -340,7 +358,6 @@
     </div>
   </div>
 
-  <!-- Podgląd dokumentu A4 -->
   <div id="previewOverlay">
     <div id="previewWrap">
       <div class="preview-topbar">
@@ -364,12 +381,81 @@
       "LAB":["Morfologia","CRP","Elektrolity","Troponina","Glukoza"]
     };
 
+    const medicationDatabase = {
+      "przeciwbólowe": [
+        { key:"paracetamol", name:"Paracetamol", category:"przeciwbólowe", conflictGroup:"pain" },
+        { key:"ibuprofen", name:"Ibuprofen", category:"przeciwbólowe", conflictGroup:"pain" },
+        { key:"ketoprofen", name:"Ketoprofen", category:"przeciwbólowe", conflictGroup:"pain" },
+        { key:"metamizol", name:"Metamizol", category:"przeciwbólowe", conflictGroup:"pain" }
+      ],
+      "opioidy": [
+        { key:"morphine", name:"Morfina", category:"opioidy", conflictGroup:"opioid" },
+        { key:"fentanyl", name:"Fentanyl", category:"opioidy", conflictGroup:"opioid" },
+        { key:"oxycodone", name:"Oksykodon", category:"opioidy", conflictGroup:"opioid" },
+        { key:"tramadol", name:"Tramadol", category:"opioidy", conflictGroup:"opioid" }
+      ],
+      "nasenne": [
+        { key:"zolpidem", name:"Zolpidem", category:"nasenne", conflictGroup:"sedative" },
+        { key:"zopiclone", name:"Zopiclone", category:"nasenne", conflictGroup:"sedative" },
+        { key:"diazepam", name:"Diazepam", category:"nasenne", conflictGroup:"sedative" },
+        { key:"midazolam", name:"Midazolam", category:"nasenne", conflictGroup:"sedative" }
+      ],
+      "przeciwwymiotne": [
+        { key:"ondansetron", name:"Ondansetron", category:"przeciwwymiotne", conflictGroup:"antiemetic" },
+        { key:"metoclopramide", name:"Metoklopramid", category:"przeciwwymiotne", conflictGroup:"antiemetic" },
+        { key:"dimenhydrinate", name:"Dimenhydrynat", category:"przeciwwymiotne", conflictGroup:"antiemetic" }
+      ],
+      "antybiotyki": [
+        { key:"amoxicillin", name:"Amoksycylina", category:"antybiotyki", conflictGroup:"antibiotic" },
+        { key:"amoxiclav", name:"Amoksycylina + kw. klawulanowy", category:"antybiotyki", conflictGroup:"antibiotic" },
+        { key:"cefuroxime", name:"Cefuroksym", category:"antybiotyki", conflictGroup:"antibiotic" },
+        { key:"azithromycin", name:"Azytromycyna", category:"antybiotyki", conflictGroup:"antibiotic" },
+        { key:"ciprofloxacin", name:"Ciprofloksacyna", category:"antybiotyki", conflictGroup:"antibiotic" }
+      ],
+      "przeciwalergiczne": [
+        { key:"cetirizine", name:"Cetyryzyna", category:"przeciwalergiczne", conflictGroup:"allergy" },
+        { key:"loratadine", name:"Loratadyna", category:"przeciwalergiczne", conflictGroup:"allergy" },
+        { key:"clemastine", name:"Klemastyna", category:"przeciwalergiczne", conflictGroup:"allergy" },
+        { key:"hydrocortisone", name:"Hydrokortyzon", category:"przeciwalergiczne", conflictGroup:"allergy" }
+      ],
+      "przeciwkrwotoczne": [
+        { key:"tranexamic", name:"Kwas traneksamowy", category:"przeciwkrwotoczne", conflictGroup:"bleeding" },
+        { key:"etamsylate", name:"Etamsylat", category:"przeciwkrwotoczne", conflictGroup:"bleeding" },
+        { key:"vitk", name:"Witamina K", category:"przeciwkrwotoczne", conflictGroup:"bleeding" }
+      ]
+    };
+
     const exitICDMap = { "grypa":"J11.1", "zapalenie płuc":"J18.9", "zapalenie pluc":"J18.9", "udar":"I64", "zawał serca":"I21.9", "zawal serca":"I21.9" };
     window.exitMeds = [];
     window.exitDrugCatalog = [];
 
     function esc(s){ return String(s ?? "").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;"); }
     function normalizePL(s){ return String(s||"").toLowerCase().replaceAll("ł","l").replaceAll("ą","a").replaceAll("ę","e").replaceAll("ć","c").replaceAll("ń","n").replaceAll("ó","o").replaceAll("ś","s").replaceAll("ż","z").replaceAll("ź","z").trim(); }
+
+    function flattenMedicationDatabase() {
+      const out = [];
+      Object.keys(medicationDatabase).forEach(cat => {
+        medicationDatabase[cat].forEach(m => out.push({ ...m, category: m.category || cat }));
+      });
+      return out;
+    }
+
+    function initClinicalDrugSelect() {
+      const sel = document.getElementById("sel_lek");
+      if (!sel) return;
+      sel.innerHTML = "";
+      Object.keys(medicationDatabase).forEach(cat => {
+        const og = document.createElement("optgroup");
+        og.label = cat.toUpperCase();
+        medicationDatabase[cat].forEach(drug => {
+          const opt = document.createElement("option");
+          opt.value = drug.key;
+          opt.textContent = drug.name;
+          og.appendChild(opt);
+        });
+        sel.appendChild(og);
+      });
+    }
 
     function normalizePatients(v){
       if(!v) return [];
@@ -393,8 +479,7 @@
         if(aktywIdx !== -1 && pacjenci[aktywIdx]) odswiezDanePacjenta();
       });
     }
-
-    function synchronizuj(){
+        function synchronizuj(){
       if(!firebaseReady) return;
       const payload = {};
       pacjenci.forEach(p => {
@@ -457,7 +542,8 @@
         }
       });
     }
-        function usunPacjenta(i){
+
+    function usunPacjenta(i){
       if(!pacjenci[i]) return;
       if(confirm("Czy usunąć kartotekę: "+(pacjenci[i].name||"") + "?")){
         pacjenci.splice(i,1);
@@ -587,9 +673,33 @@
       document.getElementById("exam_comment").value = "";
     }
 
+    function getDrugByKey(key){
+      return flattenMedicationDatabase().find(d => d.key === key) || null;
+    }
+
     function podajLek(){
       if(!requirePatient()) return;
-      addNote(`PODANO: ${document.getElementById("sel_lek").value} | DAWKA: ${document.getElementById("med_dose").value}${document.getElementById("med_unit").value} | DROGA: ${document.getElementById("med_route").value}`);
+
+      const drugKey = document.getElementById("sel_lek").value;
+      const drug = getDrugByKey(drugKey);
+      const dose = `${document.getElementById("med_dose").value}${document.getElementById("med_unit").value}`;
+      const route = document.getElementById("med_route").value;
+
+      addNote(`PODANO: ${(drug?.name || drugKey)} | DAWKA: ${dose} | DROGA: ${route}`);
+
+      // synchronizacja do wypisu (domyślnie "Rano")
+      if (drug && dose.replace(/\s/g, "") !== "") {
+        window.exitMeds.push({
+          id:"MED-"+Date.now()+"-"+Math.floor(Math.random()*9999),
+          key:drug.key,
+          name:drug.name,
+          dose:dose,
+          slot:"Rano",
+          conflictGroup:drug.conflictGroup || "",
+          category:drug.category || "-"
+        });
+        exitRenderMeds();
+      }
     }
 
     function logVitals(){
@@ -638,7 +748,6 @@
       document.getElementById("calc_drug_res").innerText = `WYNIK: ${(w*mk).toFixed(2)} mg`;
     }
 
-    // ===== WYPIS =====
     function exitSuggestICD10(){
       const d = normalizePL(document.getElementById("exit_diagnosis").value);
       let code = "";
@@ -648,47 +757,10 @@
 
     function exitLoadDrugs() {
       const select = document.getElementById("exit_drug_select");
-
-      const fullDrugDb = [
-        { key:"paracetamol", name:"Paracetamol", category:"przeciwbólowe", conflictGroup:"pain" },
-        { key:"ibuprofen", name:"Ibuprofen", category:"przeciwbólowe", conflictGroup:"pain" },
-        { key:"ketoprofen", name:"Ketoprofen", category:"przeciwbólowe", conflictGroup:"pain" },
-        { key:"metamizol", name:"Metamizol", category:"przeciwbólowe", conflictGroup:"pain" },
-
-        { key:"morphine", name:"Morfina", category:"opioidy", conflictGroup:"opioid" },
-        { key:"fentanyl", name:"Fentanyl", category:"opioidy", conflictGroup:"opioid" },
-        { key:"oxycodone", name:"Oksykodon", category:"opioidy", conflictGroup:"opioid" },
-        { key:"tramadol", name:"Tramadol", category:"opioidy", conflictGroup:"opioid" },
-
-        { key:"zolpidem", name:"Zolpidem", category:"nasenne", conflictGroup:"sedative" },
-        { key:"zopiclone", name:"Zopiclone", category:"nasenne", conflictGroup:"sedative" },
-        { key:"diazepam", name:"Diazepam", category:"nasenne", conflictGroup:"sedative" },
-        { key:"midazolam", name:"Midazolam", category:"nasenne", conflictGroup:"sedative" },
-
-        { key:"ondansetron", name:"Ondansetron", category:"przeciwwymiotne", conflictGroup:"antiemetic" },
-        { key:"metoclopramide", name:"Metoklopramid", category:"przeciwwymiotne", conflictGroup:"antiemetic" },
-        { key:"dimenhydrinate", name:"Dimenhydrynat", category:"przeciwwymiotne", conflictGroup:"antiemetic" },
-
-        { key:"amoxicillin", name:"Amoksycylina", category:"antybiotyki", conflictGroup:"antibiotic" },
-        { key:"amoxiclav", name:"Amoksycylina + kw. klawulanowy", category:"antybiotyki", conflictGroup:"antibiotic" },
-        { key:"cefuroxime", name:"Cefuroksym", category:"antybiotyki", conflictGroup:"antibiotic" },
-        { key:"azithromycin", name:"Azytromycyna", category:"antybiotyki", conflictGroup:"antibiotic" },
-        { key:"ciprofloxacin", name:"Ciprofloksacyna", category:"antybiotyki", conflictGroup:"antibiotic" },
-
-        { key:"cetirizine", name:"Cetyryzyna", category:"przeciwalergiczne", conflictGroup:"allergy" },
-        { key:"loratadine", name:"Loratadyna", category:"przeciwalergiczne", conflictGroup:"allergy" },
-        { key:"clemastine", name:"Klemastyna", category:"przeciwalergiczne", conflictGroup:"allergy" },
-        { key:"hydrocortisone", name:"Hydrokortyzon", category:"przeciwalergiczne", conflictGroup:"allergy" },
-
-        { key:"tranexamic", name:"Kwas traneksamowy", category:"przeciwkrwotoczne", conflictGroup:"bleeding" },
-        { key:"etamsylate", name:"Etamsylat", category:"przeciwkrwotoczne", conflictGroup:"bleeding" },
-        { key:"vitk", name:"Witamina K", category:"przeciwkrwotoczne", conflictGroup:"bleeding" }
-      ];
-
-      window.exitDrugCatalog = fullDrugDb;
+      window.exitDrugCatalog = flattenMedicationDatabase();
 
       const groups = {};
-      fullDrugDb.forEach(d => {
+      window.exitDrugCatalog.forEach(d => {
         if (!groups[d.category]) groups[d.category] = [];
         groups[d.category].push(d);
       });
@@ -771,183 +843,6 @@
       else { alertEl.style.display="none"; alertEl.innerText=""; }
     }
 
-    function exitGeneratePDF(){
-      // stara szybka opcja zostaje
-      const { jsPDF } = window.jspdf || {};
-      if(!jsPDF) return alert("Brak biblioteki jsPDF.");
-      const p = pacjenci[aktywIdx];
-      if(!p) return alert("Wybierz pacjenta.");
-      const text = `KARTA WYPISOWA\nData: ${new Date().toLocaleString("pl-PL")}\nPacjent: ${p.name || "-"}\nDiagnoza: ${document.getElementById("exit_diagnosis").value || "-"} (${document.getElementById("exit_icd_code").value || "brak ICD"})`;
-      const doc = new jsPDF({ format:"a4" });
-      doc.text(text, 12, 12);
-      doc.save("wypis.pdf");
-    }
-
-    function finalizujWypis(){
-      if(!savePatientFields()) return;
-      if(!requirePatient()) return;
-
-      const p = pacjenci[aktywIdx];
-      const doc = document.getElementById("inp_doc").value.trim() || "Lekarz";
-      const rank = document.getElementById("inp_rank").value;
-      const temp = Number(document.getElementById("exit_temp_c").value || 0);
-      const pain = Number(document.getElementById("exit_pain").value || 0);
-      const safety = [];
-      if(temp > 39) safety.push("Gorączka >39°C");
-      if(pain >= 8) safety.push("Ból >=8/10");
-      if(!safety.length) safety.push("Brak sygnałów alarmowych.");
-
-      const dischargeText = [
-        "WYPIS — KARTA HOSPITALIZACJI",
-        "Data: " + new Date().toLocaleString("pl-PL"),
-        "",
-        "DIAGNOZA: " + (document.getElementById("exit_diagnosis").value || "-") + " (ICD-10: " + (document.getElementById("exit_icd_code").value || "-") + ")",
-        "PRZEBIEG: " + (document.getElementById("exit_course").value || "-"),
-        "LECZENIE: " + (document.getElementById("exit_treatment").value || "-"),
-        "BADANIA: " + (document.getElementById("exit_tests").value || "-"),
-        "LEKI:\n" + (window.exitMeds.map(m=>`- ${m.name} | ${m.dose} | ${m.slot}`).join("\n") || "-"),
-        "ZALECENIA: " + (document.getElementById("exit_recommendations").value || "-"),
-        "SYGNAŁY ALARMOWE: " + safety.join(", ")
-      ].join("\n");
-
-      p.status = "Wypisany";
-      p.arch = true;
-      p.discharge = {
-        diagnosis: document.getElementById("exit_diagnosis").value.trim(),
-        icdCode: document.getElementById("exit_icd_code").value.trim(),
-        course: document.getElementById("exit_course").value.trim(),
-        treatment: document.getElementById("exit_treatment").value.trim(),
-        tests: document.getElementById("exit_tests").value.trim(),
-        recommendations: document.getElementById("exit_recommendations").value.trim(),
-        meds: window.exitMeds,
-        temp, pain,
-        generatedAt: Date.now()
-      };
-      p.history = p.history || [];
-      p.history.push({ id:Date.now(), txt:dischargeText, doc, rank, time:new Date().toLocaleString(), ts:Date.now(), auth:["director","management","chief"].includes(rank) });
-
-      synchronizuj();
-      setView("archive");
-      renderLista();
-      pokazHistorie();
-      alert("Pacjent wypisany i przeniesiony do archiwum.");
-    }
-
-    // ===== DOKUMENTACJA + GENERATOR DOKUMENTU BEZ window.print =====
-    let docType = null;
-    let __docCito = false;
-
-    function getActivePatientSafe(){
-      const p = pacjenci[aktywIdx] || null;
-      const key = aktywKey || p?.firebaseKey || null;
-      return { p, key };
-    }
-
-    function docOpen(type){
-      docType = type;
-      __docCito = false;
-      const { p } = getActivePatientSafe();
-      if(!p) return alert("Wybierz pacjenta.");
-      const body = document.getElementById("docModalBody");
-      document.getElementById("docModalOverlay").style.display = "flex";
-      body.innerHTML = buildDocForm(type, p);
-      if(type==="l4") docInitL4();
-      if(type==="death") docInitDeath();
-      if(type==="ref") docInitRef();
-    }
-
-    function docClose(){ document.getElementById("docModalOverlay").style.display = "none"; docType = null; __docCito = false; }
-
-    function buildDocForm(type,p){
-      const doctor = document.getElementById("inp_doc").value.trim() || "Lekarz";
-      const rank = document.getElementById("inp_rank").value || "doctor";
-
-      if(type==="l4"){
-        return `
-          <div class="paperField">
-            <div class="label">Pacjent</div>
-            <input value="${esc(p.name || "-")}" readonly>
-            <input id="l4_pesel" placeholder="PESEL" value="${esc(p.pesel || "")}">
-            <input id="l4_addr" placeholder="Adres" value="${esc(p.adr || "")}">
-            <input id="l4_diag" placeholder="Diagnoza" oninput="docL4OnDiagInput()">
-            <input id="l4_icd" placeholder="ICD-10" readonly>
-            <div class="grid"><input type="date" id="l4_from"><input type="number" id="l4_days" value="7" min="1"></div>
-            <input type="date" id="l4_to">
-            <label><input type="checkbox" id="l4_walk" checked> Chory może chodzić</label>
-            <input id="l4_doc" value="${esc(doctor)}"><input id="l4_rank" value="${esc(rank)}">
-          </div>`;
-      }
-
-      if(type==="death"){
-        return `
-          <div class="paperField">
-            <input value="${esc(p.name || "-")}" readonly>
-            <input type="datetime-local" id="death_dt">
-            <input id="death_direct" placeholder="Przyczyna bezpośrednia">
-            <input id="death_secondary" placeholder="Przyczyna wtórna">
-            <input id="death_origin" placeholder="Przyczyna wyjściowa">
-            <input id="death_doc" value="${esc(doctor)}"><input id="death_rank" value="${esc(rank)}">
-          </div>`;
-      }
-
-      if(type==="ref"){
-        return `
-          <div class="paperField">
-            <select id="ref_target"><option>Okulista</option><option>Kardiolog</option><option>RTG</option></select>
-            <button id="ref_cito_btn" onclick="docToggleCito()" style="background:rgba(255,71,87,.12); border:1px solid rgba(255,71,87,.45); color:#ffc2cb;">Cito: NIE</button>
-            <select id="ref_phrase" onchange="docRefApplyPhrase()">
-              <option value="">Smart phrase...</option>
-              <option value="W celu dalszej diagnostyki i leczenia.">Dalsza diagnostyka</option>
-              <option value="W związku z nasileniem objawów pacjent wymaga pilnej konsultacji.">Pilna konsultacja</option>
-            </select>
-            <textarea id="ref_reason" rows="4" placeholder="Uzasadnienie..."></textarea>
-            <input id="ref_doc" value="${esc(doctor)}"><input id="ref_rank" value="${esc(rank)}">
-          </div>`;
-      }
-
-      return `
-        <div class="paperField">
-          <select id="health_template">
-            <option value="Zdolny do uprawiania sportu.">Sport</option>
-            <option value="Zdolny do pracy.">Praca</option>
-            <option value="Zdolny do nauki szkolnej.">Szkoła</option>
-          </select>
-          <input id="health_extra" placeholder="Uwagi">
-          <input id="health_doc" value="${esc(doctor)}"><input id="health_rank" value="${esc(rank)}">
-        </div>`;
-    }
-
-    function docInitL4(){
-      const from = document.getElementById("l4_from");
-      const days = document.getElementById("l4_days");
-      const to = document.getElementById("l4_to");
-      const now = new Date();
-      from.value = now.toISOString().slice(0,10);
-      function calc(){
-        const d = new Date(from.value);
-        d.setDate(d.getDate() + Number(days.value || 1) - 1);
-        to.value = d.toISOString().slice(0,10);
-      }
-      days.oninput = calc; from.onchange = calc; calc();
-    }
-
-    function docL4OnDiagInput(){
-      const txt = normalizePL(document.getElementById("l4_diag").value);
-      let code = "";
-      for(const k in exitICDMap){ if(txt.includes(normalizePL(k))) { code = exitICDMap[k]; break; } }
-      document.getElementById("l4_icd").value = code;
-    }
-
-    function docInitDeath(){
-      const el = document.getElementById("death_dt");
-      const n = new Date();
-      el.value = new Date(n.getTime()-n.getTimezoneOffset()*60000).toISOString().slice(0,16);
-    }
-
-    function docInitRef(){ __docCito = false; }
-    function docToggleCito(){ __docCito = !__docCito; document.getElementById("ref_cito_btn").textContent = `Cito: ${__docCito ? "TAK" : "NIE"}`; }
-    function docRefApplyPhrase(){ const sel = document.getElementById("ref_phrase"); document.getElementById("ref_reason").value = sel.value || ""; }
-
     function getDoctorFromSession() {
       try {
         const raw = sessionStorage.getItem("hospital_auth") || localStorage.getItem("hospital_auth");
@@ -962,7 +857,7 @@
       }
     }
 
-    function renderPreviewA4(payload) {
+    function pokazPodgladDokumentu(payload) {
       const pages = document.getElementById("previewPages");
       const overlay = document.getElementById("previewOverlay");
       if (!pages || !overlay) return;
@@ -978,7 +873,7 @@
 
       pages.innerHTML = `
         <div class="a4-page">
-          <div class="a4-title">WYPIS SZPITALNY</div>
+          <div class="a4-title">RIVER CITY HOSPITAL - WYPIS SZPITALNY</div>
           <div class="a4-sub">Data: ${esc(payload.dateText)}</div>
           <div class="a4-sec"><b>Pacjent:</b> ${esc(payload.patientName)}</div>
           <div class="a4-sec"><b>Diagnoza:</b> ${esc(payload.diagnosis)} (${esc(payload.icdCode || "brak")})</div>
@@ -994,14 +889,14 @@
         </div>
 
         <div class="a4-page">
-          <div class="a4-title">WYPIS SZPITALNY — STRONA 2</div>
+          <div class="a4-title">RIVER CITY HOSPITAL - STRONA 2</div>
           <div class="a4-sub">Kontynuacja dokumentu</div>
           <div class="a4-sec"><b>Zalecenia:</b><br>${esc(payload.recommendations || "-")}</div>
           <div class="a4-sec"><b>Safety Net:</b><br>${esc(payload.safetyText || "-")}</div>
 
           <div class="a4-footer-box">
             <div class="stamp-box"><div class="lbl">Miejsce na pieczątkę nagłówkową</div></div>
-            <div class="sign-box"><div class="lbl">Podpis lekarza</div><div class="sign-name">${esc(payload.doctorName)} (${esc(payload.doctorRank)})</div></div>
+            <div class="sign-box"><div class="lbl">Podpis elektroniczny lekarza</div><div class="sign-name">${esc(payload.doctorName)} (${esc(payload.doctorRank)})</div></div>
           </div>
         </div>
       `;
@@ -1013,51 +908,6 @@
       if (overlay) overlay.style.display = "none";
     }
 
-    function downloadWypisPdf(payload) {
-      const { jsPDF } = window.jspdf || {};
-      if (!jsPDF) return alert("Brak jsPDF");
-
-      const doc = new jsPDF("p", "pt", "a4");
-      doc.setFontSize(18);
-      doc.text("WYPIS SZPITALNY", 50, 50);
-      doc.setFontSize(11);
-      doc.text(`Data: ${payload.dateText}`, 50, 72);
-      doc.text(`Pacjent: ${payload.patientName}`, 50, 92);
-      doc.text(`Diagnoza: ${payload.diagnosis} (${payload.icdCode || "brak"})`, 50, 112);
-      doc.text(`Przebieg: ${payload.course || "-"}`, 50, 132);
-      doc.text("Leki:", 50, 162);
-
-      let y = 180;
-      (payload.meds || []).forEach((m, i) => {
-        doc.text(`${i + 1}. ${m.name} | ${m.dose} | ${m.slot} | ${m.category || "-"}`, 55, y);
-        y += 18;
-        if (y > 760) { doc.addPage(); y = 50; }
-      });
-      if (!(payload.meds || []).length) doc.text("Brak leków", 55, y);
-
-      doc.addPage();
-      doc.setFontSize(18);
-      doc.text("WYPIS SZPITALNY - STRONA 2", 50, 50);
-      doc.setFontSize(11);
-
-      const recLines = doc.splitTextToSize(`Zalecenia:\n${payload.recommendations || "-"}`, 500);
-      doc.text(recLines, 50, 90);
-
-      const safetyLines = doc.splitTextToSize(`Safety Net:\n${payload.safetyText || "-"}`, 500);
-      doc.text(safetyLines, 50, 250);
-
-      doc.rect(50, 670, 220, 100);
-      doc.text("Miejsce na pieczątkę", 60, 690);
-
-      doc.rect(320, 670, 220, 100);
-      doc.text("Podpis lekarza", 330, 690);
-      doc.text(`${payload.doctorName} (${payload.doctorRank})`, 330, 725);
-
-      const safeSurname = (payload.patientName || "Pacjent").split(" ").slice(-1)[0].replace(/[^\w\-ąćęłńóśźżĄĆĘŁŃÓŚŹŻ]/g, "_");
-      const fileDate = payload.fileDate;
-      doc.save(`Wypis_${safeSurname}_${fileDate}.pdf`);
-    }
-
     async function generujDokument() {
       const { p, key } = getActivePatientSafe();
       if (!p || !key) return alert("Wybierz pacjenta.");
@@ -1065,11 +915,10 @@
       const sessionDoc = getDoctorFromSession();
       const date = new Date();
       const dateText = date.toLocaleString("pl-PL");
-      const fileDate = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
 
       const meds = (window.exitMeds || []).map(m => {
         const full = (window.exitDrugCatalog || []).find(d => d.key === m.key) || {};
-        return { ...m, category: full.category || "-" };
+        return { ...m, category: m.category || full.category || "-" };
       });
 
       const safety = [];
@@ -1089,37 +938,75 @@
         safetyText: safety.join(" "),
         doctorName: sessionDoc.name,
         doctorRank: sessionDoc.rank,
-        dateText,
-        fileDate
+        dateText
       };
 
-      renderPreviewA4(payload);
-      downloadWypisPdf(payload);
+      pokazPodgladDokumentu(payload);
 
-      const histEntry = {
+      // zapis do historii w chmurze
+      const historyEntry = {
         id: Date.now(),
-        time: dateText,
-        ts: Date.now(),
+        type: "WYPIS",
+        createdAt: Date.now(),
         doc: sessionDoc.name,
         rank: sessionDoc.rank,
-        txt: `Wygenerowano dokument wypisowy PDF.\nDiagnoza: ${payload.diagnosis} (${payload.icdCode || "brak"})\nLeki:\n${meds.map(m => `- ${m.name} | ${m.dose} | ${m.slot}`).join("\n") || "-"}`,
-        generatedPdf: true
+        txt: `Wygenerowano wirtualną kartę wypisową.\nDiagnoza: ${payload.diagnosis} (${payload.icdCode || "brak"})\nLeki:\n${meds.map(m => `- ${m.name} | ${m.dose} | ${m.slot}`).join("\n") || "-"}`,
+        payload
       };
 
       p.history = p.history || [];
-      p.history.push(histEntry);
+      p.history.push({
+        id: historyEntry.id,
+        txt: historyEntry.txt,
+        doc: historyEntry.doc,
+        rank: historyEntry.rank,
+        time: new Date().toLocaleString(),
+        ts: Date.now(),
+        auth:["director","management","chief"].includes(sessionDoc.rank)
+      });
       synchronizuj();
 
       try {
-        await db.ref(`patients/${key}/history`).push({
-          type: "generated_document_pdf",
-          createdAt: Date.now(),
-          payload
-        });
+        await db.ref(`patients/${key}/history`).push(historyEntry);
       } catch(e) {}
     }
 
+    function finalizujWypis(){
+      if(!savePatientFields()) return;
+      if(!requirePatient()) return;
+
+      const p = pacjenci[aktywIdx];
+      const doc = document.getElementById("inp_doc").value.trim() || "Lekarz";
+      const rank = document.getElementById("inp_rank").value;
+
+      p.status = "Wypisany";
+      p.arch = true;
+      p.history = p.history || [];
+      p.history.push({
+        id:Date.now(),
+        txt:"Pacjent wypisany i przeniesiony do archiwum.",
+        doc,
+        rank,
+        time:new Date().toLocaleString(),
+        ts:Date.now(),
+        auth:["director","management","chief"].includes(rank)
+      });
+
+      synchronizuj();
+      setView("archive");
+      renderLista();
+      pokazHistorie();
+      alert("Pacjent wypisany i przeniesiony do archiwum.");
+    }
+
+    // Modal docs (minimum)
+    let docType = null;
+    function getActivePatientSafe(){ const p = pacjenci[aktywIdx] || null; const key = aktywKey || p?.firebaseKey || null; return { p, key }; }
+    function docOpen(type){ docType = type; const { p } = getActivePatientSafe(); if(!p) return alert("Wybierz pacjenta."); document.getElementById("docModalOverlay").style.display = "flex"; document.getElementById("docModalBody").innerHTML = `<div class="paperField">Tryb dokumentu: <b>${esc(type)}</b><br>Pacjent: <b>${esc(p.name || "-")}</b><br><small>Użyj przycisku "Drukuj" aby wygenerować podgląd cyfrowy.</small></div>`; }
+    function docClose(){ document.getElementById("docModalOverlay").style.display = "none"; docType = null; }
+
     // init
+    initClinicalDrugSelect();
     initExamSelects();
     listenToPatients();
     exitLoadDrugs();
@@ -1133,6 +1020,9 @@
     ["inp_adr","inp_job","inp_ins","inp_blood","inp_alergie","inp_reason","inp_status","inp_triage"].forEach(id=>{
       document.getElementById(id).addEventListener("change", ()=>{ if(savePatientFields()) synchronizuj(); });
     });
+
+    // Informacje medyczne generowane przez AI mają charakter poglądowy.
+    // Przed podaniem leku zawsze weryfikuj dawkę i wskazania.
   </script>
 </body>
 </html>
