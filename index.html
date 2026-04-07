@@ -90,14 +90,6 @@
     }
     .mood-btn.active{ background:rgba(162,155,254,.35); border-color:#cfc8ff; }
 
-    /* modal dokumentów */
-    #docModalOverlay { position:fixed; inset:0; background:rgba(6,8,13,.95); backdrop-filter:blur(10px); z-index:99999; display:none; align-items:center; justify-content:center; padding:18px; }
-    #docModal { width:min(1080px,98vw); background:rgba(28,31,34,.98); border:1px solid rgba(255,255,255,.12); border-radius:16px; overflow:hidden; box-shadow:0 20px 70px rgba(0,0,0,.65); }
-    #docModalHead { padding:14px 18px; background:#141619; border-bottom:1px solid rgba(255,255,255,.10); display:flex; justify-content:space-between; align-items:center; }
-    #docModalBody { padding:18px; max-height:70vh; overflow:auto; }
-    .doc-btn { background:rgba(54,170,255,.16); border:1px solid rgba(54,170,255,.45); color:#d8f6ff; padding:12px 14px; border-radius:12px; cursor:pointer; font-weight:900; text-transform:uppercase; }
-    .paperField { background:#0f1113; border:1px solid #333; border-radius:10px; padding:10px; }
-
     /* podgląd A4 */
     #previewOverlay {
       position: fixed; inset: 0; z-index: 100000;
@@ -110,7 +102,7 @@
     }
     .a4-page {
       width: 794px; min-height: 1123px; margin: 0 auto 16px auto;
-      background: #fff; color: #111; box-shadow: 0 0 30px rgba(0,0,0,.5); padding: 34px;
+      background: #fff; color: #111; box-shadow: 0 10px 30px rgba(0,0,0,.4); padding: 34px;
       font-family: Arial, sans-serif;
     }
     .a4-title { font-size: 24px; font-weight: 900; margin-bottom: 12px; }
@@ -125,7 +117,6 @@
     .stamp-box, .sign-box {
       height: 120px; border: 1px dashed #999; border-radius: 8px; padding: 10px;
     }
-    .stamp-box .lbl, .sign-box .lbl { font-size: 12px; color: #555; margin-bottom: 8px; font-weight: 700; }
     .sign-name { margin-top: 18px; font-size: 14px; font-weight: 700; }
     .preview-topbar { display:flex; justify-content:flex-end; gap:10px; margin-bottom:10px; }
   </style>
@@ -290,8 +281,7 @@
             </div>
           </div>
         </div>
-
-        <div id="tab-psych" class="tab-content hidden">
+                <div id="tab-psych" class="tab-content hidden">
           <div class="card" style="border-top:5px solid var(--psych);">
             <h3 style="color:var(--psych); margin:0 0 12px 0;">NOWY STANDARD - ZDROWIE BEHAWIORALNE</h3>
 
@@ -469,6 +459,7 @@
     </div>
   </div>
 
+  <!-- modal dokumentów (zostaje, prosty) -->
   <div id="docModalOverlay" onclick="if(event.target.id==='docModalOverlay') docClose()">
     <div id="docModal">
       <div id="docModalHead">
@@ -482,6 +473,7 @@
     </div>
   </div>
 
+  <!-- podgląd A4 -->
   <div id="previewOverlay">
     <div id="previewWrap">
       <div class="preview-topbar">
@@ -492,6 +484,7 @@
   </div>
 
   <script>
+    // ===== STATE =====
     let pacjenci = [];
     let aktywIdx = -1;
     let aktywKey = null;
@@ -577,72 +570,47 @@
     }
 
     function normalizePatients(v){
-      const toArray = (h) => {
-        if (!h) return [];
-        if (Array.isArray(h)) return h.filter(Boolean);
-        if (typeof h === "object") return Object.entries(h).map(([k,val]) => ({ firebaseKey: k, ...(val||{}) }));
-        return [];
-      };
-
-      const normalizeOne = (p, key) => {
-        const obj = { ...(p || {}) };
-        obj.firebaseKey = obj.firebaseKey || key || null;
-        obj.history = toArray(obj.history).sort((a,b) => (a.ts||0) - (b.ts||0));
-        if (obj.documents && !Array.isArray(obj.documents) && typeof obj.documents === "object") {
-          obj.documents = Object.entries(obj.documents).map(([k,val]) => ({ firebaseKey: k, ...(val||{}) }));
-        }
-        return obj;
-      };
-
       if(!v) return [];
-      if(Array.isArray(v)) return v.filter(Boolean).map((p,i)=> normalizeOne(p, p?.firebaseKey || String(i)));
-      return Object.entries(v).map(([k,p])=> normalizeOne(p, k));
+      if(Array.isArray(v)) return v.filter(Boolean).map((p,i)=>({ ...(p||{}), firebaseKey:p.firebaseKey || String(i) }));
+      return Object.entries(v).map(([k,p])=>({ ...(p||{}), firebaseKey:k }));
     }
 
+    // ===== FIX: listenToPatients z fallbackiem + bez kasowania bazy =====
     function listenToPatients(){
       db.ref("patients").on("value", snap => {
         const val = snap.val();
-        const keys = val && typeof val === "object" && !Array.isArray(val) ? Object.keys(val) : [];
-        const isEmpty = val == null || (Array.isArray(val) && val.length === 0) || (!Array.isArray(val) && keys.length === 0);
 
-        if (isEmpty) {
+        if (!val) {
           db.ref("pacjenci").once("value").then(oldSnap => {
             const oldVal = oldSnap.val();
-            firebaseReady = true;
-            pacjenci = normalizePatients(oldVal || {});
-            updateStats(); renderLista();
-            if (aktywIdx !== -1
-                            if (aktywIdx !== -1 && pacjenci[aktywIdx]) odswiezDanePacjenta();
-          }).catch(err => {
-            console.error("Firebase odczyt (fallback pacjenci):", err.code, err.message);
-            firebaseReady = true;
-            pacjenci = [];
-            updateStats(); renderLista();
+            if (oldVal) {
+              if (!firebaseReady) firebaseReady = true;
+              pacjenci = normalizePatients(oldVal);
+              updateStats(); renderLista();
+              if (aktywIdx !== -1 && pacjenci[aktywIdx]) odswiezDanePacjenta();
+            } else {
+              pacjenci = [];
+              updateStats(); renderLista();
+            }
           });
           return;
         }
 
-        firebaseReady = true;
+        if (!firebaseReady) firebaseReady = true;
         pacjenci = normalizePatients(val);
 
         if (aktywKey) {
           const n = pacjenci.findIndex(p => p.firebaseKey === aktywKey);
           if (n !== -1) aktywIdx = n;
-          else {
-            aktywIdx = -1;
-            aktywKey = null;
-            document.getElementById("interface")?.classList.add("hidden");
-          }
+          else { aktywIdx = -1; aktywKey = null; document.getElementById("interface")?.classList.add("hidden"); }
         }
 
         updateStats(); renderLista();
         if (aktywIdx !== -1 && pacjenci[aktywIdx]) odswiezDanePacjenta();
-      }, err => {
-        console.error("Firebase listenToPatients error:", err.code, err.message, err);
-        alert("Błąd Firebase: " + (err.message || err.code || "Permission denied"));
       });
     }
 
+    // ===== FIX: synchronizuj tylko aktywnego pacjenta (update), NIE set całej bazy =====
     function synchronizuj(){
       if(!firebaseReady) return;
       if(aktywIdx === -1 || !pacjenci[aktywIdx]) return;
@@ -651,11 +619,7 @@
       if(!p.firebaseKey) return;
 
       const { firebaseKey, ...rest } = p;
-
-      // history zapisujemy osobno przez push (żeby nie mieszać obiekt/tablica)
-      const { history, ...safeRest } = rest;
-
-      db.ref("patients/" + firebaseKey).update(safeRest).catch(e => console.error("Firebase update patient:", e));
+      db.ref("patients/" + firebaseKey).update(rest);
     }
 
     function nowyPacjent(){
@@ -665,29 +629,11 @@
       const ob = {
         name:n, adr:"", job:"", ins:"", insNumber:"", blood:"Nieznana", alergie:"",
         reason:"", status:"Stabilny", triage:"none", cert:"BRAK", arch:false, role:"user", createdAt:Date.now(),
-        history:[{
-          id:Date.now(),
-          ts:Date.now(),
-          time:new Date().toLocaleString(),
-          type:"Note",
-          content:"Zarejestrowano pacjenta",
-          txt:"Zarejestrowano pacjenta",
-          doc:"SYSTEM",
-          doctor:"SYSTEM",
-          rank:"Automatyczny"
-        }]
+        history:[{ id:Date.now(), txt:"Zarejestrowano pacjenta", doc:"SYSTEM", rank:"Automatyczny", time:new Date().toLocaleString(), ts:Date.now() }]
       };
 
-      console.log("Próba dodania:", ob);
-      db.ref("patients").push(ob)
-        .then(() => {
-          alert("Pacjent dodany pomyślnie!");
-          document.getElementById("add_name").value = "";
-        })
-        .catch(err => {
-          console.error("Firebase push:", err.code, err.message, err);
-          alert("Błąd zapisu: " + (err.message || err.code || "Permission denied — sprawdź Rules w Firebase."));
-        });
+      db.ref("patients").push(ob);
+      document.getElementById("add_name").value = "";
     }
 
     function setView(v){
@@ -733,18 +679,12 @@
         }
       });
     }
-
-    function usunPacjenta(i){
+        function usunPacjenta(i){
       if(!pacjenci[i]) return;
       const key = pacjenci[i].firebaseKey;
       if(!key) return;
       if(!confirm("Czy usunąć kartotekę: "+(pacjenci[i].name||"")+"?")) return;
-
-      db.ref("patients/"+key).remove().catch(err => {
-        console.error("Firebase remove:", err.code, err.message, err);
-        alert("Błąd usuwania: " + (err.message || err.code));
-      });
-
+      db.ref("patients/"+key).remove();
       if(aktywIdx === i){
         aktywIdx = -1;
         aktywKey = null;
@@ -777,16 +717,14 @@
         const s = JSON.parse(raw);
         const name = s.name || s.fullName || s.login || "";
         const rank = s.rank || s.ranga || "";
-
         if(name) document.getElementById("inp_doc").value = name;
         if(rank){
           const sel = document.getElementById("inp_rank");
           const opts = [...sel.options].map(o => o.value);
           if(opts.includes(rank)) sel.value = rank;
         }
-
-        const selRank = document.getElementById("inp_rank");
-        if(String(selRank?.value || rank).toLowerCase().includes("medical student")){
+        if(String(sel?.value || rank).toLowerCase().includes("medical student")){
+          /* opcjonalna adnotacja w notatniku — tylko jeśli pusto */
           const n = document.getElementById("inp_note");
           if(n && !n.value.includes("Do zatwierdzenia")) n.placeholder = "Do zatwierdzenia przez lekarza prowadzącego — wpisz treść...";
         }
@@ -796,7 +734,6 @@
     function odswiezDanePacjenta(){
       if(aktywIdx===-1 || !pacjenci[aktywIdx]) return;
       const p = pacjenci[aktywIdx];
-
       document.getElementById("disp_name").innerText = p.name || "";
       document.getElementById("inp_adr").value = p.adr || "";
       document.getElementById("inp_job").value = p.job || "";
@@ -806,23 +743,19 @@
       document.getElementById("inp_reason").value = p.reason || "";
       document.getElementById("inp_status").value = p.status || "Stabilny";
       document.getElementById("inp_triage").value = p.triage || "none";
-
       updateTriageVisuals();
       updateCertVisuals(p.cert || "BRAK");
-
       window.exitMeds = Array.isArray(p.exitMeds) ? p.exitMeds : [];
       exitLoadDrugs();
       exitRenderMeds();
       exitUpdateSafetyUI();
       paintMoodButtons();
-
       pokazHistorie();
     }
 
     function savePatientFields(){
       if(aktywIdx===-1 || !pacjenci[aktywIdx]) return false;
       const p = pacjenci[aktywIdx];
-
       p.adr = document.getElementById("inp_adr").value;
       p.job = document.getElementById("inp_job").value;
       p.ins = document.getElementById("inp_ins").value;
@@ -839,64 +772,32 @@
     function addNote(t){ const el = document.getElementById("inp_note"); el.value += (el.value ? "\n":"") + t; }
 
     function pushHistoryEntry(entry){
-      if(!requirePatient()){
-        alert("Błąd: Nie wybrano pacjenta!");
-        return;
-      }
+      if(!requirePatient()) return;
       const p = pacjenci[aktywIdx];
-      const key = p.firebaseKey || aktywKey;
-      if(!key){
-        alert("Błąd: Nie wybrano pacjenta!");
-        return;
-      }
-
-      const e = {
-        id: entry.id || Date.now(),
-        ts: entry.ts || Date.now(),
-        time: entry.time || new Date().toLocaleString(),
-        type: entry.type || "Note",
-        doctor: entry.doctor || entry.doc || (document.getElementById("inp_doc")?.value || "Lekarz"),
-        rank: entry.rank || (document.getElementById("inp_rank")?.value || "doctor"),
-        content: entry.content || entry.txt || "",
-        txt: entry.txt || entry.content || "",
-        doc: entry.doc || entry.doctor || (document.getElementById("inp_doc")?.value || "Lekarz"),
-        auth: !!entry.auth
-      };
-
-      p.history = Array.isArray(p.history) ? p.history : [];
-      p.history.push(e);
-      pokazHistorie();
-
-      db.ref("patients/" + key + "/history").push(e)
-        .catch(err => {
-          console.error("Firebase push history:", err.code, err.message, err);
-          alert("Błąd zapisu historii: " + (err.message || err.code));
-        });
-
+      p.history = p.history || [];
+      p.history.push(entry);
+      const key = p.firebaseKey;
+      if(key) db.ref("patients/"+key+"/history").push(entry);
       synchronizuj();
     }
 
     function zapiszWpis(){
       if(!savePatientFields()) return;
-
       const txt = document.getElementById("inp_note").value.trim();
-      if(!txt) return;
-
       const doc = document.getElementById("inp_doc").value.trim() || "Lekarz";
       const rank = document.getElementById("inp_rank").value;
-
+      if(!txt) return;
       pushHistoryEntry({
-        type: "Note",
-        content: txt,
+        id:Date.now(),
+        txt,
         doc,
-        doctor: doc,
         rank,
-        ts: Date.now(),
-        time: new Date().toLocaleString(),
+        time:new Date().toLocaleString(),
+        ts:Date.now(),
         auth:["director","management","chief"].includes(rank)
       });
-
       document.getElementById("inp_note").value = "";
+      pokazHistorie();
     }
 
     function usunWpis(idx){
@@ -914,18 +815,12 @@
       const p = pacjenci[aktywIdx];
       c.innerHTML = "<h3>HISTORIA MEDYCZNA</h3>";
       if(!p || !p.history || !p.history.length) return;
-
       const canDelete = ["director","management","chief"].includes(document.getElementById("inp_rank").value);
-
       p.history.slice().reverse().forEach((h,revIdx)=>{
         const realIdx = p.history.length - 1 - revIdx;
         const div = document.createElement("div");
         div.className = `history-item ${h.auth ? "history-auth" : ""}`;
-        div.innerHTML =
-          `${canDelete ? `<button class="del-entry-btn" onclick="usunWpis(${realIdx})">USUŃ</button>` : ""}`+
-          `<small>${esc(h.time||"")}</small>\n`+
-          `${esc(h.txt||h.content||"")}\n`+
-          `<b>${esc(h.doc||h.doctor||"")}</b> (${esc(h.rank||"")})`;
+        div.innerHTML = `${canDelete ? `<button class="del-entry-btn" onclick="usunWpis(${realIdx})">USUŃ</button>` : ""}<small>${esc(h.time||"")}</small>\n${esc(h.txt||"")}\n<b>${esc(h.doc||"")}</b> (${esc(h.rank||"")})`;
         c.appendChild(div);
       });
     }
@@ -977,17 +872,13 @@
     function podajLek(){
       if(!savePatientFields()) return;
       if(!requirePatient()) return;
-
       const key = document.getElementById("sel_lek").value;
       const name = drugLabelFromSelect() || key;
       const dose = document.getElementById("med_dose").value;
       const unit = document.getElementById("med_unit").value;
       const route = document.getElementById("med_route").value;
-
       const meta = flattenMedicationDatabase().find(d => d.key === key) || { category:"-", conflictGroup:"" };
-
       addNote(`PODANO: ${name} | DAWKA: ${dose}${unit} | DROGA: ${route}`);
-
       window.exitMeds = window.exitMeds || [];
       window.exitMeds.push({
         id:"MED-"+Date.now(),
@@ -998,7 +889,6 @@
         conflictGroup: meta.conflictGroup || "",
         category: meta.category || "-"
       });
-
       pacjenci[aktywIdx].exitMeds = window.exitMeds;
       exitRenderMeds();
       synchronizuj();
@@ -1044,7 +934,6 @@
     function zapiszPsychNowy(){
       if(!savePatientFields()) return;
       if(!requirePatient()) return;
-
       const txt = [
         "PSYCH (nowy standard)",
         "Orientacja: "+document.getElementById("psy_orientation").value,
@@ -1055,23 +944,21 @@
         "",
         document.getElementById("psy_notes").value.trim()
       ].join("\n");
-
       const doc = document.getElementById("inp_doc").value.trim() || "Lekarz";
       const rank = document.getElementById("inp_rank").value;
       let note = "";
       if(String(rank).toLowerCase().includes("medical student")) note = "\nDo zatwierdzenia przez lekarza prowadzącego.";
-
       pushHistoryEntry({
-        type: "Psych",
-        content: txt+note,
+        id:Date.now(),
+        txt: txt+note,
         doc,
-        doctor: doc,
         rank,
-        ts: Date.now(),
-        time: new Date().toLocaleString(),
+        time:new Date().toLocaleString(),
+        ts:Date.now(),
+        type:"psych",
         auth:["director","management","chief"].includes(rank)
       });
-
+      pokazHistorie();
       alert("Zapisano behawioralne do historii.");
     }
 
@@ -1154,17 +1041,12 @@
       const conflictEl = document.getElementById("exit_med_conflict");
       const bySlot = { "Rano":[], "Południe":[], "Wieczór":[] };
       (window.exitMeds||[]).forEach(m => bySlot[m.slot]?.push(m));
-            table.innerHTML = (window.exitMeds||[]).length ? window.exitMeds.map(m => `
+      table.innerHTML = (window.exitMeds||[]).length ? window.exitMeds.map(m => `
         <div style="display:flex; justify-content:space-between; gap:10px; padding:8px 0; border-bottom:1px solid rgba(255,255,255,.08);">
-          <div>
-            <div style="font-weight:900;">${esc(m.name)}</div>
-            <div style="font-size:12px; color:#cfd7e3;">${esc(m.dose)} | ${esc(m.slot)} | ${esc(m.category || "-")}</div>
-          </div>
+          <div><div style="font-weight:900;">${esc(m.name)}</div><div style="font-size:12px; color:#cfd7e3;">${esc(m.dose)} | ${esc(m.slot)} | ${esc(m.category || "-")}</div></div>
           <button type="button" onclick="exitRemoveMedication('${esc(m.id)}')" style="background:rgba(255,71,87,.18); border:1px solid rgba(255,71,87,.55); color:#ffc2cb; padding:8px 10px; border-radius:10px; font-weight:900;">Usuń</button>
         </div>`).join("") : `<div style="color:#9ca8ba; font-weight:800;">Brak leków.</div>`;
-
       summary.innerText = ["Rano","Południe","Wieczór"].map(slot => `${slot}: ${bySlot[slot].length ? bySlot[slot].map(x=>`${x.name} (${x.dose})`).join(", ") : "Brak"}`).join("\n");
-
       let warn = "";
       ["Rano","Południe","Wieczór"].forEach(slot => {
         const arr = bySlot[slot];
@@ -1219,10 +1101,8 @@
     function pokazPodgladDokumentu(payload){
       const pages = document.getElementById("previewPages");
       const overlay = document.getElementById("previewOverlay");
-
       const medsRows = (payload.meds||[]).map(m => `<tr><td>${esc(m.name)}</td><td>${esc(m.dose)}</td><td>${esc(m.slot)}</td><td>${esc(m.category)}</td></tr>`).join("") || `<tr><td colspan="4">Brak leków</td></tr>`;
       const clinic = esc(payload.clinicName || "Placówka medyczna");
-
       pages.innerHTML = `
         <div class="a4-page">
           <div class="a4-title">${clinic}</div>
@@ -1254,25 +1134,19 @@
         return;
       }
       if(!savePatientFields()) return;
-      if(!requirePatient()){
-        alert("Błąd: Nie wybrano pacjenta!");
-        return;
-      }
-
+      if(!requirePatient()) return;
       const p = pacjenci[aktywIdx];
+      const key = p.firebaseKey;
       const sessionDoc = getDoctorFromSession();
       const date = new Date();
       const dateText = date.toLocaleString("pl-PL");
-
       const meds = (window.exitMeds||[]).map(m => ({...m, category: m.category || "-"}));
-
       const temp = Number(document.getElementById("exit_temp_c").value||0);
       const pain = Number(document.getElementById("exit_pain").value||0);
       const safety = [];
       if(temp>39) safety.push("Gorączka >39°C — pilny kontakt.");
       if(pain>=8) safety.push("Ból >=8/10 — pilny kontakt.");
       if(!safety.length) safety.push("Brak sygnałów alarmowych w formularzu.");
-
       const payload = {
         clinicName: "River City Hospital",
         patientName: p.name||"-",
@@ -1288,43 +1162,39 @@
         doctorRank: sessionDoc.rank,
         dateText
       };
-
       pokazPodgladDokumentu(payload);
-
-      pushHistoryEntry({
-        type: "Wypis",
-        content: JSON.stringify(payload),
-        doc: sessionDoc.name,
-        doctor: sessionDoc.name,
-        rank: sessionDoc.rank,
+      const hist = {
+        id: Date.now(),
+        type: "WYPIS_PREVIEW",
+        time: dateText,
         ts: Date.now(),
-        time: dateText
-      });
+        doc: sessionDoc.name,
+        rank: sessionDoc.rank,
+        txt: "Podgląd karty wypisowej (cyfrowy).\n"+JSON.stringify(payload),
+        payload
+      };
+      p.history = p.history || [];
+      p.history.push(hist);
+      if(key) db.ref("patients/"+key+"/history").push(hist);
+      synchronizuj();
+      pokazHistorie();
     }
 
     function finalizujWypis(){
+      generujDokument();
       if(!savePatientFields()) return;
-      if(!requirePatient()){
-        alert("Błąd: Nie wybrano pacjenta!");
-        return;
-      }
-
+      if(!requirePatient()) return;
       const p = pacjenci[aktywIdx];
+      const key = p.firebaseKey;
       const doc = document.getElementById("inp_doc").value.trim() || "Lekarz";
       const rank = document.getElementById("inp_rank").value;
-
       const dischargeText = [
         "WYPIS — zakończenie hospitalizacji",
         new Date().toLocaleString("pl-PL"),
         "Diagnoza: "+(document.getElementById("exit_diagnosis").value||"-"),
         "ICD: "+(document.getElementById("exit_icd_code").value||"-"),
-        "Przebieg: "+(document.getElementById("exit_course").value||"-"),
-        "Leczenie: "+(document.getElementById("exit_treatment").value||"-"),
-        "Badania: "+(document.getElementById("exit_tests").value||"-"),
-        "Leki: "+(window.exitMeds||[]).map(m=>m.name+" "+m.dose).join("; "),
-        "Zalecenia: "+(document.getElementById("exit_recommendations").value||"-")
+        "Leki: "+(window.exitMeds||[]).map(m=>m.name+" "+m.dose).join("; ")
       ].join("\n");
-
       p.status = "Wypisany";
       p.arch = true;
       p.discharge = {
@@ -1337,19 +1207,11 @@
         meds: window.exitMeds||[],
         generatedAt: Date.now()
       };
-
+      const hist = { id:Date.now(), txt: dischargeText, doc, rank, time:new Date().toLocaleString(), ts:Date.now(), type:"WYPIS_FINAL" };
+      p.history = p.history || [];
+      p.history.push(hist);
+      if(key) db.ref("patients/"+key+"/history").push(hist);
       synchronizuj();
-
-      pushHistoryEntry({
-        type: "Wypis",
-        content: dischargeText,
-        doc,
-        doctor: doc,
-        rank,
-        ts: Date.now(),
-        time: new Date().toLocaleString("pl-PL")
-      });
-
       setView("archive");
       alert("Hospitalizacja zakończona — pacjent w archiwum.");
     }
@@ -1375,28 +1237,24 @@
     function docSavePreview(){
       if(!requirePatient()) return;
       const p = pacjenci[aktywIdx];
+      const key = p.firebaseKey;
       const sessionDoc = getDoctorFromSession();
-
       let title = "Dokument";
       let body = "";
       if(docType==="l4"){ title="L4"; body = "L4: "+(document.getElementById("l4_uwagi")?.value||""); }
       if(docType==="death"){ title="Karta zgonu"; body = "Zgon: "+(document.getElementById("death_cause")?.value||""); }
       if(docType==="ref"){ title="Skierowanie"; body = "Do: "+(document.getElementById("ref_do")?.value||"")+"\n"+(document.getElementById("ref_why")?.value||""); }
       if(docType==="health"){ title="Zaświadczenie"; body = document.getElementById("health_txt")?.value||""; }
-
       const docRec = { type: docType, title, body, createdAt: Date.now(), doc: sessionDoc.name, rank: sessionDoc.rank };
-      if(p.firebaseKey) db.ref("patients/"+p.firebaseKey+"/documents").push(docRec);
-
-      pushHistoryEntry({
-        type: "Dokument",
-        content: title+"\n"+body,
-        doc: sessionDoc.name,
-        doctor: sessionDoc.name,
-        rank: sessionDoc.rank,
-        ts: Date.now(),
-        time: new Date().toLocaleString("pl-PL")
-      });
-
+      p.documents = p.documents || {};
+      p.documents["doc_"+Date.now()] = docRec;
+      if(key) db.ref("patients/"+key+"/documents").push(docRec);
+      const hist = { id:Date.now(), type:"DOKUMENT", txt: title+"\n"+body, doc: sessionDoc.name, rank: sessionDoc.rank, time:new Date().toLocaleString(), ts:Date.now() };
+      p.history = p.history || [];
+      p.history.push(hist);
+      if(key) db.ref("patients/"+key+"/history").push(hist);
+      synchronizuj();
+      pokazHistorie();
       pokazPodgladDokumentu({
         clinicName: "River City Hospital",
         patientName: p.name,
@@ -1412,22 +1270,18 @@
         doctorRank: sessionDoc.rank,
         dateText: new Date().toLocaleString("pl-PL")
       });
-
       docClose();
     }
 
-    // INIT
     initExamSelects();
     initClinicalDrugSelect();
     listenToPatients();
     exitLoadDrugs();
     exitRenderMeds();
     exitUpdateSafetyUI();
-
     document.getElementById("exit_temp_c").addEventListener("input", exitUpdateSafetyUI);
     document.getElementById("exit_pain").addEventListener("input", exitUpdateSafetyUI);
     document.getElementById("inp_rank").addEventListener("change", () => { renderLista(); if(aktywIdx !== -1) pokazHistorie(); });
-
     ["inp_adr","inp_job","inp_ins","inp_blood","inp_alergie","inp_reason","inp_status","inp_triage"].forEach(id=>{
       document.getElementById(id).addEventListener("change", ()=>{ if(savePatientFields()) synchronizuj(); });
     });
